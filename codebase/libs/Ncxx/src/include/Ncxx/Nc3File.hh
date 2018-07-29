@@ -43,6 +43,7 @@
 #define Nc3File_HH
 
 #include <Ncxx/Nc3Values.hh>    // arrays that know their element type
+#include <sys/types.h>
 
 typedef const char* Nc3Token;    // names for netCDF objects
 typedef unsigned int Nc3Bool;    // many members return 0 on failure
@@ -116,6 +117,7 @@ public:
   Nc3Bool add_att( Nc3Token attname, short );
   Nc3Bool add_att( Nc3Token attname, long );
   Nc3Bool add_att( Nc3Token attname, int );
+  Nc3Bool add_att( Nc3Token attname, int64_t );
   Nc3Bool add_att( Nc3Token attname, float );
   Nc3Bool add_att( Nc3Token attname, double );
   Nc3Bool add_att( Nc3Token attname, const char*);       // string attribute
@@ -124,6 +126,7 @@ public:
   Nc3Bool add_att( Nc3Token attname, int, const short* );
   Nc3Bool add_att( Nc3Token attname, int, const long* );
   Nc3Bool add_att( Nc3Token attname, int, const int* );
+  Nc3Bool add_att( Nc3Token attname, int, const int64_t* );
   Nc3Bool add_att( Nc3Token attname, int, const float* );
   Nc3Bool add_att( Nc3Token attname, int, const double* );
 
@@ -190,7 +193,7 @@ private:
   Nc3Dim(Nc3File*, int num);	// existing dimension
   Nc3Dim(Nc3File*, Nc3Token name, long sz); // defines a new dim
   virtual ~Nc3Dim( void );
-    
+
   // to construct dimensions, since constructor is private
   friend class Nc3File;
 };
@@ -326,6 +329,7 @@ public:
   Nc3Bool add_att( Nc3Token, short );
   Nc3Bool add_att( Nc3Token, int );
   Nc3Bool add_att( Nc3Token, long );
+  Nc3Bool add_att( Nc3Token, int64_t);
   Nc3Bool add_att( Nc3Token, float );
   Nc3Bool add_att( Nc3Token, double );
   Nc3Bool add_att( Nc3Token, const char* );      // string attribute
@@ -333,6 +337,7 @@ public:
   Nc3Bool add_att( Nc3Token, int, const ncbyte* );
   Nc3Bool add_att( Nc3Token, int, const short* );
   Nc3Bool add_att( Nc3Token, int, const int* );
+  Nc3Bool add_att( Nc3Token, int, const int64_t* );
   Nc3Bool add_att( Nc3Token, int, const long* );
   Nc3Bool add_att( Nc3Token, int, const float* );
   Nc3Bool add_att( Nc3Token, int, const double* );
