@@ -224,7 +224,8 @@ public:
   virtual ncbyte as_ncbyte( long n ) const;    // nth value as an unsgnd char
   virtual char as_char( long n ) const;        // nth value as char
   virtual short as_short( long n ) const;      // nth value as short
-  virtual int as_int( long n ) const;	         // nth value as int
+  virtual int as_int( long n ) const;	       // nth value as int
+  virtual int64_t as_int64( long n ) const;    // nth value as int64
   virtual int as_nclong( long n ) const;       // nth value as nclong (deprecated)
   virtual long as_long( long n ) const;        // nth value as long
   virtual float as_float( long n ) const;      // nth value as floating-point

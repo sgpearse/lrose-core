@@ -689,6 +689,13 @@ int Nc3TypedComponent::as_int( long n ) const {
   return rval;
 }
 
+int64_t Nc3TypedComponent::as_int64( long n ) const {
+  Nc3Values* tmp = values();
+  int64_t rval = tmp->as_int64(n);
+  delete tmp;
+  return rval;
+}
+
 nclong Nc3TypedComponent::as_nclong( long n ) const {
   Nc3Values* tmp = values();
   nclong rval = tmp->as_nclong(n);
