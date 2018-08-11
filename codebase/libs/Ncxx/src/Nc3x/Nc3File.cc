@@ -233,10 +233,11 @@ Nc3Var* Nc3File::add_var(Nc3Token name, Nc3Type type, int ndims, const Nc3Dim** 
   return varp;
 }
 
-// #define Nc3File_add_scalar_att(TYPE)                    \
-//   Nc3Bool Nc3File::add_att(Nc3Token aname, TYPE val)    \
-//   {                                                     \
-//     return globalv->add_att(aname, val);                \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3File_add_scalar_att(TYPE)                    
+//   Nc3Bool Nc3File::add_att(Nc3Token aname, TYPE val)    
+//   {                                                     
+//     return globalv->add_att(aname, val);                
 //   }
 
 // Nc3File_add_scalar_att(char)
@@ -268,7 +269,7 @@ Nc3Bool Nc3File::add_att(Nc3Token aname, int val)
   return globalv->add_att(aname, val);
 }
 
-Nc3Bool Nc3File::add_att(Nc3Token aname, int64_t val)
+Nc3Bool Nc3File::add_att(Nc3Token aname, long long val)
 {
   return globalv->add_att(aname, val);
 }
@@ -293,12 +294,12 @@ Nc3Bool Nc3File::add_att(Nc3Token aname, const char * val)
   return globalv->add_att(aname, val);
 }
 
-// #define Nc3File_add_vector_att(TYPE)                                    \
-//   Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const TYPE* val)      \
-//   {                                                                     \
-//     return globalv->add_att(aname, n, val);                             \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3File_add_vector_att(TYPE)                                    
+//   Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const TYPE* val)      
+//   {                                                                     
+//     return globalv->add_att(aname, n, val);                             
 //   }
-
 //   Nc3File_add_vector_att(char)
 //   Nc3File_add_vector_att(ncbyte)
 //   Nc3File_add_vector_att(short)
@@ -307,10 +308,10 @@ Nc3Bool Nc3File::add_att(Nc3Token aname, const char * val)
 //   Nc3File_add_vector_att(float)
 //   Nc3File_add_vector_att(double)
 
-  Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const char* val)
-  {
-    return globalv->add_att(aname, n, val);
-  }
+Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const char* val)
+{
+  return globalv->add_att(aname, n, val);
+}
 
 Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const ncbyte* val)
 {
@@ -327,7 +328,7 @@ Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const int* val)
   return globalv->add_att(aname, n, val);
 }
 
-Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const int64_t* val)
+Nc3Bool Nc3File::add_att(Nc3Token aname, int n, const long long* val)
 {
   return globalv->add_att(aname, n, val);
 }
@@ -643,14 +644,15 @@ Nc3Dim::~Nc3Dim( void )
   delete [] the_name;
 }
 
+// OLD MACRO DEFINITION - now explicitly expanded in the code
 // #define Nc_as(TYPE) name2(as_,TYPE)
-// #define Nc3TypedComponent_as(TYPE)                      \
-//   TYPE Nc3TypedComponent::Nc_as(TYPE)( long n ) const   \
-//   {                                                     \
-//     Nc3Values* tmp = values();                          \
-//     TYPE rval = tmp->Nc_as(TYPE)(n);                    \
-//     delete tmp;                                         \
-//     return rval;                                        \
+// #define Nc3TypedComponent_as(TYPE)                      
+//   TYPE Nc3TypedComponent::Nc_as(TYPE)( long n ) const   
+//   {                                                     
+//     Nc3Values* tmp = values();                          
+//     TYPE rval = tmp->Nc_as(TYPE)(n);                    
+//     delete tmp;                                         
+//     return rval;                                        
 //   }
 // Nc3TypedComponent_as(ncbyte)
 //   Nc3TypedComponent_as(char)
@@ -1040,42 +1042,43 @@ Nc3Values* Nc3Var::get_rec(Nc3Dim* rdim, long slice)
   return valp;
 } 
 
-// #define Nc3Var_put_rec(TYPE)                                    \
-//   Nc3Bool Nc3Var::put_rec( const TYPE* vals)                    \
-//   {                                                             \
-//     return put_rec(get_dim(0), vals, cur_rec[0]);               \
-//   }                                                             \
-//                                                                 \
-//   Nc3Bool Nc3Var::put_rec( Nc3Dim *rdim, const TYPE* vals)      \
-//   {                                                             \
-//     int idx = dim_to_index(rdim);                               \
-//     return put_rec(rdim, vals, cur_rec[idx]);                   \
-//   }                                                             \
-//                                                                 \
-//   Nc3Bool Nc3Var::put_rec( const TYPE* vals,                    \
-//                            long rec)                            \
-//   {                                                             \
-//     return put_rec(get_dim(0), vals, rec);                      \
-//   }                                                             \
-//                                                                 \
-//   Nc3Bool Nc3Var::put_rec( Nc3Dim* rdim, const TYPE* vals,      \
-//                            long slice)                          \
-//   {                                                             \
-//     int idx = dim_to_index(rdim);                               \
-//     long size = num_dims();                                     \
-//     long* start = new long[size];                               \
-//     for (int i=1; i < size ; i++) start[i] = 0;                 \
-//     start[idx] = slice;                                         \
-//     Nc3Bool result = set_cur(start);                            \
-//     delete [] start;                                            \
-//     if (! result )                                              \
-//       return FALSE;                                             \
-//                                                                 \
-//     long* edge = edges();                                       \
-//     edge[idx] = 1;                                              \
-//     result = put(vals, edge);                                   \
-//     delete [] edge;                                             \
-//     return result;                                              \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_put_rec(TYPE)                                    
+//   Nc3Bool Nc3Var::put_rec( const TYPE* vals)                    
+//   {                                                             
+//     return put_rec(get_dim(0), vals, cur_rec[0]);               
+//   }                                                             
+//                                                                 
+//   Nc3Bool Nc3Var::put_rec( Nc3Dim *rdim, const TYPE* vals)      
+//   {                                                             
+//     int idx = dim_to_index(rdim);                               
+//     return put_rec(rdim, vals, cur_rec[idx]);                   
+//   }                                                             
+//                                                                 
+//   Nc3Bool Nc3Var::put_rec( const TYPE* vals,                    
+//                            long rec)                            
+//   {                                                             
+//     return put_rec(get_dim(0), vals, rec);                      
+//   }                                                             
+//                                                                 
+//   Nc3Bool Nc3Var::put_rec( Nc3Dim* rdim, const TYPE* vals,      
+//                            long slice)                          
+//   {                                                             
+//     int idx = dim_to_index(rdim);                               
+//     long size = num_dims();                                     
+//     long* start = new long[size];                               
+//     for (int i=1; i < size ; i++) start[i] = 0;                 
+//     start[idx] = slice;                                         
+//     Nc3Bool result = set_cur(start);                            
+//     delete [] start;                                            
+//     if (! result )                                              
+//       return FALSE;                                             
+//                                                                 
+//     long* edge = edges();                                       
+//     edge[idx] = 1;                                              
+//     result = put(vals, edge);                                   
+//     delete [] edge;                                             
+//     return result;                                              
 //   }
 
 // Nc3Var_put_rec(ncbyte)
@@ -1285,33 +1288,34 @@ long Nc3Var::rec_size(Nc3Dim *rdim) {
   return size;
 }
 
-// #define Nc3Var_get_index(TYPE)                                          \
-//   long Nc3Var::get_index(const TYPE* key)                               \
-//   {                                                                     \
-//    return get_index(get_dim(0), key);                                   \
-//    }                                                                    \
-//                                                                         \
-//   long Nc3Var::get_index(Nc3Dim *rdim, const TYPE* key)                 \
-//   {                                                                     \
-//    if (type() != Nc3TypeEnum(TYPE))                                     \
-//      return -1;                                                         \
-//    if (! the_file->data_mode())                                         \
-//      return -1;                                                         \
-//    int idx = dim_to_index(rdim);                                        \
-//    long maxrec = get_dim(idx)->size();                                  \
-//    long maxvals = rec_size(rdim);                                       \
-//    Nc3Values* val;                                                      \
-//    int validx;                                                          \
-//    for (long j=0; j<maxrec; j++) {                                      \
-//                                   val = get_rec(rdim,j);                \
-//                                   if (val == NULL) return -1;           \
-//                                   for (validx = 0; validx < maxvals; validx++) { \
-//                                                                                 if (key[validx] != val->as_ ## TYPE(validx)) break; \
-//                                                                                 } \
-//                                   delete val;                           \
-//                                   if (validx == maxvals) return j;      \
-//                                   }                                     \
-//    return -1;                                                           \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_get_index(TYPE)                                          
+//   long Nc3Var::get_index(const TYPE* key)                               
+//   {                                                                     
+//    return get_index(get_dim(0), key);                                   
+//    }                                                                    
+//                                                                         
+//   long Nc3Var::get_index(Nc3Dim *rdim, const TYPE* key)                 
+//   {                                                                     
+//    if (type() != Nc3TypeEnum(TYPE))                                     
+//      return -1;                                                         
+//    if (! the_file->data_mode())                                         
+//      return -1;                                                         
+//    int idx = dim_to_index(rdim);                                        
+//    long maxrec = get_dim(idx)->size();                                  
+//    long maxvals = rec_size(rdim);                                       
+//    Nc3Values* val;                                                      
+//    int validx;                                                          
+//    for (long j=0; j<maxrec; j++) {                                      
+//                                   val = get_rec(rdim,j);                
+//                                   if (val == NULL) return -1;           
+//                                   for (validx = 0; validx < maxvals; validx++) { 
+//                                                                                 if (key[validx] != val->as_ ## TYPE(validx)) break; 
+//                                                                                 } 
+//                                   delete val;                           
+//                                   if (validx == maxvals) return j;      
+//                                   }                                     
+//    return -1;                                                           
 //    }
 
 
@@ -1480,40 +1484,41 @@ long Nc3Var::get_index(Nc3Dim *rdim, const double* key) {
   return -1;
 }
   
+// OLD MACRO DEFINITION - now explicitly expanded in the code
 // Macros below work for short, nclong, long, float, and double, but for ncbyte
 // and char, we must use corresponding schar, uchar, or text C functions, so in 
 // these cases macros are expanded manually.
-// #define Nc3Var_put_array(TYPE)                                          \
-//   Nc3Bool Nc3Var::put( const TYPE* vals,                                \
-//                          long edge0,                                    \
-//                          long edge1,                                    \
-//                          long edge2,                                    \
-//                          long edge3,                                    \
-//                          long edge4)                                    \
-//   {                                                                     \
-//    /* no need to check type() vs. TYPE, invoked C function will do that */ \
-//    if (! the_file->data_mode())                                         \
-//      return FALSE;                                                      \
-//    size_t count[5];                                                     \
-//    count[0] = edge0;                                                    \
-//    count[1] = edge1;                                                    \
-//    count[2] = edge2;                                                    \
-//    count[3] = edge3;                                                    \
-//    count[4] = edge4;                                                    \
-//    for (int i = 0; i < 5; i++) {                                        \
-//                                 if (count[i]) {                         \
-//                                                if (num_dims() < i)      \
-//                                                  return FALSE;          \
-//                                                } else                   \
-//                                   break;                                \
-//                                 }                                       \
-//    size_t start[5];                                                     \
-//    for (int j = 0; j < 5; j++) {                                        \
-//                                 start[j] = the_cur[j];                  \
-//                                 }                                       \
-//    return Nc3Error::set_err(                                            \
-// 			    makename2(nc_put_vara_,TYPE) (the_file->id(), the_id, start, count, vals) \
-// 			    ) == NC_NOERR;                              \
+// #define Nc3Var_put_array(TYPE)                                          
+//   Nc3Bool Nc3Var::put( const TYPE* vals,                                
+//                          long edge0,                                    
+//                          long edge1,                                    
+//                          long edge2,                                    
+//                          long edge3,                                    
+//                          long edge4)                                    
+//   {                                                                     
+//    /* no need to check type() vs. TYPE, invoked C function will do that */ 
+//    if (! the_file->data_mode())                                         
+//      return FALSE;                                                      
+//    size_t count[5];                                                     
+//    count[0] = edge0;                                                    
+//    count[1] = edge1;                                                    
+//    count[2] = edge2;                                                    
+//    count[3] = edge3;                                                    
+//    count[4] = edge4;                                                    
+//    for (int i = 0; i < 5; i++) {                                        
+//                                 if (count[i]) {                         
+//                                                if (num_dims() < i)      
+//                                                  return FALSE;          
+//                                                } else                   
+//                                   break;                                
+//                                 }                                       
+//    size_t start[5];                                                     
+//    for (int j = 0; j < 5; j++) {                                        
+//                                 start[j] = the_cur[j];                  
+//                                 }                                       
+//    return Nc3Error::set_err(                                            
+// 			    makename2(nc_put_vara_,TYPE) (the_file->id(), the_id, start, count, vals) 
+// 			    ) == NC_NOERR;                              
 //    }
 
 Nc3Bool Nc3Var::put( const ncbyte* vals,
@@ -1683,18 +1688,19 @@ Nc3Bool Nc3Var::put( const double* vals, long edge0, long edge1, long edge2, lon
   return Nc3Error::set_err( nc_put_vara_double (the_file->id(), the_id, start, count, vals) ) == NC_NOERR;
 }
 
-// #define Nc3Var_put_nd_array(TYPE)                                       \
-//   Nc3Bool Nc3Var::put( const TYPE* vals, const long* count )            \
-//   {                                                                     \
-//     /* no need to check type() vs. TYPE, invoked C function will do that */ \
-//     if (! the_file->data_mode())                                        \
-//       return FALSE;                                                     \
-//     size_t start[NC_MAX_DIMS];                                          \
-//     for (int i = 0; i < num_dims(); i++)                                \
-//       start[i] = the_cur[i];                                            \
-//     return Nc3Error::set_err(                                           \
-//             makename2(nc_put_vara_,TYPE) (the_file->id(), the_id, start, (const size_t *) count, vals) \
-//                                                                                ) == NC_NOERR; \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_put_nd_array(TYPE)                                       
+//   Nc3Bool Nc3Var::put( const TYPE* vals, const long* count )            
+//   {                                                                     
+//     /* no need to check type() vs. TYPE, invoked C function will do that */ 
+//     if (! the_file->data_mode())                                        
+//       return FALSE;                                                     
+//     size_t start[NC_MAX_DIMS];                                          
+//     for (int i = 0; i < num_dims(); i++)                                
+//       start[i] = the_cur[i];                                            
+//     return Nc3Error::set_err(                                           
+//             makename2(nc_put_vara_,TYPE) (the_file->id(), the_id, start, (const size_t *) count, vals) 
+//                                                                                ) == NC_NOERR; 
 //   }
 
 Nc3Bool Nc3Var::put( const ncbyte* vals, const long* count )
@@ -1764,36 +1770,37 @@ Nc3Bool Nc3Var::put( const double* vals, const long* count ) {
   return Nc3Error::set_err( nc_put_vara_double (the_file->id(), the_id, start, (const size_t *) count, vals) ) == NC_NOERR;
 }
 
-// #define Nc3Var_get_array(TYPE)                                          \
-//   Nc3Bool Nc3Var::get( TYPE* vals,                                      \
-//                          long edge0,                                    \
-//                          long edge1,                                    \
-//                          long edge2,                                    \
-//                          long edge3,                                    \
-//                          long edge4) const                              \
-//   {                                                                     \
-//    if (! the_file->data_mode())                                         \
-//      return FALSE;                                                      \
-//    size_t count[5];                                                     \
-//    count[0] = edge0;                                                    \
-//    count[1] = edge1;                                                    \
-//    count[2] = edge2;                                                    \
-//    count[3] = edge3;                                                    \
-//    count[4] = edge4;                                                    \
-//    for (int i = 0; i < 5; i++) {                                        \
-//                                 if (count[i]) {                         \
-//                                                if (num_dims() < i)      \
-//                                                  return FALSE;          \
-//                                                } else                   \
-//                                   break;                                \
-//                                 }                                       \
-//    size_t start[5];                                                     \
-//    for (int j = 0; j < 5; j++) {                                        \
-//                                 start[j] = the_cur[j];                  \
-//                                 }                                       \
-//    return Nc3Error::set_err(                                            \
-// 			    makename2(nc_get_vara_,TYPE) (the_file->id(), the_id, start, count, vals) \
-// 			    ) == NC_NOERR;                              \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_get_array(TYPE)                                          
+//   Nc3Bool Nc3Var::get( TYPE* vals,                                      
+//                          long edge0,                                    
+//                          long edge1,                                    
+//                          long edge2,                                    
+//                          long edge3,                                    
+//                          long edge4) const                              
+//   {                                                                     
+//    if (! the_file->data_mode())                                         
+//      return FALSE;                                                      
+//    size_t count[5];                                                     
+//    count[0] = edge0;                                                    
+//    count[1] = edge1;                                                    
+//    count[2] = edge2;                                                    
+//    count[3] = edge3;                                                    
+//    count[4] = edge4;                                                    
+//    for (int i = 0; i < 5; i++) {                                        
+//                                 if (count[i]) {                         
+//                                                if (num_dims() < i)      
+//                                                  return FALSE;          
+//                                                } else                   
+//                                   break;                                
+//                                 }                                       
+//    size_t start[5];                                                     
+//    for (int j = 0; j < 5; j++) {                                        
+//                                 start[j] = the_cur[j];                  
+//                                 }                                       
+//    return Nc3Error::set_err(                                            
+// 			    makename2(nc_get_vara_,TYPE) (the_file->id(), the_id, start, count, vals) 
+// 			    ) == NC_NOERR;                              
 //    }
 
 Nc3Bool Nc3Var::get( ncbyte* vals,
@@ -1960,17 +1967,18 @@ Nc3Bool Nc3Var::get( double* vals, long edge0, long edge1, long edge2, long edge
   return Nc3Error::set_err( nc_get_vara_double (the_file->id(), the_id, start, count, vals) ) == NC_NOERR;
 }
 
-// #define Nc3Var_get_nd_array(TYPE)                                    \
-//   Nc3Bool Nc3Var::get( TYPE* vals, const long* count ) const            \
-//   {                                                                     \
-//    if (! the_file->data_mode())                                         \
-//      return FALSE;                                                      \
-//    size_t start[NC_MAX_DIMS];                                           \
-//    for (int i = 0; i < num_dims(); i++)                                 \
-//      start[i] = the_cur[i];                                             \
-//    return Nc3Error::set_err(                                            \
-// 			    makename2(nc_get_vara_,TYPE) (the_file->id(), the_id, start,  (const size_t *) count, vals) \
-// 			    ) == NC_NOERR;                              \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_get_nd_array(TYPE)                                    
+//   Nc3Bool Nc3Var::get( TYPE* vals, const long* count ) const            
+//   {                                                                     
+//    if (! the_file->data_mode())                                         
+//      return FALSE;                                                      
+//    size_t start[NC_MAX_DIMS];                                           
+//    for (int i = 0; i < num_dims(); i++)                                 
+//      start[i] = the_cur[i];                                             
+//    return Nc3Error::set_err(                                            
+// 			    makename2(nc_get_vara_,TYPE) (the_file->id(), the_id, start,  (const size_t *) count, vals) 
+// 			    ) == NC_NOERR;                              
 //    }
 
 Nc3Bool Nc3Var::get( ncbyte* vals, const long* count ) const
@@ -2078,17 +2086,18 @@ Nc3Bool Nc3Var::set_cur(long* cur)
   return TRUE;
 }
 
-// #define Nc3Var_add_scalar_att(TYPE)                                  \
-//   Nc3Bool Nc3Var::add_att(Nc3Token aname, TYPE val)                  \
-//   {                                                                     \
-//    if (! the_file->define_mode())                                    \
-//      return FALSE;                                                   \
-//    if (Nc3Error::set_err(                                            \
-//                          makename2(nc_put_att_,TYPE) (the_file->id(), the_id, aname, (nc_type) Nc3TypeEnum(TYPE), \
-//                                                         1, &val)     \
-//                          ) != NC_NOERR)                              \
-//      return FALSE;                                                   \
-//    return TRUE;                                                      \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_add_scalar_att(TYPE)                                  
+//   Nc3Bool Nc3Var::add_att(Nc3Token aname, TYPE val)                  
+//   {                                                                     
+//    if (! the_file->define_mode())                                    
+//      return FALSE;                                                   
+//    if (Nc3Error::set_err(                                            
+//                          makename2(nc_put_att_,TYPE) (the_file->id(), the_id, aname, (nc_type) Nc3TypeEnum(TYPE), 
+//                                                         1, &val)     
+//                          ) != NC_NOERR)                              
+//      return FALSE;                                                   
+//    return TRUE;                                                      
 //    }
 
 Nc3Bool Nc3Var::add_att(Nc3Token aname, ncbyte val)
@@ -2147,7 +2156,7 @@ Nc3Bool Nc3Var::add_att(Nc3Token aname, long val)
   return TRUE;
 }
 
-Nc3Bool Nc3Var::add_att(Nc3Token aname, int64_t val)
+Nc3Bool Nc3Var::add_att(Nc3Token aname, long long val)
 {
   if (! the_file->define_mode()) {
     return FALSE;
@@ -2197,17 +2206,18 @@ Nc3Bool Nc3Var::add_att(Nc3Token aname, const char* val)
   return TRUE;
 }
 
-// #define Nc3Var_add_vector_att(TYPE)                                  \
-//   Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const TYPE* vals) \
-//   {                                                                  \
-//     if (! the_file->define_mode())                                   \
-//       return FALSE;                                                  \
-//     if (Nc3Error::set_err(                                           \
-//                 makename2(nc_put_att_,TYPE) (the_file->id(), the_id, aname, (nc_type) Nc3TypeEnum(TYPE), \
-//                                              len, vals)              \
-//                                                                                ) != NC_NOERR) \
-//       return FALSE;                                                  \
-//     return TRUE;                                                     \
+// OLD MACRO DEFINITION - now explicitly expanded in the code
+// #define Nc3Var_add_vector_att(TYPE)                                  
+//   Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const TYPE* vals) 
+//   {                                                                  
+//     if (! the_file->define_mode())                                   
+//       return FALSE;                                                  
+//     if (Nc3Error::set_err(                                           
+//                 makename2(nc_put_att_,TYPE) (the_file->id(), the_id, aname, (nc_type) Nc3TypeEnum(TYPE), 
+//                                              len, vals)              
+//                                                                                ) != NC_NOERR) 
+//       return FALSE;                                                  
+//     return TRUE;                                                     
 //   }
 
 Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const ncbyte* vals)
