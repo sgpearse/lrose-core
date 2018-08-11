@@ -114,9 +114,9 @@ static const double nc3Bad_double = NC_FILL_DOUBLE;
     virtual char as_char( long n ) const;                       \
     virtual short as_short( long n ) const;                     \
     virtual int as_int( long n ) const;                         \
-    virtual int64_t as_int64( long n ) const;                   \
     virtual int as_nclong( long n ) const;                      \
     virtual long as_long( long n ) const;                       \
+    virtual int64_t as_int64( long n ) const;                   \
     virtual float as_float( long n ) const;                     \
     virtual double as_double( long n ) const;                   \
     virtual char* as_string( long n ) const;                    \
@@ -319,6 +319,7 @@ declare(Nc3Values,ncbyte)
   declare(Nc3Values,int)
   declare(Nc3Values,nclong)
   declare(Nc3Values,long)
+  declare(Nc3Values,int64_t)
   declare(Nc3Values,float)
   declare(Nc3Values,double)
 

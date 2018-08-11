@@ -2271,6 +2271,13 @@ Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const long* vals) {
   return 1;
 }
 
+Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const long long* vals) {
+  if (! the_file->define_mode()) return 0;
+  if (Nc3Error::set_err( nc_put_att_longlong (the_file->id(), the_id, aname,
+                                              (nc_type) nc3Long, len, vals) ) != NC_NOERR) return 0;
+  return 1;
+}
+
 Nc3Bool Nc3Var::add_att(Nc3Token aname, int len, const float* vals) {
   if (! the_file->define_mode()) return 0;
   if (Nc3Error::set_err( nc_put_att_float (the_file->id(), the_id, aname,
