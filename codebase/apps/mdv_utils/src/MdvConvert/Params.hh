@@ -557,6 +557,8 @@ public:
 
   output_format_t output_format;
 
+  tdrp_bool_t output_32_bit_headers;
+
   tdrp_bool_t write_to_path;
 
   char* output_path;
@@ -716,7 +718,7 @@ private:
 
   void _init();
 
-  mutable TDRPtable _table[111];
+  mutable TDRPtable _table[112];
 
   const char *_className;
 
