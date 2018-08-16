@@ -116,7 +116,9 @@ void BE_to_ds_radar_calib(ds_radar_calib_t *calib)
      
 {
   BE_to_array_32((char *) calib + DS_RADAR_CALIB_NAME_LEN,
-                 sizeof(ds_radar_calib_t) - DS_RADAR_CALIB_NAME_LEN);
+                 sizeof(ds_radar_calib_t) -
+                 DS_RADAR_CALIB_NAME_LEN -
+                 DS_RADAR_CALIB_COMMENT_LEN);
 }
 
 /*************************
@@ -129,7 +131,9 @@ void BE_from_ds_radar_calib(ds_radar_calib_t *calib)
 
 {
   BE_from_array_32((char *) calib + DS_RADAR_CALIB_NAME_LEN,
-                   sizeof(ds_radar_calib_t) - DS_RADAR_CALIB_NAME_LEN);
+                   sizeof(ds_radar_calib_t) - 
+                   DS_RADAR_CALIB_NAME_LEN - 
+                   DS_RADAR_CALIB_COMMENT_LEN);
 }
 
 /****************************
@@ -143,8 +147,12 @@ void ds_radar_calib_print(FILE *out, const char *spacer,
   
   fprintf(out, "\n");
   fprintf(out, "%s ds_radar_calib\n", spacer);
-  fprintf(out, "%s ------------\n", spacer);
+  fprintf(out, "%s --------------\n", spacer);
   
+  fprintf(out, "%s radarName: %s\n", spacer, calib->radarName);
+  if (strlen(calib->comment) > 0) {
+    fprintf(out, "%s comment: %s\n", spacer, calib->comment);
+  }
   fprintf(out, "%s wavelengthCm: %g\n", spacer, calib->wavelengthCm);
   fprintf(out, "%s beamWidthDegH: %g\n", spacer, calib->beamWidthDegH);
   fprintf(out, "%s beamWidthDegV: %g\n", spacer, calib->beamWidthDegV);

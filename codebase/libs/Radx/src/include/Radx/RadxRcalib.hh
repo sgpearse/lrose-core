@@ -117,6 +117,7 @@ public:
   /// Set the time at which the calibration was performed.
 
   inline void setRadarName(const string &val) { _radarName = val; }
+  inline void setComment(const string &val) { _comment = val; }
   
   void setCalibTime(int year, int month, int day,
                     int hour, int min, int sec);
@@ -213,6 +214,7 @@ public:
   //@{
 
   const string &getRadarName() const { return _radarName; }
+  const string &getComment() const { return _comment; }
 
   /// Get the time at which the calibration was performed.
 
@@ -341,7 +343,13 @@ public:
 
 private:
 
+  /* radar name */
+
   string _radarName;
+
+  /* comments to qualify the calibration as appropriate - optional */
+
+  string _comment;
 
   /* time of calibration */
 

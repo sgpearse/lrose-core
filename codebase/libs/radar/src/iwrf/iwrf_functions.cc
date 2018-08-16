@@ -1355,7 +1355,7 @@ bool iwrf_calibration_swap(iwrf_calibration_t &calib)
   if (swap) {
     ui08 *start = (ui08 *) &calib + sizeof(iwrf_packet_info_t);
     int nbytes = sizeof(iwrf_calibration_t)
-      - sizeof(iwrf_packet_info_t) - IWRF_MAX_RADAR_NAME;
+      - sizeof(iwrf_packet_info_t) - IWRF_MAX_CALIB_COMMENT - IWRF_MAX_RADAR_NAME;
     SWAP_array_32(start, nbytes);
   }
   return swap;
@@ -2573,6 +2573,9 @@ void iwrf_calibration_print(FILE *out,
   iwrf_packet_info_print(out, copy.packet);
   
   fprintf(out, "  radar_name: %s\n", copy.radar_name);
+  if (strlen(copy.comment) > 0) {
+    fprintf(out, "  comment: %s\n", copy.comment);
+  }
   fprintf(out, "  wavelength_cm: %g\n", copy.wavelength_cm);
   fprintf(out, "  beamwidth_deg_h: %g\n", copy.beamwidth_deg_h);
   fprintf(out, "  beamwidth_deg_v: %g\n", copy.beamwidth_deg_v);
@@ -3791,7 +3794,8 @@ void iwrf_calibration_print_format(FILE *out, const iwrf_calibration_t &val)
 {
 
   _print_format_divider('-', out);
-  fprintf(out, "  struct: 'iwrf_calibration_t'\n  size: %d\n  id: 0x%x\n\n", (int) sizeof(val), IWRF_CALIBRATION_ID);
+  fprintf(out, "  struct: 'iwrf_calibration_t'\n  size: %d\n  id: 0x%x\n\n",
+          (int) sizeof(val), IWRF_CALIBRATION_ID);
   fprintf(out, "  packet info:\n");
   _print_format_header(out);
   _print_packet_format(out, val.packet);
@@ -3877,7 +3881,8 @@ void iwrf_calibration_print_format(FILE *out, const iwrf_calibration_t &val)
   fprintf(out, _dform, "fl32", "k_squared_water", sizeof(val.k_squared_water), (char *) &val.k_squared_water - id);
 
   fprintf(out, _dform, "fl32", "dbz_correction", sizeof(val.dbz_correction), (char *) &val.dbz_correction - id);
-  fprintf(out, _dform, "si32", "unused[49]", sizeof(val.unused), (char *) val.unused - id);
+  fprintf(out, _dform, "si32", "unused[29]", sizeof(val.unused), (char *) val.unused - id);
+  fprintf(out, _dform, "char", "comment[80]", sizeof(val.comment), (char *) val.comment - id);
   fprintf(out, _dform, "char", "radar_name[32]", sizeof(val.radar_name), (char *) val.radar_name - id);
   
   _print_format_divider('-', out);

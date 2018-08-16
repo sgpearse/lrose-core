@@ -83,6 +83,7 @@ extern "C" {
 #define IWRF_UI_MAX_OPERATOR_NAME 32 /**< Radar Operator name */
 #define IWRF_UI_MAX_TASKS_PER_TASKLIST 30 /**< Max # tasks in a tasklist */
 #define IWRF_UI_MAX_ERROR_MSG 128 /**< Max error msg returned to UI */
+#define IWRF_MAX_CALIB_COMMENT 80  /**< Max length of calibration comment */
 
 #define IWRF_MAX_MOMENTS_FIELD_NAME 32  /**< Max length of moments field name */
 #define IWRF_MAX_MOMENTS_FIELD_NAME_LONG 128  /**< Max length of moments field long name */
@@ -1160,7 +1161,9 @@ typedef struct iwrf_calibration {
   fl32 dbz_correction;  /**< DBZ correction, dB.
                          * Corrected DBZ = measured DBZ + correction */
 
-  si32 unused[49]; /**< for future expansion */ 
+  si32 unused[29]; /**< for future expansion */ 
+
+  char comment[IWRF_MAX_CALIB_COMMENT]; /**< optional comment 80 chars */
 
   char radar_name[IWRF_MAX_RADAR_NAME]; /**< name of instrument */
 

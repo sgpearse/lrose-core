@@ -86,6 +86,8 @@ public:
   // set methods
 
   void setRadarName(const string &name);
+  void setComment(const string &comment);
+
   void setCalibTime(time_t calTime);
   
   // field-specific set methods
@@ -177,6 +179,8 @@ public:
   // get values
 
   string getRadarName() const;
+  string getComment() const;
+
   time_t getCalibTime() const;
   
   inline double getWavelengthCm() const { return _calib.wavelengthCm; }

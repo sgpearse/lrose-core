@@ -194,7 +194,17 @@ void DsRadarCalib::adjustRadarConst(double pulseWidthUs,
 
 void DsRadarCalib::setRadarName(const string &name)
 {
+  memset(_calib.radarName, 0, sizeof(_calib.radarName));
   STRncopy(_calib.radarName, name.c_str(), DS_RADAR_CALIB_NAME_LEN);
+}
+
+/////////////////////
+// set the comment
+
+void DsRadarCalib::setComment(const string &comment)
+{
+  memset(_calib.comment, 0, sizeof(_calib.comment));
+  STRncopy(_calib.comment, comment.c_str(), DS_RADAR_CALIB_COMMENT_LEN);
 }
 
 ///////////////////////////
@@ -242,6 +252,14 @@ string DsRadarCalib::getRadarName() const
 }
 
 ///////////////////////////
+// get the comment
+
+string DsRadarCalib::getComment() const
+{
+  return _calib.comment;
+}
+
+///////////////////////////
 // get the calibration time
 
 time_t DsRadarCalib::getCalibTime() const
@@ -282,6 +300,12 @@ void DsRadarCalib::convert2Xml(string &xml)  const
   // name
 
   xml += TaXml::writeString("radarName", 1, _calib.radarName);
+
+  // comment
+
+  if (strlen(_calib.comment) > 0) {
+    xml += TaXml::writeString("comment", 1, _calib.comment);
+  }
 
   // time
 
@@ -359,6 +383,7 @@ void DsRadarCalib::convert2Xml(string &xml)  const
   xml += TaXml::writeDouble("testPowerDbmV", 1, _calib.testPowerDbmV);
 
   xml += TaXml::writeEndTag("DsRadarCalib", 0);
+
 }
 
 ////////////////////////////////////////////
@@ -379,10 +404,15 @@ int DsRadarCalib::setFromXml(const string &xmlBuf, string &errStr)
 
   string name;
   if (TaXml::readString(xbuf, "radarName", name) == 0) {
-    STRncopy(_calib.radarName, name.c_str(), sizeof(_calib.radarName));
+    setRadarName(name);
   } else {
     errStr += "ERROR - radarName missing\n";
     iret = -1;
+  }
+
+  string comment;
+  if (TaXml::readString(xbuf, "comment", comment) == 0) {
+    setComment(comment);
   }
 
   time_t ctime;
@@ -908,7 +938,11 @@ DsRadarCalib::print(FILE *out) const
 {
    
   fprintf(out, "RADAR CALIB\n");
-
+  
+  fprintf(out, "  name: %s\n", _calib.radarName);
+  if (strlen(_calib.comment) > 0) {
+    fprintf(out, "  comment: %s\n", _calib.comment);
+  }
   DateTime ctime(_calib.year, _calib.month, _calib.day,
                  _calib.hour, _calib.min, _calib.sec);
   fprintf(out, "  time: %s\n", DateTime::strm(ctime.utime()).c_str());
@@ -983,7 +1017,11 @@ DsRadarCalib::print(ostream &out)  const
    
   out << "RADAR CALIB" << endl;
   out << "-----------" << endl;
-   
+
+  out << "  name: " << _calib.radarName << endl;
+  if (strlen(_calib.comment) > 0) {
+    out << "  comment: " << _calib.comment << endl;
+  }
   DateTime ctime(_calib.year, _calib.month, _calib.day,
                  _calib.hour, _calib.min, _calib.sec);
   out << "  time: " << DateTime::strm(ctime.utime()) << endl;

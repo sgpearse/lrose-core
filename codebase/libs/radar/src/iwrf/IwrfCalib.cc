@@ -200,6 +200,14 @@ void IwrfCalib::setRadarName(const string &name)
   STRncopy(_calib.radar_name, name.c_str(), IWRF_MAX_RADAR_NAME);
 }
 
+/////////////////////
+// set the comment
+
+void IwrfCalib::setComment(const string &comment)
+{
+  STRncopy(_calib.comment, comment.c_str(), IWRF_MAX_CALIB_COMMENT);
+}
+
 ///////////////////////////
 // set the calibration time
 
@@ -226,6 +234,14 @@ string IwrfCalib::getRadarName() const
 }
 
 ///////////////////////////
+// get the comment
+
+string IwrfCalib::getComment() const
+{
+  return _calib.comment;
+}
+
+///////////////////////////
 // get the calibration time
 
 time_t IwrfCalib::getCalibTime() const
@@ -245,6 +261,12 @@ void IwrfCalib::convert2Xml(string &xml)  const
   // name
 
   xml += TaXml::writeString("radarName", 1, _calib.radar_name);
+
+  // comment
+
+  if (strlen(_calib.comment) > 0) {
+    xml += TaXml::writeString("comment", 1, _calib.comment);
+  }
 
   // time
 
@@ -342,6 +364,11 @@ int IwrfCalib::setFromXml(const string &xmlBuf, string &errStr)
   string name;
   if (TaXml::readString(xbuf, "radarName", name) == 0) {
     STRncopy(_calib.radar_name, name.c_str(), sizeof(_calib.radar_name));
+  }
+
+  string comment;
+  if (TaXml::readString(xbuf, "comment", comment) == 0) {
+    setComment(comment);
   }
 
   time_t ctime;
@@ -882,6 +909,9 @@ IwrfCalib::print(ostream &out)  const
    
   DateTime ctime(_calib.packet.time_secs_utc);
   out << "  radar_name: " << _calib.radar_name << endl;
+  if (strlen(_calib.comment) > 0) {
+    out << "  comment: " << _calib.comment << endl;
+  }
   out << "  time: " << DateTime::strm(ctime.utime()) << endl;
 
   out << "  wavelength_cm: " << _calib.wavelength_cm << endl;
@@ -954,9 +984,12 @@ void IwrfCalib::setFromRadxRcalib(const RadxRcalib &rcalib)
 {
 
   _calib.packet.time_secs_utc = rcalib.getCalibTime();
-  memcpy(_calib.radar_name,
-         rcalib.getRadarName().c_str(),
-         DS_RADAR_CALIB_NAME_LEN);
+  STRncopy(_calib.radar_name,
+           rcalib.getRadarName().c_str(),
+           IWRF_MAX_RADAR_NAME);
+  STRncopy(_calib.comment,
+           rcalib.getComment().c_str(),
+           IWRF_MAX_CALIB_COMMENT);
   _calib.wavelength_cm = rcalib.getWavelengthCm();
   _calib.beamwidth_deg_h = rcalib.getBeamWidthDegH();
   _calib.beamwidth_deg_v = rcalib.getBeamWidthDegV();
@@ -1013,6 +1046,7 @@ void IwrfCalib::copyToRadxRcalib(RadxRcalib &rcalib) const
 
   rcalib.setCalibTime(_calib.packet.time_secs_utc);
   rcalib.setRadarName(_calib.radar_name);
+  rcalib.setComment(_calib.comment);
   rcalib.setWavelengthCm(_calib.wavelength_cm);
   rcalib.setBeamWidthDegH(_calib.beamwidth_deg_h);
   rcalib.setBeamWidthDegV(_calib.beamwidth_deg_v);
@@ -1069,9 +1103,12 @@ void IwrfCalib::setFromDsRadarCalib(const DsRadarCalib &dsCalib)
 {
 
   _calib.packet.time_secs_utc = dsCalib.getCalibTime();
-  memcpy(_calib.radar_name,
-         dsCalib.getRadarName().c_str(),
-         DS_RADAR_CALIB_NAME_LEN);
+  STRncopy(_calib.radar_name,
+           dsCalib.getRadarName().c_str(),
+           IWRF_MAX_RADAR_NAME);
+  STRncopy(_calib.comment,
+           dsCalib.getComment().c_str(),
+           IWRF_MAX_CALIB_COMMENT);
   _calib.wavelength_cm = dsCalib.getWavelengthCm();
   _calib.beamwidth_deg_h = dsCalib.getBeamWidthDegH();
   _calib.beamwidth_deg_v = dsCalib.getBeamWidthDegV();
@@ -1128,6 +1165,7 @@ void IwrfCalib::copyToDsRadarCalib(DsRadarCalib &dsCalib) const
 
   dsCalib.setCalibTime(_calib.packet.time_secs_utc);
   dsCalib.setRadarName(_calib.radar_name);
+  dsCalib.setComment(_calib.comment);
   dsCalib.setWavelengthCm(_calib.wavelength_cm);
   dsCalib.setBeamWidthDegH(_calib.beamwidth_deg_h);
   dsCalib.setBeamWidthDegV(_calib.beamwidth_deg_v);

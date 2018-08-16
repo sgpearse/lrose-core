@@ -44,6 +44,7 @@ extern "C" {
  */
   
 #define DS_RADAR_CALIB_NAME_LEN 16
+#define DS_RADAR_CALIB_COMMENT_LEN 512
 #define DS_RADAR_CALIB_MISSING -9999.0F
 
 typedef struct {
@@ -52,6 +53,10 @@ typedef struct {
 
   char radarName[DS_RADAR_CALIB_NAME_LEN];
 
+  /* comment - null terminated, so max of 511 chars */
+
+  char comment[DS_RADAR_CALIB_COMMENT_LEN];
+  
   /* time of calibration */
 
   si32 year, month, day, hour, min, sec;

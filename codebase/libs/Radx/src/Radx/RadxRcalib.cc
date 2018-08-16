@@ -93,7 +93,10 @@ RadxRcalib::~RadxRcalib()
 
 void RadxRcalib::init()
 {
+
   _radarName.clear();
+  _comment.clear();
+
   _year = 1970;
   _month = 1;
   _day = 1;
@@ -319,6 +322,9 @@ void
   if (_radarName.size() > 0) {
     out << "  radarName: " << _radarName << endl;
   }
+  if (_comment.size() > 0) {
+    out << "  comment: " << _comment << endl;
+  }
 
   out << "  time: " << RadxTime::strm(getCalibTime()) << endl;
   
@@ -423,7 +429,13 @@ void RadxRcalib::convert2Xml(string &xml)  const
   // name
 
   xml += RadxXml::writeString("radarName", 1, _radarName);
-  
+
+  // comment
+
+  if (_comment.size() > 0) {
+    xml += RadxXml::writeString("comment", 1, _comment);
+  }
+
   // time
   
   xml += RadxXml::writeTime("calibTime", 1, getCalibTime());
@@ -519,6 +531,13 @@ void RadxRcalib::setFromXml(const string &xmlBuf,
   string name;
   if (RadxXml::readString(xbuf, "radarName", name) == 0) {
     _radarName = name;
+  }
+
+  string comment;
+  if (RadxXml::readString(xbuf, "comment", comment) == 0) {
+    _comment = comment;
+  } else {
+    _comment.clear();
   }
 
   time_t ctime;
@@ -937,6 +956,9 @@ void RadxRcalib::_loadMetaStringsToXml(string &xml, int level /* = 0 */)  const
   xml.clear();
   xml += RadxXml::writeStartTag("RadxRcalib", level);
   xml += RadxXml::writeString("radarName", level + 1, _radarName);
+  if (_comment.size() > 0) {
+    xml += RadxXml::writeString("comment", level + 1, _comment);
+  }
   xml += RadxXml::writeEndTag("RadxRcalib", level);
 }
 
@@ -980,6 +1002,10 @@ int RadxRcalib::_setMetaStringsFromXml(const char *xml,
     cerr << "  " << xmlStr << endl;
     cerr << "=======================================" << endl;
     return -1;
+  }
+
+  if (RadxXml::readString(contents, "comment", _comment)) {
+    _comment.clear();
   }
 
   return 0;
