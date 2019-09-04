@@ -32,7 +32,6 @@
 
 class DLL_EXPORT PpiWidget : public PolarWidget
 {
-
   // must include this if you use Qt signals/slots
   Q_OBJECT
 

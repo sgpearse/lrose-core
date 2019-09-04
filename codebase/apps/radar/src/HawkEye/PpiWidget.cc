@@ -430,8 +430,9 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 
   // get click location in world coords
 
-  if (rgeom.width() <= 20) {
-    
+  if (rgeom.width() <= 20)
+  {
+	cerr << "Jeff: Click location changed" << endl;
     // Emit a signal to indicate that the click location has changed
     
     _worldReleaseX = _zoomWorld.getXWorld(_mouseReleaseX);
@@ -449,7 +450,10 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 
     emit locationClicked(x_km, y_km, closestRay);
   
-  } else {
+  }
+  else
+  {
+	  cerr << "Jeff: Zoom occurred" << endl;
 
     // mouse moved more than 20 pixels, so a zoom occurred
     

@@ -543,6 +543,7 @@ void PolarManager::_setupWindows()
   // set up field status dialog
 
   _createClickReportDialog();
+  _createBoundaryEditorDialog();
 
   if (_archiveMode) {
     _showTimeControl();
@@ -570,36 +571,35 @@ void PolarManager::_setSweepPanelVisibility()
 
 void PolarManager::_createActions()
 {
-
   // freeze display
-
   _freezeAct = new QAction(tr("Freeze"), this);
   _freezeAct->setShortcut(tr("Esc"));
   _freezeAct->setStatusTip(tr("Freeze display"));
   connect(_freezeAct, SIGNAL(triggered()), this, SLOT(_freeze()));
   
   // show user click in dialog
-
   _showClickAct = new QAction(tr("Show Click"), this);
   _showClickAct->setStatusTip(tr("Show click value dialog"));
   connect(_showClickAct, SIGNAL(triggered()), this, SLOT(_showClick()));
 
-  // set time controller settings
+  // show boundary editor dialog
+  _showBoundaryEditorAct = new QAction(tr("Boundary Editor"), this);
+  _showBoundaryEditorAct->setStatusTip(tr("Show boundary editor dialog"));
+  connect(_showBoundaryEditorAct, SIGNAL(triggered()), this, SLOT(_showBoundaryEditor()));
   
+  // set time controller settings
   _timeControllerAct = new QAction(tr("Time-Config"), this);
   _timeControllerAct->setStatusTip(tr("Show time control window"));
   connect(_timeControllerAct, SIGNAL(triggered()), this,
           SLOT(_showTimeControl()));
 
   // show time control window
-
   _showTimeControlAct = new QAction(tr("Show time control window"), this);
   _showTimeControlAct->setStatusTip(tr("Show time control window"));
   connect(_showTimeControlAct, SIGNAL(triggered()), _timeControl,
           SLOT(show()));
 
   // realtime mode
-
   _realtimeAct = new QAction(tr("Set realtime mode"), this);
   _realtimeAct->setStatusTip(tr("Turn realtime mode on/off"));
   _realtimeAct->setCheckable(true);
@@ -608,41 +608,35 @@ void PolarManager::_createActions()
 	  this, SLOT(_setRealtime(bool)));
 
   // unzoom display
-
   _unzoomAct = new QAction(tr("Unzoom"), this);
   _unzoomAct->setStatusTip(tr("Unzoom to original view"));
   _unzoomAct->setEnabled(false);
   connect(_unzoomAct, SIGNAL(triggered()), this, SLOT(_unzoom()));
 
   // refresh display
-
   _refreshAct = new QAction(tr("Refresh"), this);
   _refreshAct->setStatusTip(tr("Refresh plot"));
   connect(_refreshAct, SIGNAL(triggered()), this, SLOT(_refresh()));
 
   // clear display
-
   _clearAct = new QAction(tr("Clear"), this);
   _clearAct->setStatusTip(tr("Clear data"));
   connect(_clearAct, SIGNAL(triggered()), _ppi, SLOT(clear()));
   connect(_clearAct, SIGNAL(triggered()), _rhi, SLOT(clear()));
 
   // exit app
-
   _exitAct = new QAction(tr("E&xit"), this);
   _exitAct->setShortcut(tr("Ctrl+Q"));
   _exitAct->setStatusTip(tr("Exit the application"));
   connect(_exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
   // file chooser for Open
-
   _openFileAct = new QAction(tr("O&pen"), this);
   _openFileAct->setShortcut(tr("Ctrl+F"));
   _openFileAct->setStatusTip(tr("Open File"));
   connect(_openFileAct, SIGNAL(triggered()), this, SLOT(_openFile()));
 
   // file chooser for Save
-
   _saveFileAct = new QAction(tr("S&ave"), this);
   //_saveFileAct->setShortcut(tr("Ctrl+S"));
   _saveFileAct->setStatusTip(tr("Save File"));
@@ -730,6 +724,7 @@ void PolarManager::_createMenus()
 
   menuBar()->addAction(_freezeAct);
   menuBar()->addAction(_showClickAct);
+  menuBar()->addAction(_showBoundaryEditorAct);
   menuBar()->addAction(_unzoomAct);
   menuBar()->addAction(_clearAct);
 
@@ -2980,3 +2975,4 @@ void PolarManager::_howto()
   text += "  Click in main window\n";
   QMessageBox::about(this, tr("Howto dialog"), tr(text.c_str()));
 }
+

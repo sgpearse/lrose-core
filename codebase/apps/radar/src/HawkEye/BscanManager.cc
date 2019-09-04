@@ -246,15 +246,15 @@ void BscanManager::_setupWindows()
   move(pos);
 
   // set up field click dialog
-
   _createClickReportDialog();
 
-  // create the range axis settings dialog
+  // set up boundary editor dialog
+  _createBoundaryEditorDialog();
 
+  // create the range axis settings dialog
   _createRangeAxisDialog();
 
   // create the time axis settings dialog
-  
   _createTimeAxisDialog();
 
 }
@@ -281,6 +281,7 @@ void BscanManager::_createMenus()
 
   _actionsMenu = menuBar()->addMenu(tr("&Actions"));
   _actionsMenu->addAction(_showClickAct);
+  _actionsMenu->addAction(_showBoundaryEditorAct);
   _actionsMenu->addAction(_freezeAct);
   _actionsMenu->addAction(_clearAct);
   _actionsMenu->addAction(_unzoomAct);
@@ -305,10 +306,14 @@ void BscanManager::_createActions()
   connect(_freezeAct, SIGNAL(triggered()), this, SLOT(_freeze()));
 
   // show user click in dialog
-
   _showClickAct = new QAction(tr("Show-Click"), this);
   _showClickAct->setStatusTip(tr("Show click value dialog"));
   connect(_showClickAct, SIGNAL(triggered()), this, SLOT(_showClick()));
+
+  // show boundary editor dialog
+  _showBoundaryEditorAct = new QAction(tr("Boundary Editor"), this);
+  _showBoundaryEditorAct->setStatusTip(tr("Show boundary editor dialog"));
+  connect(_showBoundaryEditorAct, SIGNAL(triggered()), this, SLOT(_showBoundaryEditor()));
 
   // set range axis settings
 
@@ -3245,4 +3250,3 @@ void BscanManager::_howto()
   text += "  Click in main window\n";
   QMessageBox::about(this, tr("Howto dialog"), tr(text.c_str()));
 }
-

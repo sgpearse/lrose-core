@@ -171,6 +171,7 @@ protected:
   QAction *_unzoomAct;
   QAction *_refreshAct;
   QAction *_showClickAct;
+  QAction *_showBoundaryEditorAct;
   QAction *_howtoAct;
   QAction *_aboutAct;
   QAction *_aboutQtAct;
@@ -249,7 +250,6 @@ protected:
   int _prevFieldNum;
 
   // click location report dialog
-
   QDialog *_clickReportDialog;
   QGridLayout *_clickReportDialogLayout;
   QLabel *_dateClicked;
@@ -260,8 +260,11 @@ protected:
   QLabel *_rangeClicked;
   QLabel *_altitudeClicked;
 
-  // sun position calculator
+  // boundary editor dialog
+  QDialog *_boundaryEditorDialog;
+  QGridLayout *_boundaryEditorDialogLayout;
   
+  // sun position calculator
   double _radarLat, _radarLon, _radarAltKm;
   SunPosn _sunPosn;
 
@@ -274,6 +277,7 @@ protected:
   void _createStatusPanel();
   void _createFieldPanel();
   void _createClickReportDialog();
+  void _createBoundaryEditorDialog();
   void _updateStatusPanel(const RadxRay *ray);
   double _getInstHtKm(const RadxRay *ray);
 
@@ -322,6 +326,7 @@ protected slots:
   virtual void _howto();
   void _about();
   void _showClick();
+  void _showBoundaryEditor();
   virtual void _freeze() = 0;
   virtual void _unzoom() = 0;
   virtual void _refresh() = 0;

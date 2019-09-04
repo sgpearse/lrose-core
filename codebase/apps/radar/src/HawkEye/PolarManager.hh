@@ -314,7 +314,7 @@ private:
 
   void _createTimeControl();
 
-  // override howto
+  // override howto and boundaryEditor
 
   void _howto();
 

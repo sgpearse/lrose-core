@@ -660,7 +660,23 @@ void DisplayManager::_createClickReportDialog()
 
     row++;
   }
+}
 
+void DisplayManager::_createBoundaryEditorDialog()
+{
+	_boundaryEditorDialog = new QDialog(this);
+	_boundaryEditorDialog->setMinimumSize(100, 100);
+	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
+
+	Qt::Alignment alignCenter(Qt::AlignCenter);
+	Qt::Alignment alignRight(Qt::AlignRight);
+
+	_boundaryEditorDialogLayout = new QGridLayout(_boundaryEditorDialog);
+	_boundaryEditorDialogLayout->setVerticalSpacing(5);
+
+	int row = 0;
+	QLabel *mainHeader = new QLabel("Click in main window to draw boundary", _boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 3, alignCenter);
 }
 
 //////////////////////////////////////////////
@@ -1193,7 +1209,6 @@ double DisplayManager::_getInstHtKm(const RadxRay *ray)
 
 /////////////////////////////
 // show data at click point
-
 void DisplayManager::_showClick()
 {
   if (_clickReportDialog) {
@@ -1209,6 +1224,31 @@ void DisplayManager::_showClick()
       }
       _clickReportDialog->setVisible(true);
       _clickReportDialog->raise();
+    }
+  }
+}
+
+/////////////////////////////
+// show boundary editor
+void DisplayManager::_showBoundaryEditor()
+{
+  if (_boundaryEditorDialog)
+  {
+    if (_boundaryEditorDialog->isVisible())
+    {
+    	_boundaryEditorDialog->setVisible(false);
+    }
+    else
+    {
+      if (_boundaryEditorDialog->x() == 0 && _boundaryEditorDialog->y() == 0)
+      {
+        QPoint pos;
+        pos.setX(x() + width() + 5);
+        pos.setY(y());
+        _boundaryEditorDialog->move(pos);
+      }
+      _boundaryEditorDialog->setVisible(true);
+      _boundaryEditorDialog->raise();
     }
   }
 }
