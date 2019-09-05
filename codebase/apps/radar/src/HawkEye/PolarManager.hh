@@ -81,6 +81,9 @@ class PolarManager : public DisplayManager {
   Q_OBJECT
 
 public:
+  // boundary editor dialog
+  QDialog *_boundaryEditorDialog;
+  QGridLayout *_boundaryEditorDialogLayout;
 
   // constructor
   
@@ -318,7 +321,6 @@ private:
 
   void _howto();
 
-
 private slots:
 
   //////////////
@@ -397,6 +399,9 @@ private slots:
 
   // context editing (SOLO)
   void ShowContextMenu(const QPoint &pos);
+
+  void _createBoundaryEditorDialog();
+  void _showBoundaryEditor();
 
 };
 

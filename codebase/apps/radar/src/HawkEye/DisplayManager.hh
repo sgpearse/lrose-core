@@ -112,6 +112,7 @@ public:
   
   virtual void enableZoomButton() const = 0;
 
+
 public slots:
 
   void colorMapRedefineReceived(string fieldName, ColorMap newColorMap);
@@ -152,7 +153,6 @@ protected:
   static bool _firstTimerEvent;
   int _beamTimerId;
   bool _frozen;
-
 
   // data fields
 
@@ -259,10 +259,6 @@ protected:
   QLabel *_gateNumClicked;
   QLabel *_rangeClicked;
   QLabel *_altitudeClicked;
-
-  // boundary editor dialog
-  QDialog *_boundaryEditorDialog;
-  QGridLayout *_boundaryEditorDialogLayout;
   
   // sun position calculator
   double _radarLat, _radarLon, _radarAltKm;
@@ -277,7 +273,6 @@ protected:
   void _createStatusPanel();
   void _createFieldPanel();
   void _createClickReportDialog();
-  void _createBoundaryEditorDialog();
   void _updateStatusPanel(const RadxRay *ray);
   double _getInstHtKm(const RadxRay *ray);
 
@@ -326,7 +321,6 @@ protected slots:
   virtual void _howto();
   void _about();
   void _showClick();
-  void _showBoundaryEditor();
   virtual void _freeze() = 0;
   virtual void _unzoom() = 0;
   virtual void _refresh() = 0;

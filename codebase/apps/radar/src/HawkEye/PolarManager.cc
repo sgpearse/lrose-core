@@ -44,6 +44,7 @@
 #include "Params.hh"
 #include "Reader.hh"
 #include "AllocCheck.hh"
+#include "BoundaryPointEditor.hh"
 
 #include <string>
 #include <cmath>
@@ -2974,5 +2975,50 @@ void PolarManager::_howto()
   text += "To see field data at a point:\n";
   text += "  Click in main window\n";
   QMessageBox::about(this, tr("Howto dialog"), tr(text.c_str()));
+}
+
+void PolarManager::_createBoundaryEditorDialog()
+{
+	_boundaryEditorDialog = new QDialog(this);
+	_boundaryEditorDialog->setMinimumSize(100, 100);
+	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
+
+	Qt::Alignment alignCenter(Qt::AlignCenter);
+	Qt::Alignment alignRight(Qt::AlignRight);
+
+	_boundaryEditorDialogLayout = new QGridLayout(_boundaryEditorDialog);
+	_boundaryEditorDialogLayout->setVerticalSpacing(5);
+
+	int row = 0;
+	QLabel *mainHeader = new QLabel("Click in main window to draw boundary", _boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 3, alignCenter);
+}
+
+/////////////////////////////
+// show boundary editor
+void PolarManager::_showBoundaryEditor()
+{
+  if (_boundaryEditorDialog)
+  {
+    if (_boundaryEditorDialog->isVisible())
+    {
+    	_boundaryEditorDialog->setVisible(false);
+    	BoundaryPointEditor::Instance()->clear();
+    }
+    else
+    {
+      if (_boundaryEditorDialog->x() == 0 && _boundaryEditorDialog->y() == 0)
+      {
+        QPoint pos;
+        pos.setX(x() + width() + 5);
+        pos.setY(y());
+        _boundaryEditorDialog->move(pos);
+      }
+      _boundaryEditorDialog->setVisible(true);
+      BoundaryPointEditor::Instance()->clear();
+
+      _boundaryEditorDialog->raise();
+    }
+  }
 }
 

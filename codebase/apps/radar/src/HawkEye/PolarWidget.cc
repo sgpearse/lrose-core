@@ -52,6 +52,7 @@
 #include "PolarManager.hh"
 #include "SpreadSheetView.hh"
 #include "SpreadSheetController.hh"
+#include "BoundaryPointEditor.hh"
 
 using namespace std;
 
@@ -506,6 +507,8 @@ void PolarWidget::paintEvent(QPaintEvent *event)
   painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
 
   _drawOverlays(painter);
+
+  BoundaryPointEditor::Instance()->drawLines(_zoomWorld, painter);  //if there are no points, this does nothing
 }
 
 

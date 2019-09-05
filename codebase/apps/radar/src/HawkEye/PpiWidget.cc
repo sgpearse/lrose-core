@@ -28,6 +28,7 @@
 #include "ParameterColorView.hh"
 #include "FieldColorController.hh"
 #include "DisplayFieldModel.hh"
+#include "BoundaryPointEditor.hh"
 
 #include <toolsa/toolsa_macros.h>
 #include <toolsa/LogStream.hh>
@@ -432,8 +433,13 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 
   if (rgeom.width() <= 20)
   {
-	cerr << "Jeff: Click location changed" << endl;
-    // Emit a signal to indicate that the click location has changed
+	if (_manager._boundaryEditorDialog->isVisible())
+	{
+//		cout << "Jeff: Boundary Editor position: " << _mouseReleaseX << " " << _mouseReleaseY << endl;
+		BoundaryPointEditor::Instance()->addPoint(_mouseReleaseX, _mouseReleaseY);
+	}
+
+	// Emit a signal to indicate that the click location has changed
     
     _worldReleaseX = _zoomWorld.getXWorld(_mouseReleaseX);
     _worldReleaseY = _zoomWorld.getYWorld(_mouseReleaseY);
