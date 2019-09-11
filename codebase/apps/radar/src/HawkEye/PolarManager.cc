@@ -2992,6 +2992,17 @@ void PolarManager::_createBoundaryEditorDialog()
 	int row = 0;
 	QLabel *mainHeader = new QLabel("Click in main window to draw boundary", _boundaryEditorDialog);
 	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 3, alignCenter);
+
+	_boundaryEditorClearBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorClearBtn->setText("Clear");
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn);
+    connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(_clearBoundaryEditor()));
+
+}
+
+void PolarManager::_clearBoundaryEditor()
+{
+	BoundaryPointEditor::Instance()->clear();
 }
 
 /////////////////////////////

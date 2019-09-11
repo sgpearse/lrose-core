@@ -228,6 +228,7 @@ private:
   QPushButton *_fwd1;
   QPushButton *_backPeriod;
   QPushButton *_fwdPeriod;
+  QPushButton *_boundaryEditorClearBtn;
 
   // time controller settings dialog
   
@@ -402,6 +403,7 @@ private slots:
 
   void _createBoundaryEditorDialog();
   void _showBoundaryEditor();
+  void _clearBoundaryEditor();
 
 };
 

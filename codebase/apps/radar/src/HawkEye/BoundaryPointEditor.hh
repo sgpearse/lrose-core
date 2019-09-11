@@ -5,6 +5,7 @@
 #include "WorldPlot.hh"
 
 #include <QPaintEngine>
+#include <QPushButton>
 #include <list>
 
 using namespace std;
@@ -13,6 +14,13 @@ struct point
 {
    int x;
    int y;
+
+   float distanceTo(int x2, int y2)
+   {
+       float dx = (float)(x2 - x);
+       float dy = (float)(y2 - y);
+       return sqrt(dx*dx + dy*dy);
+   }
 };
 
 /*
@@ -33,7 +41,9 @@ class BoundaryPointEditor
   private:
 	BoundaryPointEditor(){};
 	void coutPoints();
+	void checkToMovePointToOriginIfVeryClose(point &pt);
 
+	QPushButton *_clearBtn;
 	vector<point> points;
 	static BoundaryPointEditor* m_pInstance;
 };

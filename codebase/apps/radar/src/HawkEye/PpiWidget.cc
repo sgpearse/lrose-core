@@ -433,16 +433,13 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 
   if (rgeom.width() <= 20)
   {
-	if (_manager._boundaryEditorDialog->isVisible())
-	{
-//		cout << "Jeff: Boundary Editor position: " << _mouseReleaseX << " " << _mouseReleaseY << endl;
-		BoundaryPointEditor::Instance()->addPoint(_mouseReleaseX, _mouseReleaseY);
-	}
 
 	// Emit a signal to indicate that the click location has changed
-    
     _worldReleaseX = _zoomWorld.getXWorld(_mouseReleaseX);
     _worldReleaseY = _zoomWorld.getYWorld(_mouseReleaseY);
+
+	if (_manager._boundaryEditorDialog->isVisible())
+		BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
 
     double x_km = _worldReleaseX;
     double y_km = _worldReleaseY;
