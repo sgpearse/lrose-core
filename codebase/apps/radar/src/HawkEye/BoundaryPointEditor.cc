@@ -5,7 +5,7 @@
  * BoundaryPointEditor.cc
  *
  *  Created on: Sep 5, 2019
- *      Author: jeffs
+ *      Author: jeff smith
  */
 
 // Global static pointer used to ensure a single instance of the class.
@@ -73,3 +73,7 @@ void BoundaryPointEditor::clear()
 	points.clear();
 }
 
+void BoundaryPointEditor::save()
+{
+	cout << "save boundary" << endl;
+}

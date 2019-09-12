@@ -59,6 +59,7 @@ class QActionGroup;
 class QButtonGroup;
 class QRadioButton;
 class QPushButton;
+class QListWidget;
 class QFrame;
 class QDialog;
 class QLabel;
@@ -229,6 +230,8 @@ private:
   QPushButton *_backPeriod;
   QPushButton *_fwdPeriod;
   QPushButton *_boundaryEditorClearBtn;
+  QPushButton *_boundaryEditorSaveBtn;
+  QListWidget *_boundaryEditorList;
 
   // time controller settings dialog
   
@@ -401,9 +404,11 @@ private slots:
   // context editing (SOLO)
   void ShowContextMenu(const QPoint &pos);
 
+  // boundary editor
   void _createBoundaryEditorDialog();
   void _showBoundaryEditor();
   void _clearBoundaryEditor();
+  void _saveBoundaryEditor();
 
 };
 

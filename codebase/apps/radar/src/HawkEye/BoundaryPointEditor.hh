@@ -27,7 +27,7 @@ struct point
  * BoundaryPointEditor.hh
  *
  *  Created on: Sep 5, 2019
- *      Author: jeffsmith
+ *      Author: jeff smith
  *  Implemented as a singleton and stores the points for a boundary
  */
 class BoundaryPointEditor
@@ -36,6 +36,7 @@ class BoundaryPointEditor
 	static BoundaryPointEditor* Instance();
 	void addPoint(int x, int y);
 	void clear();
+	void save();
 	void drawLines(WorldPlot worldPlot, QPainter &painter);
 
   private:
@@ -44,6 +45,7 @@ class BoundaryPointEditor
 	void checkToMovePointToOriginIfVeryClose(point &pt);
 
 	QPushButton *_clearBtn;
+	QPushButton *_saveBtn;
 	vector<point> points;
 	static BoundaryPointEditor* m_pInstance;
 };

@@ -67,6 +67,8 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QListWidget>
+#include <QListWidgetItem>
 #include <QRadioButton>
 #include <QStatusBar>
 #include <QDateTime>
@@ -2980,7 +2982,7 @@ void PolarManager::_howto()
 void PolarManager::_createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
-	_boundaryEditorDialog->setMinimumSize(100, 100);
+	_boundaryEditorDialog->setMinimumSize(100, 300);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
 
 	Qt::Alignment alignCenter(Qt::AlignCenter);
@@ -2990,19 +2992,39 @@ void PolarManager::_createBoundaryEditorDialog()
 	_boundaryEditorDialogLayout->setVerticalSpacing(5);
 
 	int row = 0;
-	QLabel *mainHeader = new QLabel("Click in main window to draw boundary", _boundaryEditorDialog);
-	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 3, alignCenter);
+	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary. Click near the first\npoint to close the polygon.", _boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 2, alignCenter);
+
+	cout << "about to create QListWidget" << endl;
+	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);
+//	_boundaryEditorList->setMinimumSize(80, 100);
+	QListWidgetItem *newItem = new QListWidgetItem;
+	newItem->setText("Boundary 1");
+	_boundaryEditorList->insertItem(0, newItem);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorList, 1, 0, 1, 2);
+	cout << "back from creating QListWidget" << endl;
 
 	_boundaryEditorClearBtn = new QPushButton(_boundaryEditorDialog);
 	_boundaryEditorClearBtn->setText("Clear");
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn, 2, 0);
     connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(_clearBoundaryEditor()));
 
+    _boundaryEditorSaveBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorSaveBtn->setText("Save");
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSaveBtn, 2, 1);
+    connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(_saveBoundaryEditor()));
 }
 
 void PolarManager::_clearBoundaryEditor()
 {
 	BoundaryPointEditor::Instance()->clear();
+	_ppi->update();   //forces repaint which clears existing polygon
+}
+
+void PolarManager::_saveBoundaryEditor()
+{
+	cout << "_saveBoundaryEditor" << endl;
+//	BoundaryPointEditor::Instance()->save();
 }
 
 /////////////////////////////
