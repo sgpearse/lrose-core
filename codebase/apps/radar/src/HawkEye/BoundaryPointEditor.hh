@@ -6,6 +6,7 @@
 
 #include <QPaintEngine>
 #include <QPushButton>
+#include <QBrush>
 #include <list>
 
 using namespace std;
@@ -21,6 +22,11 @@ struct Point
        float dy = (float)(y2 - y);
        return sqrt(dx*dx + dy*dy);
    }
+
+   bool equals(Point other)
+   {
+	   return(x == other.x && y == other.y);
+   }
 };
 
 /*
@@ -35,17 +41,21 @@ class BoundaryPointEditor
   public:
 	static BoundaryPointEditor* Instance();
 	void addPoint(int x, int y);
+	void draw(WorldPlot worldPlot, QPainter &painter);
+	bool isOverAnyPoint(int worldX, int worldY);
+	void moveNearestPointTo(int worldX, int worldY);
+	bool isPolygonFinished();
 	void clear();
 	void save(string path);
 	void load(string path);
-	void drawLines(WorldPlot worldPlot, QPainter &painter);
-	void drawHandle(WorldPlot worldPlot, QPainter &painter, Point point);
 
   private:
 	BoundaryPointEditor(){};
 	void coutPoints();
+	void drawHandle(WorldPlot worldPlot, QPainter &painter, Point point);
 	void checkToMovePointToOriginIfVeryClose(Point &pt);
 
+	float CLOSE_DISTANCE = 10;
 	QPushButton *_clearBtn;
 	QPushButton *_saveBtn;
 	vector<Point> points;

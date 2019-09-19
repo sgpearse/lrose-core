@@ -24,7 +24,7 @@ BoundaryPointEditor* BoundaryPointEditor::Instance()
 
 void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 {
-	if (points.size() > 1 && pt.distanceTo(points[0].x, points[0].y) < 10)
+	if (points.size() > 1 && pt.distanceTo(points[0].x, points[0].y) < CLOSE_DISTANCE)
 	{
 		pt.x = points[0].x;
 		pt.y = points[0].y;
@@ -33,14 +33,54 @@ void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 
 void BoundaryPointEditor::addPoint(int x, int y)
 {
-	Point pt;
-	pt.x = x;
-	pt.y = y;
+	if (!isPolygonFinished())
+	{
+		Point pt;
+		pt.x = x;
+		pt.y = y;
 
-	checkToMovePointToOriginIfVeryClose(pt);
+		checkToMovePointToOriginIfVeryClose(pt);
 
-	points.push_back(pt);
-	coutPoints();
+		points.push_back(pt);
+	//	coutPoints();
+	}
+}
+
+void BoundaryPointEditor::moveNearestPointTo(int worldX, int worldY)
+{
+	int nearestPointIndex;
+	float nearestDistance = 99999;
+
+	for (int i=0; i < points.size(); i++)
+	{
+		float distance = points[i].distanceTo(worldX, worldY);
+		if (distance < nearestDistance)
+		{
+			nearestDistance = distance;
+			nearestPointIndex = i;
+		}
+	}
+
+	points[nearestPointIndex].x = worldX;
+	points[nearestPointIndex].y = worldY;
+	if (nearestPointIndex == 0)
+	{
+		points[points.size()-1].x = worldX;
+		points[points.size()-1].y = worldY;
+	}
+}
+
+bool BoundaryPointEditor::isOverAnyPoint(int worldX, int worldY)
+{
+	for (int i=0; i < points.size(); i++)
+		if (points[i].distanceTo(worldX, worldY) < CLOSE_DISTANCE)
+			return(true);
+	return(false);
+}
+
+bool BoundaryPointEditor::isPolygonFinished()
+{
+	return( (points.size() > 2) && points[0].equals(points[points.size()-1]));
 }
 
 void BoundaryPointEditor::coutPoints()
@@ -52,19 +92,26 @@ void BoundaryPointEditor::coutPoints()
 	cout << endl;
 }
 
-void BoundaryPointEditor::drawLines(WorldPlot worldPlot, QPainter &painter)
+void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 {
 	painter.setPen(Qt::yellow);
+	bool isFinished = isPolygonFinished();
+
 	for (int i=1; i < points.size(); i++)
 	{
 		worldPlot.drawLine(painter, points[i-1].x, points[i-1].y, points[i].x, points[i].y);
-		drawHandle(worldPlot, painter, points[i]);
+		if (isFinished)
+			drawHandle(worldPlot, painter, points[i]);
 	}
 }
 
 void BoundaryPointEditor::drawHandle(WorldPlot worldPlot, QPainter &painter, Point point)
 {
+	QBrush brush(QColor("yellow"));
+	double x = point.x;
+	double y = point.y;
 
+	worldPlot.fillRectangle(painter, brush, x-4, y-4, 8, 8);
 }
 
 void BoundaryPointEditor::clear()

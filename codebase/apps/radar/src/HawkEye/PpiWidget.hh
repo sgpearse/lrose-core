@@ -157,7 +157,6 @@ class DLL_EXPORT PpiWidget : public PolarWidget
   double _nRays;
 
    // override mouse release event
-
   virtual void mouseReleaseEvent(QMouseEvent* event);
 
   // get ray closest to click point
