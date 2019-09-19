@@ -98,16 +98,22 @@
 using namespace std;
 using namespace H5;
 
+PolarManager* PolarManager::m_pInstance = NULL;
+
+PolarManager* PolarManager::Instance()
+{
+   return m_pInstance;
+}
+
 // Constructor
 
 PolarManager::PolarManager(const Params &params,
                            Reader *reader,
                            const vector<DisplayField *> &fields,
                            bool haveFilteredFields) :
-        DisplayManager(params, reader, fields, haveFilteredFields),
-        _sweepManager(params),
-	_rhiWindowDisplayed(false)
+        DisplayManager(params, reader, fields, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
 {
+	m_pInstance = this;
 
   // initialize
 
@@ -2786,6 +2792,104 @@ void PolarManager::_createImageFiles()
 
 }
 
+string PolarManager::_getOutputPath(bool interactive, string &outputDir, string fileExt)
+{
+	  // set times from plots
+	  if (_rhiMode) {
+	    _plotStartTime = _rhi->getPlotStartTime();
+	    _plotEndTime = _rhi->getPlotEndTime();
+	  } else {
+	    _plotStartTime = _ppi->getPlotStartTime();
+	    _plotEndTime = _ppi->getPlotEndTime();
+	  }
+
+	  // compute output dir
+
+	  outputDir = _params.images_output_dir;
+	  char dayStr[1024];
+	  if (_params.images_write_to_day_dir) {
+	    sprintf(dayStr, "%.4d%.2d%.2d",
+	            _plotStartTime.getYear(),
+	            _plotStartTime.getMonth(),
+	            _plotStartTime.getDay());
+	    outputDir += PATH_DELIM;
+	    outputDir += dayStr;
+	  }
+
+	  // make sure output dir exists
+
+	  if (ta_makedir_recurse(outputDir.c_str())) {
+	    string errmsg("Cannot create output dir: " + outputDir);
+	    cerr << "ERROR - PolarManager::_saveImageToFile()" << endl;
+	    cerr << "  " << errmsg << endl;
+	    if (interactive) {
+	        QMessageBox::critical(this, "Error", errmsg.c_str());
+	    }
+	    return(NULL);
+	  }
+
+	  // compute file name
+
+	  string fileName;
+
+	  // category
+
+	  if (strlen(_params.images_file_name_category) > 0) {
+	    fileName += _params.images_file_name_category;
+	  }
+
+	  // platform
+
+	  if (strlen(_params.images_file_name_platform) > 0) {
+	    fileName += _params.images_file_name_delimiter;
+	    fileName += _params.images_file_name_platform;
+	  }
+
+	  // time
+
+	  if (_params.images_include_time_part_in_file_name) {
+	    fileName += _params.images_file_name_delimiter;
+	    char timeStr[1024];
+	    if (_params.images_include_seconds_in_time_part) {
+	      sprintf(timeStr, "%.4d%.2d%.2d%.2d%.2d%.2d",
+	              _plotStartTime.getYear(),
+	              _plotStartTime.getMonth(),
+	              _plotStartTime.getDay(),
+	              _plotStartTime.getHour(),
+	              _plotStartTime.getMin(),
+	              _plotStartTime.getSec());
+	    } else {
+	      sprintf(timeStr, "%.4d%.2d%.2d%.2d%.2d",
+	              _plotStartTime.getYear(),
+	              _plotStartTime.getMonth(),
+	              _plotStartTime.getDay(),
+	              _plotStartTime.getHour(),
+	              _plotStartTime.getMin());
+	    }
+	    fileName += timeStr;
+	  }
+
+	  // field label
+
+	  if (_params.images_include_field_label_in_file_name) {
+	    fileName += _params.images_file_name_delimiter;
+	    fileName += getSelectedFieldLabel();
+	  }
+
+	  // extension
+
+	  fileName += ".";
+	  fileName += fileExt;
+
+	  // compute output path
+
+	  string outputPath(outputDir);
+	  outputPath += PATH_DELIM;
+	  outputPath += fileName;
+
+	  return(outputPath);
+}
+
 /////////////////////////////////////////////////////
 // save image to file
 // If interactive is true, use dialog boxes to indicate errors or report
@@ -2793,113 +2897,18 @@ void PolarManager::_createImageFiles()
 
 void PolarManager::_saveImageToFile(bool interactive)
 {
-
-  // set times from plots
-
-  if (_rhiMode) {
-    _plotStartTime = _rhi->getPlotStartTime();
-    _plotEndTime = _rhi->getPlotEndTime();
-  } else {
-    _plotStartTime = _ppi->getPlotStartTime();
-    _plotEndTime = _ppi->getPlotEndTime();
-  }
-
-  // create image
-  
+	  // create image
   QPixmap pixmap;
-  if (_rhiMode) {
+  if (_rhiMode)
     pixmap = QPixmap::grabWidget(_rhi);
-  } else {
+  else
     pixmap = QPixmap::grabWidget(_ppi);
-  }
   QImage image = pixmap.toImage();
-  
-  // compute output dir
-  
-  string outputDir(_params.images_output_dir);
-  char dayStr[1024];
-  if (_params.images_write_to_day_dir) {
-    sprintf(dayStr, "%.4d%.2d%.2d",
-            _plotStartTime.getYear(),
-            _plotStartTime.getMonth(),
-            _plotStartTime.getDay());
-    outputDir += PATH_DELIM;
-    outputDir += dayStr;
-  }
-  
-  // make sure output dir exists
 
-  if (ta_makedir_recurse(outputDir.c_str())) {
-    string errmsg("Cannot create output dir: " + outputDir);
-    cerr << "ERROR - PolarManager::_saveImageToFile()" << endl;
-    cerr << "  " << errmsg << endl;
-    if (interactive) {
-        QMessageBox::critical(this, "Error", errmsg.c_str());
-    }
-    return;
-  }
-
-  // compute file name
-
-  string fileName;
-
-  // category
-
-  if (strlen(_params.images_file_name_category) > 0) {
-    fileName += _params.images_file_name_category;
-  }
-
-  // platform
-
-  if (strlen(_params.images_file_name_platform) > 0) {
-    fileName += _params.images_file_name_delimiter;
-    fileName += _params.images_file_name_platform;
-  }
-
-  // time
-
-  if (_params.images_include_time_part_in_file_name) {
-    fileName += _params.images_file_name_delimiter;
-    char timeStr[1024];
-    if (_params.images_include_seconds_in_time_part) {
-      sprintf(timeStr, "%.4d%.2d%.2d%.2d%.2d%.2d",
-              _plotStartTime.getYear(),
-              _plotStartTime.getMonth(),
-              _plotStartTime.getDay(),
-              _plotStartTime.getHour(),
-              _plotStartTime.getMin(),
-              _plotStartTime.getSec());
-    } else {
-      sprintf(timeStr, "%.4d%.2d%.2d%.2d%.2d",
-              _plotStartTime.getYear(),
-              _plotStartTime.getMonth(),
-              _plotStartTime.getDay(),
-              _plotStartTime.getHour(),
-              _plotStartTime.getMin());
-    }
-    fileName += timeStr;
-  }
-
-  // field label
-
-  if (_params.images_include_field_label_in_file_name) {
-    fileName += _params.images_file_name_delimiter;
-    fileName += getSelectedFieldLabel();
-  }
-
-  // extension
-
-  fileName += ".";
-  fileName += _params.images_file_name_extension;
-
-  // compute output path
-
-  string outputPath(outputDir);
-  outputPath += PATH_DELIM;
-  outputPath += fileName;
+  string outputDir;
+  string outputPath = _getOutputPath(interactive, outputDir, _params.images_file_name_extension);
 
   // write the file
-  
   if (!image.save(outputPath.c_str())) {
     string errmsg("Cannot save image to file: " + outputPath);
     cerr << "ERROR - PolarManager::_saveImageToFile()" << endl;
@@ -2982,49 +2991,85 @@ void PolarManager::_howto()
 void PolarManager::_createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
-	_boundaryEditorDialog->setMinimumSize(100, 300);
+//	_boundaryEditorDialog->setMinimumSize(100, 250);
+	_boundaryEditorDialog->setMaximumHeight(200);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
 
 	Qt::Alignment alignCenter(Qt::AlignCenter);
 	Qt::Alignment alignRight(Qt::AlignRight);
 
 	_boundaryEditorDialogLayout = new QGridLayout(_boundaryEditorDialog);
-	_boundaryEditorDialogLayout->setVerticalSpacing(5);
+	_boundaryEditorDialogLayout->setVerticalSpacing(4);
 
 	int row = 0;
 	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary. Click near the first\npoint to close the polygon.", _boundaryEditorDialog);
 	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 2, alignCenter);
 
-	cout << "about to create QListWidget" << endl;
 	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);
-//	_boundaryEditorList->setMinimumSize(80, 100);
-	QListWidgetItem *newItem = new QListWidgetItem;
-	newItem->setText("Boundary 1");
-	_boundaryEditorList->insertItem(0, newItem);
+
+	QListWidgetItem *newItem5 = new QListWidgetItem;
+	newItem5->setText("Boundary5 <none>");
+	_boundaryEditorList->insertItem(0, newItem5);
+	QListWidgetItem *newItem4 = new QListWidgetItem;
+	newItem4->setText("Boundary4 <none>");
+	_boundaryEditorList->insertItem(0, newItem4);
+	QListWidgetItem *newItem3 = new QListWidgetItem;
+	newItem3->setText("Boundary3 <none>");
+	_boundaryEditorList->insertItem(0, newItem3);
+	QListWidgetItem *newItem2 = new QListWidgetItem;
+	newItem2->setText("Boundary2 <none>");
+	_boundaryEditorList->insertItem(0, newItem2);
+	QListWidgetItem *newItem1 = new QListWidgetItem;
+	newItem1->setText("Boundary1");
+	_boundaryEditorList->insertItem(0, newItem1);
+
 	_boundaryEditorDialogLayout->addWidget(_boundaryEditorList, 1, 0, 1, 2);
-	cout << "back from creating QListWidget" << endl;
 
 	_boundaryEditorClearBtn = new QPushButton(_boundaryEditorDialog);
 	_boundaryEditorClearBtn->setText("Clear");
 	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn, 2, 0);
-    connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(_clearBoundaryEditor()));
+    connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(_clearBoundaryEditorClick()));
 
     _boundaryEditorSaveBtn = new QPushButton(_boundaryEditorDialog);
 	_boundaryEditorSaveBtn->setText("Save");
 	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSaveBtn, 2, 1);
-    connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(_saveBoundaryEditor()));
+    connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(_saveBoundaryEditorClick()));
+
+    connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
 }
 
-void PolarManager::_clearBoundaryEditor()
+void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
+{
+	string fileExt = item->text().toUtf8().constData();
+	bool found = (fileExt.find("<none>") != string::npos);
+	if (!found)
+	{
+		cout << "clicked on item " << fileExt << endl;
+		string outputDir;
+		string path = _getOutputPath(false, outputDir, fileExt);
+		BoundaryPointEditor::Instance()->load(path);
+		_ppi->update();   //forces repaint which clears existing polygon
+	}
+}
+
+void PolarManager::_clearBoundaryEditorClick()
 {
 	BoundaryPointEditor::Instance()->clear();
 	_ppi->update();   //forces repaint which clears existing polygon
 }
 
-void PolarManager::_saveBoundaryEditor()
+void PolarManager::_saveBoundaryEditorClick()
 {
-	cout << "_saveBoundaryEditor" << endl;
-//	BoundaryPointEditor::Instance()->save();
+	cout << "PolarManager, _saveBoundaryEditorClick" << endl;
+
+	string text = "Boundary" + to_string(_boundaryEditorList->currentRow()+1);
+//	QString qtext = text.c_str();
+	_boundaryEditorList->currentItem()->setText(text.c_str());
+
+	string outputDir;
+	string fileExt = _boundaryEditorList->currentItem()->text().toUtf8().constData();
+	string path = _getOutputPath(false, outputDir, fileExt);
+	BoundaryPointEditor::Instance()->save(path);
 }
 
 /////////////////////////////
@@ -3035,8 +3080,8 @@ void PolarManager::_showBoundaryEditor()
   {
     if (_boundaryEditorDialog->isVisible())
     {
+    	_clearBoundaryEditorClick();
     	_boundaryEditorDialog->setVisible(false);
-    	BoundaryPointEditor::Instance()->clear();
     }
     else
     {
@@ -3051,6 +3096,21 @@ void PolarManager::_showBoundaryEditor()
       BoundaryPointEditor::Instance()->clear();
 
       _boundaryEditorDialog->raise();
+
+      //rename any items that have corresponding file on disk
+      for (int i=4; i > 0; i--)
+      {
+		string outputDir;
+		string fileExt = "Boundary" + to_string(i+1);
+		string path = _getOutputPath(false, outputDir, fileExt);
+		ifstream infile(path);
+		if (infile.good())
+			_boundaryEditorList->item(i)->setText(fileExt.c_str());
+      }
+
+      //load the first boundary in list (if exists)
+	  _boundaryEditorList->setCurrentRow(0);
+	  onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
     }
   }
 }

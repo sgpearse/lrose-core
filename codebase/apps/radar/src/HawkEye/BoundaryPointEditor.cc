@@ -1,5 +1,8 @@
 #include "BoundaryPointEditor.hh"
+#include "PolarManager.hh"
 #include <iostream>
+#include <fstream>
+#include <iterator>
 
 /*
  * BoundaryPointEditor.cc
@@ -19,7 +22,7 @@ BoundaryPointEditor* BoundaryPointEditor::Instance()
    return m_pInstance;
 }
 
-void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(point &pt)
+void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 {
 	if (points.size() > 1 && pt.distanceTo(points[0].x, points[0].y) < 10)
 	{
@@ -30,7 +33,7 @@ void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(point &pt)
 
 void BoundaryPointEditor::addPoint(int x, int y)
 {
-	point pt;
+	Point pt;
 	pt.x = x;
 	pt.y = y;
 
@@ -53,18 +56,15 @@ void BoundaryPointEditor::drawLines(WorldPlot worldPlot, QPainter &painter)
 {
 	painter.setPen(Qt::yellow);
 	for (int i=1; i < points.size(); i++)
+	{
 		worldPlot.drawLine(painter, points[i-1].x, points[i-1].y, points[i].x, points[i].y);
+		drawHandle(worldPlot, painter, points[i]);
+	}
+}
 
-/* test code
-	double x1 = 0;
-	double x2 = 0;
-	double y1 = 0;
-	double y2 = 140;
-	cout << "drawing line from (" << x1 << "," << y1 << ") to (" << x2 << "," << y2 << ")" << endl;
-	painter.setPen(Qt::yellow);
-	worldPlot.drawLine(painter, x1, y1, x2, y2);
-	worldPlot.drawLine(painter, x1+1, y1, x2+1, y2);
-*/
+void BoundaryPointEditor::drawHandle(WorldPlot worldPlot, QPainter &painter, Point point)
+{
+
 }
 
 void BoundaryPointEditor::clear()
@@ -73,7 +73,48 @@ void BoundaryPointEditor::clear()
 	points.clear();
 }
 
-void BoundaryPointEditor::save()
+void BoundaryPointEditor::save(string path)
 {
-	cout << "save boundary" << endl;
+	cout << "BoundaryPointEditor, saving boundary with " << points.size() << " points to " << path << endl;
+
+	FILE *file;
+	file = fopen(path.c_str(), "wb");
+	for (int i=0; i < points.size(); i++)
+	{
+		fwrite(&points[i].x, sizeof(int), 1, file);
+		fwrite(&points[i].y, sizeof(int), 1, file);
+	}
+	fclose(file);
 }
+
+void BoundaryPointEditor::load(string path)
+{
+	ifstream infile(path);
+	if (infile.good())
+	{
+		FILE *file;
+		file = fopen(path.c_str(), "rb");
+
+		//get number of points in file (from file size)
+		fseek(file, 0L, SEEK_END);
+		int size = ftell(file);
+		fseek (file, 0, SEEK_SET);
+		int numPoints = size / sizeof(Point);
+
+		//read each point and add to boundary
+		points.clear();
+		for (int i=0; i < numPoints; i++)
+		{
+			int x, y;
+			fread(&x, sizeof(int), 1, file);
+			fread(&y, sizeof(int), 1, file);
+			addPoint(x, y);
+		}
+		fclose (file);
+
+		cout << "BoundaryPointEditor, read " << points.size() << " points from " << path << endl;
+	}
+	else
+		cout << path << " doesn't exist, skipping..." << endl;
+}
+

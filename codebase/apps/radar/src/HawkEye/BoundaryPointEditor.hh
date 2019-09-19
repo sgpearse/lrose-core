@@ -10,7 +10,7 @@
 
 using namespace std;
 
-struct point
+struct Point
 {
    int x;
    int y;
@@ -36,18 +36,22 @@ class BoundaryPointEditor
 	static BoundaryPointEditor* Instance();
 	void addPoint(int x, int y);
 	void clear();
-	void save();
+	void save(string path);
+	void load(string path);
 	void drawLines(WorldPlot worldPlot, QPainter &painter);
+	void drawHandle(WorldPlot worldPlot, QPainter &painter, Point point);
 
   private:
 	BoundaryPointEditor(){};
 	void coutPoints();
-	void checkToMovePointToOriginIfVeryClose(point &pt);
+	void checkToMovePointToOriginIfVeryClose(Point &pt);
 
 	QPushButton *_clearBtn;
 	QPushButton *_saveBtn;
-	vector<point> points;
+	vector<Point> points;
 	static BoundaryPointEditor* m_pInstance;
+
+	void ReadFromFile(vector<Point> &x, const string &file_name);
 };
 
 

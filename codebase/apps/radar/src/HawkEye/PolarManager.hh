@@ -51,6 +51,7 @@
 #include "RayLoc.hh"
 #include "ContextEditingView.hh"
 #include <QMainWindow>
+#include <QListWidgetItem>
 #include <euclid/SunPosn.hh>
 #include <Radx/RadxRay.hh>
 
@@ -82,6 +83,8 @@ class PolarManager : public DisplayManager {
   Q_OBJECT
 
 public:
+  static PolarManager* Instance();
+
   // boundary editor dialog
   QDialog *_boundaryEditorDialog;
   QGridLayout *_boundaryEditorDialogLayout;
@@ -141,6 +144,9 @@ public slots:
 signals:
 
 private:
+
+  static PolarManager* m_pInstance;
+
 
   bool _firstTime;
   bool _urlOK;
@@ -271,6 +277,7 @@ private:
   void _openFile();
   void _saveFile();
   void _moveUpDown();
+  string _getOutputPath(bool interactive, string &outputDir, string fileExt);
 
   // set top bar
 
@@ -407,8 +414,9 @@ private slots:
   // boundary editor
   void _createBoundaryEditorDialog();
   void _showBoundaryEditor();
-  void _clearBoundaryEditor();
-  void _saveBoundaryEditor();
+  void _clearBoundaryEditorClick();
+  void onBoundaryEditorListItemClicked(QListWidgetItem* item);
+  void _saveBoundaryEditorClick();
 
 };
 
