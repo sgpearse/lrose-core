@@ -38,6 +38,7 @@
 #include <QLayout>
 #include <QMessageBox>
 #include <QErrorMessage>
+#include <QApplication>
 
 using namespace std;
 
@@ -436,8 +437,23 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
     _worldReleaseX = _zoomWorld.getXWorld(_mouseReleaseX);
     _worldReleaseY = _zoomWorld.getYWorld(_mouseReleaseY);
 
-	if (_manager._boundaryEditorDialog->isVisible() && !BoundaryPointEditor::Instance()->isPolygonFinished())
-		BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
+    if (_manager._boundaryEditorDialog->isVisible())
+    {
+    	if (!BoundaryPointEditor::Instance()->isPolygonFinished())
+    		BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
+    	else  //polygon finished, user may want to insert/delete a point
+    	{
+    		bool isOverExistingPt = BoundaryPointEditor::Instance()->isOverAnyPoint(_worldReleaseX, _worldReleaseY);
+    		bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
+    		if (isShiftKeyDown)
+    		{
+    			if (isOverExistingPt)
+        			BoundaryPointEditor::Instance()->delNearestPoint(_worldReleaseX, _worldReleaseY);
+        		else
+        			BoundaryPointEditor::Instance()->insertPoint(_worldReleaseX, _worldReleaseY);
+    		}
+    	}
+    }
 
     double x_km = _worldReleaseX;
     double y_km = _worldReleaseY;

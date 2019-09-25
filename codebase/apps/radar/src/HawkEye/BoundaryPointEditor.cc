@@ -46,34 +46,95 @@ void BoundaryPointEditor::addPoint(int x, int y)
 	}
 }
 
-void BoundaryPointEditor::moveNearestPointTo(int worldX, int worldY)
+void BoundaryPointEditor::insertPoint(int x, int y)
+{
+	Point pt;
+	pt.x = x;
+	pt.y = y;
+	int nearestPtIndex = getNearestPointIndex(x, y);
+	Point nearestPt = points[nearestPtIndex];
+
+	//remember that the last point is just a duplicate of the first point in a closed polygon, so just ignore this point
+
+	//figure out which of the two possible segments (x,y) is closer to
+	int afterPtIndex = nearestPtIndex+1;
+	if (afterPtIndex >= points.size()-1)
+		afterPtIndex = 0;
+	float afterPtDistance = pt.distToLineSegment(nearestPt.x, nearestPt.y, points[afterPtIndex].x, points[afterPtIndex].y);
+
+	int beforePtIndex = nearestPtIndex-1;
+	if (beforePtIndex < 0)
+		beforePtIndex = points.size()-2;
+	float beforePtDistance = pt.distToLineSegment(nearestPt.x, nearestPt.y, points[beforePtIndex].x, points[beforePtIndex].y);
+
+	cout << "INSERT POINT! nearestPtIndex=" << nearestPtIndex << ", insert point at " << x << "," << y << endl;
+	cout << "afterPtDist=" << afterPtDistance << ", beforePtDist=" << beforePtDistance << ", beforePtIndex=" << beforePtIndex << ", afterPtIndex=" << afterPtIndex << endl;
+
+	if (afterPtDistance <= beforePtDistance)
+	{
+		if (afterPtIndex == 0)
+			points.insert(points.begin() + points.size()-1, pt);
+		else
+			points.insert(points.begin() + afterPtIndex, pt);
+	}
+	else
+	{
+		if (beforePtIndex == points.size()-1)
+			points.insert(points.begin() + points.size()-2, pt);
+		else
+			points.insert(points.begin() + beforePtIndex+1, pt);
+	}
+}
+
+void BoundaryPointEditor::delNearestPoint(int x, int y)
+{
+	Point pt;
+	pt.x = x;
+	pt.y = y;
+
+  int nearestPtIndex = getNearestPointIndex(x, y);
+  if (nearestPtIndex == 0 || nearestPtIndex == points.size()-1)
+  {
+
+  }
+  else
+    points.erase(points.begin() + nearestPtIndex);
+	cout << "delete nearest point to " << x << "," << y << endl;
+}
+
+int BoundaryPointEditor::getNearestPointIndex(int x, int y)
 {
 	int nearestPointIndex;
 	float nearestDistance = 99999;
 
 	for (int i=0; i < points.size(); i++)
 	{
-		float distance = points[i].distanceTo(worldX, worldY);
+		float distance = points[i].distanceTo(x, y);
 		if (distance < nearestDistance)
 		{
 			nearestDistance = distance;
 			nearestPointIndex = i;
 		}
 	}
+	return(nearestPointIndex);
+}
 
-	points[nearestPointIndex].x = worldX;
-	points[nearestPointIndex].y = worldY;
+void BoundaryPointEditor::moveNearestPointTo(int x, int y)
+{
+	int nearestPointIndex = getNearestPointIndex(x, y);
+	points[nearestPointIndex].x = x;
+	points[nearestPointIndex].y = y;
 	if (nearestPointIndex == 0)
 	{
-		points[points.size()-1].x = worldX;
-		points[points.size()-1].y = worldY;
+		points[points.size()-1].x = x;
+		points[points.size()-1].y = y;
 	}
 }
 
-bool BoundaryPointEditor::isOverAnyPoint(int worldX, int worldY)
+bool BoundaryPointEditor::isOverAnyPoint(int x, int y)
 {
 	for (int i=0; i < points.size(); i++)
-		if (points[i].distanceTo(worldX, worldY) < CLOSE_DISTANCE)
+		if (points[i].distanceTo(x, y) < CLOSE_DISTANCE)
 			return(true);
 	return(false);
 }
@@ -111,8 +172,9 @@ void BoundaryPointEditor::drawHandle(WorldPlot worldPlot, QPainter &painter, Poi
 	double x = point.x;
 	double y = point.y;
 
-	worldPlot.fillRectangle(painter, brush, x-4, y-4, 8, 8);
+	worldPlot.fillRectangle(painter, brush, x-3, y-3, 6, 6);
 }
+
 
 void BoundaryPointEditor::clear()
 {

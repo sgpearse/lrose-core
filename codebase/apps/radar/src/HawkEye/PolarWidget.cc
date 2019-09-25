@@ -348,7 +348,7 @@ void PolarWidget::mousePressEvent(QMouseEvent *e)
 
 
 /*************************************************************************
- * mouseMoveEvent()
+ * mouseMoveEvent(), mouse button is down and mouse is moving
  */
 
 void PolarWidget::mouseMoveEvent(QMouseEvent * e)
