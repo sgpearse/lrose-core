@@ -95,6 +95,7 @@ class BoundaryPointEditor
 	void clear();
 	void save(string path);
 	void load(string path);
+	vector<Point> getWorldPoints();
 
   private:
 	BoundaryPointEditor(){};

@@ -22,6 +22,11 @@ BoundaryPointEditor* BoundaryPointEditor::Instance()
    return m_pInstance;
 }
 
+vector<Point> BoundaryPointEditor::getWorldPoints()
+{
+	return(points);
+}
+
 void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 {
 	if (points.size() > 1 && pt.distanceTo(points[0].x, points[0].y) < CLOSE_DISTANCE)
