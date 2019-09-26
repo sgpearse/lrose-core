@@ -2991,8 +2991,8 @@ void PolarManager::_howto()
 void PolarManager::_createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
-//	_boundaryEditorDialog->setMinimumSize(100, 250);
-	_boundaryEditorDialog->setMaximumHeight(200);
+//	_boundaryEditorDialog->setMaximumHeight(200);
+	_boundaryEditorDialog->setMaximumHeight(220);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
 
 	Qt::Alignment alignCenter(Qt::AlignCenter);
@@ -3002,7 +3002,7 @@ void PolarManager::_createBoundaryEditorDialog()
 	_boundaryEditorDialogLayout->setVerticalSpacing(4);
 
 	int row = 0;
-	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary. Click near the first\npoint to close the polygon.", _boundaryEditorDialog);
+	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary and click near the first\npoint to close the polygon.\nHold Shift key to insert/delete points.", _boundaryEditorDialog);
 	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 2, alignCenter);
 
 	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);

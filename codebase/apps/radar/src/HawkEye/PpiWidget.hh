@@ -156,11 +156,14 @@ class DLL_EXPORT PpiWidget : public PolarWidget
   double _sumElev;
   double _nRays;
 
-   // override mouse release event
+  // override mouse release event
   virtual void mouseReleaseEvent(QMouseEvent* event);
 
-  // get ray closest to click point
+  // used to detect shift key pressed for boundary editor (switches cursor)
+  virtual void timerEvent(QTimerEvent * event);
 
+
+  // get ray closest to click point
   virtual const RadxRay *_getClosestRay(double x_km, double y_km);
 
   /**

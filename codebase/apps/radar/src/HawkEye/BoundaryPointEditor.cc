@@ -88,14 +88,17 @@ void BoundaryPointEditor::insertPoint(int x, int y)
 
 void BoundaryPointEditor::delNearestPoint(int x, int y)
 {
-	Point pt;
-	pt.x = x;
-	pt.y = y;
-
   int nearestPtIndex = getNearestPointIndex(x, y);
   if (nearestPtIndex == 0 || nearestPtIndex == points.size()-1)
   {
+    points.erase(points.begin() + points.size()-1);
+    points.erase(points.begin());
 
+    //now add closing (last) point that is identical to the new first point
+    Point pt;
+    pt.x = points[0].x;
+    pt.y = points[0].y;
+    points.push_back(pt);
   }
   else
     points.erase(points.begin() + nearestPtIndex);
@@ -162,11 +165,11 @@ void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 	{
 		worldPlot.drawLine(painter, points[i-1].x, points[i-1].y, points[i].x, points[i].y);
 		if (isFinished)
-			drawHandle(worldPlot, painter, points[i]);
+		  drawPointBox(worldPlot, painter, points[i]);
 	}
 }
 
-void BoundaryPointEditor::drawHandle(WorldPlot worldPlot, QPainter &painter, Point point)
+void BoundaryPointEditor::drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point)
 {
 	QBrush brush(QColor("yellow"));
 	double x = point.x;

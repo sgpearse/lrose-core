@@ -43,8 +43,6 @@ struct Point
     // TODO: check if BC == 0
     float AD = (2 * area) / BC;
 
-cout << "In distToLineSegment, (x1,y1)=(" << x1 << "," << y1 << "),  (x2,y2)=(" << x2 << "," << y2 << ")" << ",  dist=" << AD << endl;
-
     return AD;
   }
 
@@ -89,7 +87,7 @@ class BoundaryPointEditor
 	int getNearestPointIndex(int x, int y);
 	float getNearestDistToLineSegment(int x, int y, int segmentPtIndex1, int segmentPtIndex2);
 	void coutPoints();
-	void drawHandle(WorldPlot worldPlot, QPainter &painter, Point point);
+	void drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point);
 	void checkToMovePointToOriginIfVeryClose(Point &pt);
 
 	float CLOSE_DISTANCE = 10;
