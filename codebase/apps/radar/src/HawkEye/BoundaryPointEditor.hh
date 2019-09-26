@@ -95,6 +95,7 @@ class BoundaryPointEditor
 	void clear();
 	void save(string path);
 	void load(string path);
+	bool updateScale(double xRange);
 	vector<Point> getWorldPoints();
 
   private:
@@ -106,6 +107,7 @@ class BoundaryPointEditor
 	void checkToMovePointToOriginIfVeryClose(Point &pt);
 
 	float CLOSE_DISTANCE = 10;
+	float pointBoxScale = 1;
 	QPushButton *_clearBtn;
 	QPushButton *_saveBtn;
 	vector<Point> points;

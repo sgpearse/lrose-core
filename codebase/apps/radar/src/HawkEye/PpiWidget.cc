@@ -75,7 +75,7 @@ PpiWidget::PpiWidget(QWidget* parent,
   _sumElev = 0.0;
   _nRays = 0.0;
 
-  startTimer(5);  //used for boundary editor to detect shift key down (changes cursor)
+  startTimer(50);  //used for boundary editor to detect shift key down (changes cursor)
 }
 
 /*************************************************************************
@@ -413,13 +413,22 @@ void PpiWidget::configureRange(double max_range)
 
 void PpiWidget::timerEvent(QTimerEvent *event)
 {
+	bool doUpdate = false;
 	bool isBoundaryEditorVisible = _manager._boundaryEditorDialog->isVisible();
+	if (isBoundaryEditorVisible)
+	{
+		double xRange = _zoomWorld.getXMaxWorld() - _zoomWorld.getXMinWorld();
+		doUpdate = BoundaryPointEditor::Instance()->updateScale(xRange);
+	}
   bool isBoundaryFinished = BoundaryPointEditor::Instance()->isPolygonFinished();
   bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
   if ((isBoundaryEditorVisible && !isBoundaryFinished) || (isBoundaryEditorVisible && isBoundaryFinished && isShiftKeyDown))
     this->setCursor(Qt::CrossCursor);
   else
     this->setCursor(Qt::ArrowCursor);
+
+  if (doUpdate)
+  	update();
 }
 
 

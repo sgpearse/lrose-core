@@ -172,6 +172,8 @@ void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 		if (isFinished)
 		  drawPointBox(worldPlot, painter, points[i]);
 	}
+
+	cout << "pointBox.size=" << (6 * pointBoxScale) << endl;
 }
 
 void BoundaryPointEditor::drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point)
@@ -180,9 +182,17 @@ void BoundaryPointEditor::drawPointBox(WorldPlot worldPlot, QPainter &painter, P
 	double x = point.x;
 	double y = point.y;
 
-	worldPlot.fillRectangle(painter, brush, x-3, y-3, 6, 6);
+	int size = 6 * pointBoxScale;
+	worldPlot.fillRectangle(painter, brush, x-(size/2), y-(size/2), size, size);
 }
 
+bool BoundaryPointEditor::updateScale(double xRange)
+{
+	float newPointBoxScale = xRange / 450;  //450 is the default range/size if no radar data has been loaded
+	bool doUpdate = (newPointBoxScale != pointBoxScale);
+	pointBoxScale = newPointBoxScale;
+	return(doUpdate);  //only do an update if this value has changed
+}
 
 void BoundaryPointEditor::clear()
 {
