@@ -418,7 +418,7 @@ void PpiWidget::timerEvent(QTimerEvent *event)
 	if (isBoundaryEditorVisible)
 	{
 		double xRange = _zoomWorld.getXMaxWorld() - _zoomWorld.getXMinWorld();
-		doUpdate = BoundaryPointEditor::Instance()->updateScale(xRange);
+		doUpdate = BoundaryPointEditor::Instance()->updateScale(xRange);   //user may have zoomed in or out, so update the polygon point boxes so they are the right size on screen
 	}
   bool isBoundaryFinished = BoundaryPointEditor::Instance()->isPolygonFinished();
   bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
@@ -427,7 +427,7 @@ void PpiWidget::timerEvent(QTimerEvent *event)
   else
     this->setCursor(Qt::ArrowCursor);
 
-  if (doUpdate)
+  if (doUpdate)  //only update if something has changed
   	update();
 }
 
@@ -461,19 +461,26 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 
     if (_manager._boundaryEditorDialog->isVisible())
     {
-    	if (!BoundaryPointEditor::Instance()->isPolygonFinished())
-    		BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
-    	else  //polygon finished, user may want to insert/delete a point
+    	if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::polygon)
     	{
-    		bool isOverExistingPt = BoundaryPointEditor::Instance()->isOverAnyPoint(_worldReleaseX, _worldReleaseY);
-    		bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
-    		if (isShiftKeyDown)
-    		{
-    			if (isOverExistingPt)
-        			BoundaryPointEditor::Instance()->delNearestPoint(_worldReleaseX, _worldReleaseY);
-        		else
-        			BoundaryPointEditor::Instance()->insertPoint(_worldReleaseX, _worldReleaseY);
-    		}
+				if (!BoundaryPointEditor::Instance()->isPolygonFinished())
+					BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
+				else  //polygon finished, user may want to insert/delete a point
+				{
+					bool isOverExistingPt = BoundaryPointEditor::Instance()->isOverAnyPoint(_worldReleaseX, _worldReleaseY);
+					bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
+					if (isShiftKeyDown)
+					{
+						if (isOverExistingPt)
+								BoundaryPointEditor::Instance()->delNearestPoint(_worldReleaseX, _worldReleaseY);
+							else
+								BoundaryPointEditor::Instance()->insertPoint(_worldReleaseX, _worldReleaseY);
+					}
+				}
+    	}
+    	else //circle
+    	{
+				BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
     	}
     }
 

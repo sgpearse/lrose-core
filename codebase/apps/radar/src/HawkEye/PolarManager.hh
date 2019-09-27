@@ -237,6 +237,8 @@ private:
   QPushButton *_fwdPeriod;
   QPushButton *_boundaryEditorClearBtn;
   QPushButton *_boundaryEditorSaveBtn;
+  QPushButton *_boundaryEditorPolygonBtn;
+  QPushButton *_boundaryEditorCircleBtn;
   QListWidget *_boundaryEditorList;
 
   // time controller settings dialog
@@ -412,11 +414,13 @@ private slots:
   void ShowContextMenu(const QPoint &pos);
 
   // boundary editor
-  void _createBoundaryEditorDialog();
-  void _showBoundaryEditor();
-  void _clearBoundaryEditorClick();
+  void createBoundaryEditorDialog();
+  void showBoundaryEditor();
+  void clearBoundaryEditorClick();
+  void polygonBtnBoundaryEditorClick();
+  void circleBtnBoundaryEditorClick();
   void onBoundaryEditorListItemClicked(QListWidgetItem* item);
-  void _saveBoundaryEditorClick();
+  void saveBoundaryEditorClick();
 
 };
 

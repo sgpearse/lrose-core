@@ -80,6 +80,9 @@
 #include <QGraphicsScene>
 #include <QGraphicsAnchorLayout>
 #include <QGraphicsProxyWidget>
+#include <QToolBar>
+#include <QIcon>
+#include <QAction>
 
 #include <fstream>
 #include <toolsa/toolsa_macros.h>
@@ -552,7 +555,7 @@ void PolarManager::_setupWindows()
   // set up field status dialog
 
   _createClickReportDialog();
-  _createBoundaryEditorDialog();
+  createBoundaryEditorDialog();
 
   if (_archiveMode) {
     _showTimeControl();
@@ -594,7 +597,7 @@ void PolarManager::_createActions()
   // show boundary editor dialog
   _showBoundaryEditorAct = new QAction(tr("Boundary Editor"), this);
   _showBoundaryEditorAct->setStatusTip(tr("Show boundary editor dialog"));
-  connect(_showBoundaryEditorAct, SIGNAL(triggered()), this, SLOT(_showBoundaryEditor()));
+  connect(_showBoundaryEditorAct, SIGNAL(triggered()), this, SLOT(showBoundaryEditor()));
   
   // set time controller settings
   _timeControllerAct = new QAction(tr("Time-Config"), this);
@@ -2988,11 +2991,11 @@ void PolarManager::_howto()
   QMessageBox::about(this, tr("Howto dialog"), tr(text.c_str()));
 }
 
-void PolarManager::_createBoundaryEditorDialog()
+void PolarManager::createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
 //	_boundaryEditorDialog->setMaximumHeight(200);
-	_boundaryEditorDialog->setMaximumHeight(220);
+	_boundaryEditorDialog->setMaximumHeight(308);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
 
 	Qt::Alignment alignCenter(Qt::AlignCenter);
@@ -3005,8 +3008,30 @@ void PolarManager::_createBoundaryEditorDialog()
 	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary and click near the first\npoint to close the polygon. Once closed,\nhold Shift key to insert/delete points.", _boundaryEditorDialog);
 	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 2, alignCenter);
 
-	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
 
+	QLabel *toolsCaption = new QLabel("Editor Tools:", _boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(toolsCaption, ++row, 0, 1, 2, alignCenter);
+
+	_boundaryEditorPolygonBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorPolygonBtn->setText(" Polygon");
+	_boundaryEditorPolygonBtn->setIcon(QIcon("images/polygon.png"));
+	_boundaryEditorPolygonBtn->setCheckable(TRUE);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorPolygonBtn, ++row, 0);
+  connect(_boundaryEditorPolygonBtn, SIGNAL(clicked()), this, SLOT(polygonBtnBoundaryEditorClick()));
+
+	_boundaryEditorCircleBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorCircleBtn->setText(" Circle");
+	_boundaryEditorCircleBtn->setIcon(QIcon("images/circle.png"));
+	_boundaryEditorCircleBtn->setCheckable(TRUE);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorCircleBtn, row, 1);
+  connect(_boundaryEditorCircleBtn, SIGNAL(clicked()), this, SLOT(circleBtnBoundaryEditorClick()));
+
+	_boundaryEditorPolygonBtn->setChecked(TRUE);
+
+	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
+
+	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);
 	QListWidgetItem *newItem5 = new QListWidgetItem;
 	newItem5->setText("Boundary5 <none>");
 	_boundaryEditorList->insertItem(0, newItem5);
@@ -3023,19 +3048,31 @@ void PolarManager::_createBoundaryEditorDialog()
 	newItem1->setText("Boundary1");
 	_boundaryEditorList->insertItem(0, newItem1);
 
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorList, 1, 0, 1, 2);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorList, ++row, 0, 1, 2);
 
 	_boundaryEditorClearBtn = new QPushButton(_boundaryEditorDialog);
 	_boundaryEditorClearBtn->setText("Clear");
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn, 2, 0);
-    connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(_clearBoundaryEditorClick()));
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorClearBtn, ++row, 0);
+  connect(_boundaryEditorClearBtn, SIGNAL(clicked()), this, SLOT(clearBoundaryEditorClick()));
 
-    _boundaryEditorSaveBtn = new QPushButton(_boundaryEditorDialog);
+  _boundaryEditorSaveBtn = new QPushButton(_boundaryEditorDialog);
 	_boundaryEditorSaveBtn->setText("Save");
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSaveBtn, 2, 1);
-    connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(_saveBoundaryEditorClick()));
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSaveBtn, row, 1);
+  connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(saveBoundaryEditorClick()));
 
-    connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
+  connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
+}
+
+void PolarManager::polygonBtnBoundaryEditorClick()
+{
+	_boundaryEditorCircleBtn->setChecked(!_boundaryEditorPolygonBtn->isChecked());
+	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::polygon);
+}
+
+void PolarManager::circleBtnBoundaryEditorClick()
+{
+	_boundaryEditorPolygonBtn->setChecked(!_boundaryEditorCircleBtn->isChecked());
+	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::circle);
 }
 
 void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
@@ -3052,18 +3089,17 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 	}
 }
 
-void PolarManager::_clearBoundaryEditorClick()
+void PolarManager::clearBoundaryEditorClick()
 {
 	BoundaryPointEditor::Instance()->clear();
 	_ppi->update();   //forces repaint which clears existing polygon
 }
 
-void PolarManager::_saveBoundaryEditorClick()
+void PolarManager::saveBoundaryEditorClick()
 {
 	cout << "PolarManager, _saveBoundaryEditorClick" << endl;
 
 	string text = "Boundary" + to_string(_boundaryEditorList->currentRow()+1);
-//	QString qtext = text.c_str();
 	_boundaryEditorList->currentItem()->setText(text.c_str());
 
 	string outputDir;
@@ -3074,13 +3110,13 @@ void PolarManager::_saveBoundaryEditorClick()
 
 /////////////////////////////
 // show boundary editor
-void PolarManager::_showBoundaryEditor()
+void PolarManager::showBoundaryEditor()
 {
   if (_boundaryEditorDialog)
   {
     if (_boundaryEditorDialog->isVisible())
     {
-    	_clearBoundaryEditorClick();
+    	clearBoundaryEditorClick();
     	_boundaryEditorDialog->setVisible(false);
     }
     else
@@ -3100,17 +3136,17 @@ void PolarManager::_showBoundaryEditor()
       //rename any items that have corresponding file on disk
       for (int i=4; i > 0; i--)
       {
-		string outputDir;
-		string fileExt = "Boundary" + to_string(i+1);
-		string path = _getOutputPath(false, outputDir, fileExt);
-		ifstream infile(path);
-		if (infile.good())
-			_boundaryEditorList->item(i)->setText(fileExt.c_str());
+				string outputDir;
+				string fileExt = "Boundary" + to_string(i+1);
+				string path = _getOutputPath(false, outputDir, fileExt);
+				ifstream infile(path);
+				if (infile.good())
+					_boundaryEditorList->item(i)->setText(fileExt.c_str());
       }
 
       //load the first boundary in list (if exists)
-	  _boundaryEditorList->setCurrentRow(0);
-	  onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
+	  	_boundaryEditorList->setCurrentRow(0);
+	  	onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
     }
   }
 }

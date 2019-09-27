@@ -74,6 +74,12 @@ struct Point
   }
 };
 
+enum class BoundaryToolType
+{
+  polygon,
+  circle
+};
+
 /*
  * BoundaryPointEditor.hh
  *
@@ -85,6 +91,7 @@ class BoundaryPointEditor
 {
   public:
 	static BoundaryPointEditor* Instance();
+	void makeCircle(int x, int y);
 	void addPoint(int x, int y);
 	void insertPoint(int x, int y);
 	void delNearestPoint(int x, int y);
@@ -95,6 +102,8 @@ class BoundaryPointEditor
 	void clear();
 	void save(string path);
 	void load(string path);
+	void setTool(BoundaryToolType tool);
+	BoundaryToolType getCurrentTool();
 	bool updateScale(double xRange);
 	vector<Point> getWorldPoints();
 
@@ -112,6 +121,7 @@ class BoundaryPointEditor
 	QPushButton *_saveBtn;
 	vector<Point> points;
 	static BoundaryPointEditor* m_pInstance;
+	BoundaryToolType currentTool = BoundaryToolType::polygon;
 
 	void ReadFromFile(vector<Point> &x, const string &file_name);
 };

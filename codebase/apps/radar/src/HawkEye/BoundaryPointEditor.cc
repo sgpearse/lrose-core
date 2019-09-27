@@ -22,6 +22,17 @@ BoundaryPointEditor* BoundaryPointEditor::Instance()
    return m_pInstance;
 }
 
+void BoundaryPointEditor::setTool(BoundaryToolType tool)
+{
+	currentTool = tool;
+}
+
+BoundaryToolType BoundaryPointEditor::getCurrentTool()
+{
+	return(currentTool);
+}
+
+
 vector<Point> BoundaryPointEditor::getWorldPoints()
 {
 	return(points);
@@ -172,8 +183,6 @@ void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 		if (isFinished)
 		  drawPointBox(worldPlot, painter, points[i]);
 	}
-
-	cout << "pointBox.size=" << (6 * pointBoxScale) << endl;
 }
 
 void BoundaryPointEditor::drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point)
@@ -198,6 +207,25 @@ void BoundaryPointEditor::clear()
 {
 	cout << "clear points" << endl;
 	points.clear();
+}
+
+void BoundaryPointEditor::makeCircle(int x, int y)
+{
+	points.clear();
+	float radius = pointBoxScale * 60;
+
+	Point firstPoint;
+	for (double angle=0; angle < 2*PI; angle+=0.4)
+	{
+		Point pt;
+		pt.x = x + radius*cos(angle);
+		pt.y = y + radius*sin(angle);
+		if (angle == 0)
+			firstPoint = pt;
+		points.push_back(pt);
+	}
+
+	points.push_back(firstPoint);
 }
 
 void BoundaryPointEditor::save(string path)
