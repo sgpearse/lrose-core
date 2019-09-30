@@ -11,6 +11,8 @@
 void SoloBlackOps::addBoundary() {}
 void SoloBlackOps::deleteBoundary() {}
 
+
+// TODO: Do we need this?  Doesn't QJSEngine evaluate the script for us?
 float *SoloBlackOps::run(string functionName, float *rayData, float *boundaryPoints) { 
   //if (functionName.compare("remove_ac_motion") == 0) {
   // actually, use a dictionary to look up name, function
