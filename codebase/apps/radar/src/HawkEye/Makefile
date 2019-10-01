@@ -57,6 +57,7 @@ HDRS = \
 	BscanBeam.hh \
 	BscanManager.hh \
 	BscanWidget.hh \
+	BoundaryPointEditor.hh \
 	ColorBar.hh \
 	ColorMap.hh \
 	ColorTableManager.hh \
@@ -80,6 +81,9 @@ HDRS = \
 	RhiWindow.hh \
 	ScaledLabel.hh \
 	SiiPalette.hh \
+	ScriptEditorController.hh \
+	ScriptEditorModel.hh \
+	ScriptEditorView.hh \
 	SoloDefaultColorWrapper.hh \
 	SoloFunctions.hh \
 	SpreadSheetController.hh \
@@ -97,6 +101,7 @@ NORM_SRCS = \
 	Args.cc \
 	Beam.cc \
 	BscanBeam.cc \
+	BoundaryPointEditor.cc \
 	ColorMap.cc \
 	ColorTableManager.cc \
 	DisplayField.cc \
@@ -110,6 +115,7 @@ NORM_SRCS = \
 	Reader.cc \
 	RhiBeam.cc \
 	ScaledLabel.cc \
+	ScriptEditorModel.cc \
 	SiiPalette.cc \
 	SoloDefaultColorWrapper.cc \
 	SoloFunctionsModel.cc \
@@ -135,6 +141,8 @@ MOC_SRCS = \
 	ColorBar.cc \
 	ColorMapTemplates.cc \
 	ClickableLabel.cc \
+	ScriptEditorView.cc \
+	ScriptEditorController.cc \
 	TextEdit.cc \
 	SoloFunctions.cc \
 	SpreadSheetView.cc \
@@ -158,6 +166,8 @@ MOC_OUTPUT = \
 	moc_ColorBar.cpp \
 	moc_ColorMapTemplates.cpp \
 	moc_ClickableLabel.cpp \
+	moc_ScriptEditorView.cpp \
+	moc_ScriptEditorController.cpp \
 	moc_TextEdit.cpp \
 	moc_SoloFunctions.cpp \
 	moc_SpreadSheetView.cpp \

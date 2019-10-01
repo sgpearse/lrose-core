@@ -120,6 +120,7 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 
   void ShowContextMenu(const QPoint &pos, RadxVol *vol);
   void ExamineEdit(const RadxRay *closestRay);
+  void EditRunScript();
 
   //////////////
   // Qt slots //
@@ -134,6 +135,7 @@ class DLL_EXPORT PpiWidget : public PolarWidget
   void clear();
 
   void contextMenuEditor();
+  void contextMenuExamine();
   void contextMenuParameterColors();
   //  void changeToDisplayField(string fieldName); // , ColorMap newColorMap);
 

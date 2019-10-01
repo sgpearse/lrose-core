@@ -23,6 +23,8 @@
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=* 
 #include "PpiWidget.hh"
 #include "PolarManager.hh"
+#include "ScriptEditorView.hh"
+#include "ScriptEditorController.hh"
 #include "SpreadSheetView.hh"
 #include "SpreadSheetController.hh"
 #include "ParameterColorView.hh"
@@ -1369,6 +1371,41 @@ void PpiWidget::contextMenuEditor()
   LOG(DEBUG) << "exit";
 }
 
+void PpiWidget::EditRunScript() {
+  
+  // create the view
+  ScriptEditorView *scriptEditorView;
+  scriptEditorView = new ScriptEditorView(this);
+
+  // create the model
+  ScriptEditorModel *model = new ScriptEditorModel(_vol);
+  
+  // create the controller
+  ScriptEditorController *scriptEditorControl = new ScriptEditorController(scriptEditorView, model);
+
+  // connect some signals and slots in order to retrieve information
+  // and send changes back to display
+                                                                         
+  connect(scriptEditorControl, SIGNAL(volumeChanged()),
+  	  &_manager, SLOT(setVolume()));
+  
+  scriptEditorView->init();
+  scriptEditorView->show();
+  scriptEditorView->layout()->setSizeConstraint(QLayout::SetFixedSize);
+  
+}
+
+
+// This is the script editor and runner
+void PpiWidget::contextMenuExamine()
+{
+  LOG(DEBUG) << "enter";
+
+  EditRunScript();
+
+  LOG(DEBUG) << "exit";
+}
+
 /* TODO add to PolarWidget class
 void PolarWidget::errorMessage(string title, string message) {
   QMessageBox::information(this, QString::fromStdString(title), QString::fromStdString(message));
@@ -1398,7 +1435,7 @@ void PpiWidget::ShowContextMenu(const QPoint &pos, RadxVol *vol)
   connect(&action5, SIGNAL(triggered()), this, SLOT(contextMenuEditor()));
   contextMenu.addAction(&action5);
   
-  QAction action6("Examine", this);
+  QAction action6("Script", this);
   connect(&action6, SIGNAL(triggered()), this, SLOT(contextMenuExamine()));
   contextMenu.addAction(&action6);
 
