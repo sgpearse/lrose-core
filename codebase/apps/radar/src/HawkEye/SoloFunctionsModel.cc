@@ -31,6 +31,7 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
 
   LOG(DEBUG) << "entry with fieldName ... ";
   LOG(DEBUG) << fieldName;
+  cerr << "inside SoloFunctionsModel::RemoveAircraftMotion" << endl;
 
   // gather data from context -- most of the data are in a DoradeRadxFile object
 
@@ -38,7 +39,8 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   //RadxVol vol = context->_vol;
   // make sure the radar angles have been calculated.
 
-  
+  // TODO: getting to this point
+
   const RadxField *field;
   field = vol->getFieldFromRay(fieldName);
   if (field == NULL) {

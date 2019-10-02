@@ -91,6 +91,8 @@ public:
 private:
 
   RadxVol *_data;
+  RadxSweep *_currentSweep;
+  RadxRay *_currentRay;
 
   template<typename Out>
   void split(const string &s, char delim, Out result);

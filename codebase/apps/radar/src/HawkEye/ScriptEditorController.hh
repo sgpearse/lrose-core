@@ -4,6 +4,7 @@
 #define SCRIPTEDITORCONTROLLER_HH
 
 #include <QObject>
+#include <QJSEngine>
 #include "ScriptEditorView.hh"
 #include "ScriptEditorModel.hh"
 #include "SoloFunctionsModel.hh"
@@ -36,6 +37,9 @@ public:
   ScriptEditorModel *getDataModel() {return _currentModel;};
   void volumeUpdated();
 
+  void printQJSEngineContext();
+  void addVariableToScriptEditor(QString name, QJSValue value);
+
 signals:
   void volumeChanged(); // const RadxVol &radarDataVolume);
 
@@ -43,13 +47,19 @@ public slots:
   void needFieldNames();
   // void needDataForField(string fieldName, int r, int c);
   void getVolumeChanges();
-
+  void runOneTimeOnlyScript(QString script);
+  void runForEachRayScript(QString script);
 private:
+
 
   ScriptEditorModel *_currentModel;
   ScriptEditorView *_currentView;
   SoloFunctions *_soloFunctions;
 
+  QJSEngine engine;
+
+  void setupSoloFunctions(SoloFunctions *soloFunctions);
+  void fieldNamesProvided(vector<string> fieldNames);
 };
 
 

@@ -16,7 +16,7 @@
 #include <QTableWidgetItem>
 #include <QTableWidget>
 #include <QString>
-#include <QJSEngine>
+// #include <QJSEngine>
 
 class ScriptEditorView : public QMainWindow
 {
@@ -52,27 +52,29 @@ public slots:
 
   void notImplementedMessage();
 
-  void setupSoloFunctions(SoloFunctions *soloFunctions);
+  //void setupSoloFunctions(SoloFunctions *soloFunctions);
 
   void fieldNamesProvided(vector<string> fieldNames);
   //void fieldDataSent(vector<float> *data, int useless, int c);
 
   void applyChanges();
 
-  void printQJSEngineContext();
+  //  void printQJSEngineContext();
 
 signals:
 
   void needFieldNames();
   //void needDataForField(string fieldName, int r, int c);
   void applyVolumeEdits();
+  void runOneTimeOnlyScript(QString oneTimeOnlyScript);
+  void runForEachRayScript(QString forEachRayScript);
 
 protected:
     void setupContextMenu();
     void setupContents();
     void setupMenuBar();
     void createActions();
-    void addVariableToScriptEditor(QString name, QJSValue value);
+  //    void addVariableToScriptEditor(QString name, QJSValue value);
 
   /*
     bool runInputDialog(const QString &title,
@@ -93,10 +95,11 @@ private:
 
     QLabel *cellLabel;
     TextEdit *formulaInput;
+    TextEdit *formulaInputForEachRay;
     //QTextEdit *formulaInput;
   // ScriptEditorDelegate *formulaInput;
 
-  QJSEngine engine;
+  //  QJSEngine engine;
 
   
   //  const char *LogFileName = "/tmp/HawkEye_log.txt";

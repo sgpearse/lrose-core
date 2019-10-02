@@ -44,16 +44,37 @@ Q_DECLARE_METATYPE(QVector<double>)
     // get the font to determine height of one row
     QFontMetrics m(formulaInput->font());
     int rowHeight = m.lineSpacing();
-    formulaInput->setFixedHeight(3*rowHeight);
+    //formulaInput->setFixedHeight(3*rowHeight);
+
+    formulaInputForEachRay = new TextEdit(this);
+    // get the font to determine height of one row
+    QFontMetrics m2(formulaInputForEachRay->font());
+    //int rowHeight = m2.lineSpacing();
+    //formulaInputForEachRay->setFixedHeight(3*rowHeight);
+
     cellLabel = new QLabel(toolBar);
     //cellLabel->setMaximumSize(50, 10);
     //cellLabel->setMinimumSize(80, 10);
 
+
+    QHBoxLayout *scriptEditLayout = new QHBoxLayout();
+    QVBoxLayout *forEachLayout = new QVBoxLayout();
+    QVBoxLayout *oneTimeOnlyLayout = new QVBoxLayout();
+
     toolBar->addWidget(cellLabel);
-    toolBar->addWidget(formulaInput);
+    oneTimeOnlyLayout->addWidget(new QLabel("One Time Only"));
+    oneTimeOnlyLayout->addWidget(formulaInput);
+    forEachLayout->addWidget(new QLabel("For Each Ray"));
+    forEachLayout->addWidget(formulaInputForEachRay);
 
+
+    QWidget *oneTimeWidget = new QWidget();
+    oneTimeWidget->setLayout(oneTimeOnlyLayout);
+    QWidget *forEachWidget = new QWidget();
+    forEachWidget->setLayout(forEachLayout);
+    
     int actionFontSize = 14;
-
+    QVBoxLayout *actionLayout = new QVBoxLayout();
     QAction *cancelAct = new QAction(tr("&Cancel"), this);
     cancelAct->setStatusTip(tr("Cancel changes"));
     cancelAct->setIcon(QIcon(":/images/cancel_x.png"));
@@ -76,6 +97,14 @@ Q_DECLARE_METATYPE(QVector<double>)
     connect(applyAct, &QAction::triggered, this, &ScriptEditorView::applyChanges);
     toolBar->addAction(applyAct);
 
+
+    //scriptEditLayout->addWidget(actionWidget);
+    scriptEditLayout->addWidget(forEachWidget);
+    scriptEditLayout->addWidget(oneTimeWidget);
+    QWidget *scriptEditWidget = new QWidget();
+    scriptEditWidget->setLayout(scriptEditLayout);
+
+
     createActions();
     LOG(DEBUG) << "Action created\n";
     //updateColor(0);
@@ -88,6 +117,43 @@ Q_DECLARE_METATYPE(QVector<double>)
     cout << "setupContextMenu\n";
     //setCentralWidget(table);
     cout << "setCentralWidgets\n";
+
+    QPushButton *firstSweepButton = new QPushButton("First Sweep");
+    QPushButton *lastSweepButton = new QPushButton("Last Sweep");
+    TextEdit *dateTimeFirstSweepInput = new TextEdit(this);
+    TextEdit *dateTimeLastSweepInput = new TextEdit(this);
+    QFontMetrics m3(dateTimeFirstSweepInput->font());
+    int rowHeight3 = m3.lineSpacing();
+    dateTimeFirstSweepInput->setFixedHeight(1.5*rowHeight3);
+    dateTimeLastSweepInput->setFixedHeight(1.5*rowHeight3);
+
+
+    QHBoxLayout *startTimeLayout = new QHBoxLayout();
+    startTimeLayout->addWidget(new QLabel("Start Time"));
+    startTimeLayout->addWidget(dateTimeFirstSweepInput);
+    startTimeLayout->addWidget(firstSweepButton);
+    QHBoxLayout *stopTimeLayout = new QHBoxLayout();
+    stopTimeLayout->addWidget(new QLabel("Stop Time"));
+    stopTimeLayout->addWidget(dateTimeLastSweepInput);
+    stopTimeLayout->addWidget(lastSweepButton);
+
+    QWidget *startTimeWidget = new QWidget();
+    QWidget *stopTimeWidget = new QWidget();
+    startTimeWidget->setLayout(startTimeLayout);
+    stopTimeWidget->setLayout(stopTimeLayout);
+    
+    //    QVBoxLayout *startStopTimeLayout = new QVBoxLayout();
+    //startStopTimeLayout->addWidget(startTimeWidget);
+    //startStopTimeLayout->addWidget(stopTimeWidget);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(scriptEditWidget);
+    mainLayout->addWidget(startTimeWidget);
+    mainLayout->addWidget(stopTimeWidget);
+
+    QWidget *mainWidget = new QWidget();
+    mainWidget->setLayout(mainLayout);
+    setCentralWidget(mainWidget);
 
     statusBar();
     //connect(table, &QTableWidget::currentItemChanged,
@@ -109,6 +175,7 @@ Q_DECLARE_METATYPE(QVector<double>)
     //title.append(" degrees");
     setWindowTitle(title);
 
+    cerr << "after setup" << endl;
     //setupSoloFunctions();
 }
 
@@ -153,8 +220,11 @@ void ScriptEditorView::updateTextEdit(QTableWidgetItem *item)
 
 void ScriptEditorView::returnPressed()
 {
-    QString text = formulaInput->getText();
-    LOG(DEBUG) << "text entered: " << text.toStdString();
+    QString scriptOneTimeOnly = formulaInput->getText();
+    LOG(DEBUG) << "OneTimeOnly text entered: " << scriptOneTimeOnly.toStdString();
+
+    QString scriptForEachRay = formulaInputForEachRay->getText();
+    LOG(DEBUG) << "ForEachRay text entered: " << scriptForEachRay.toStdString();
 
     //    int row = table->currentRow();
     //int col = table->currentColumn();
@@ -171,6 +241,7 @@ float  ScriptEditorView::myPow()
   return(999.9);
 }
 
+/*
 // SoloFunctions object comes in with data model already attached
 void ScriptEditorView::setupSoloFunctions(SoloFunctions *soloFunctions) {
 
@@ -186,26 +257,8 @@ void ScriptEditorView::setupSoloFunctions(SoloFunctions *soloFunctions) {
 
     // print the context ...
     printQJSEngineContext();
-
-    /*
-    LOG(DEBUG) << "current QJSEngine context ...";
-
-    std::map<QString, QString> currentVariableContext;
-    QJSValue theGlobalObject = engine.globalObject();
-
-      QJSValueIterator it(theGlobalObject);
-      while (it.hasNext()) {
-	it.next();
-        QString theValue = it.value().toString();
-        theValue.truncate(100);
-
-	qDebug() << it.name() << ": " << theValue; // it.value().toString().truncate(100);
-        currentVariableContext[it.name()] = it.value().toString();
-      }
-      LOG(DEBUG) << "end current QJSEngine context";
-    */
-  
 }
+*/
 
 void ScriptEditorView::applyChanges()
 {
@@ -216,9 +269,17 @@ void ScriptEditorView::applyChanges()
 
 void ScriptEditorView::acceptFormulaInput()
 {
-    QString text = formulaInput->getText();
-    cerr << "text entered: " << text.toStdString() << endl;
+    QString oneTimeOnlyScript = formulaInput->getText();
+    cerr << "text entered: " << oneTimeOnlyScript.toStdString() << endl;
+
+    QString forEachRayScript = formulaInputForEachRay->getText();
+    cerr << "text entered: " << forEachRayScript.toStdString() << endl;
     
+    // Send the scripts to the controller for processing
+    try {
+      emit runOneTimeOnlyScript(oneTimeOnlyScript);
+      emit runForEachRayScript(forEachRayScript);
+    /*
     // Grab the context before evaluating the formula
     //  YES! This works.  The new global variables are listed here;
     // just find them and add them to the spreadsheet and to the Model??
@@ -238,7 +299,7 @@ void ScriptEditorView::acceptFormulaInput()
     }
       // ======
     try {
-      QJSValue result = engine.evaluate(text);
+      QJSValue result = engine.evaluate(oneTimeOnly);
       if (result.isError()) {
         QString message;
         message.append(result.toString());
@@ -255,8 +316,6 @@ void ScriptEditorView::acceptFormulaInput()
 
 	if (result.isArray()) {
 	  cerr << " the result is an array\n"; 
-        //vector<int> myvector;
-        //myvector = engine.fromScriptValue(result);
 	} 
         if (result.isNumber()) {
 	  cerr << " the result is a number " << result.toString().toStdString() << endl;
@@ -283,20 +342,9 @@ void ScriptEditorView::acceptFormulaInput()
 	  }
 	}
 	// ======
-        /*
-	int row = table->currentRow();
-	int col = table->currentColumn();
-	QTableWidgetItem *item = table->item(row, col);
-	if (!item) {
-          LOG(DEBUG) << "considered not item ";
-	  table->setItem(row, col, new ScriptEditorItem(result.toString())); // text));
-        } else {
-          LOG(DEBUG) << "considered item";
-	  item->setData(Qt::EditRole, result.toString()); // text);
-        }
-        */
-	//table->viewport()->update();
       }
+
+    */
     } catch (const std::exception& ex) {
       criticalMessage(ex.what());
     } catch (const std::string& ex) {
@@ -309,7 +357,10 @@ void ScriptEditorView::acceptFormulaInput()
 
 void ScriptEditorView::cancelFormulaInput()
 {
-  
+  // TODO: what action should cancel be?
+  // close the dialog?
+  // clear the script text edit?
+  //
   //QString text = formulaInput->getText();
   cerr << "cancelling formula changes" << endl;
     /*
@@ -688,33 +739,13 @@ void ScriptEditorView::fieldDataSent(vector<float> *data, int useless, int c) {
 }
  */
 
+ 
 // request filled by Controller in response to needFieldNames signal
 void ScriptEditorView::fieldNamesProvided(vector<string> fieldNames) {
 
   int useless = 0;
 
   // fill everything that needs the fieldNames ...
-  /*
-    table->setColumnCount(fieldNames.size());
-    LOG(DEBUG) << "In ScriptEditorView::fieldNamesProvided, there are " << fieldNames.size() << " field namess";
-
-    int c = 0;
-    for(it = fieldNames.begin(); it != fieldNames.end(); it++) {
-      QString the_name(QString::fromStdString(*it));
-      LOG(DEBUG) << *it;
-      table->setHorizontalHeaderItem(c, new QTableWidgetItem(the_name));
-      // TODO: what about setHorizontalHeaderLabels(const QStringList &labels) instead? would it be faster?
-      emit needDataForField(*it, useless, c);
-      c += 1;
-    }
-
-    // test: adding some missing code
-    // TODO: magic number 20 = number of rows
-    //table->setItemPrototype(table->item(20 - 1, c - 1));
-    table->setItemPrototype(table->item(20 - 1, c - 1));
-    table->setItemDelegate(new ScriptEditorDelegate());
-    // end test: adding some missing code
-    */
 
     // This section of code makes every data field in volume a variable
     // When the variable name is referenced in the formula bar,
@@ -724,7 +755,7 @@ void ScriptEditorView::fieldNamesProvided(vector<string> fieldNames) {
 
     int someValue = 0;
     vector<string>::iterator it; 
-
+    /*
     for(it = fieldNames.begin(); it != fieldNames.end(); it++) {
       QString fieldName(QString::fromStdString(*it));
       // //    try {
@@ -747,15 +778,17 @@ void ScriptEditorView::fieldNamesProvided(vector<string> fieldNames) {
       // // cerr << "ERROR - problem setting property on field " << *it << endl;
       // //}
     }
-    
+    */
     
     //if (LOG_STREAM_IS_ENABLED(LogStream::DEBUG)) { // causes a segmentation fault
     // print the context ...                                                                                                   
-      LOG(DEBUG) << "current QJSEngine context ... after fieldNamesProvided";
+    //      LOG(DEBUG) << "current QJSEngine context ... after fieldNamesProvided";
 
-      printQJSEngineContext();
+    //printQJSEngineContext();
 }
 
+
+ /*
 void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
 
   LOG(DEBUG) << "adding variable to spreadsheet " << name.toStdString();
@@ -781,21 +814,6 @@ void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
     //qDebug() << "variable isArray " << name << endl;
     LOG(DEBUG) << "variable isArray " << name.toStdString();
 
-    /*
-  for(it = value.begin(); it != value.end(); it++) {
-    QString the_name(QString::fromStdString(*it));
-    cerr << *it << endl;
-    table->setHorizontalHeaderItem(c, new QTableWidgetItem(the_name));
-    vector<double> data = _controller->getData(*it);
-    cerr << "number of data values = " << data.size() << endl;
-    for (int r=0; r<20; r++) {
-      //    sprintf(formattedData, format, data[0]);                                                                                             
-      sprintf(formattedData, "%g", data.at(r));
-      cerr << "setting " << r << "," << c << "= " << formattedData << endl;
-      table->setItem(r, c, new ScriptEditorItem(formattedData));
-    }
-    c += 1;
-    } */
   }
   if (value.isBool()) {
     //qDebug() << "variable isBool " << name << endl;
@@ -817,7 +835,7 @@ void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
     LOG(DEBUG) << "variable isNull " << name.toStdString();
     //qDebug() << "variable isNull " << name << endl;
   }
-  if (value.isNumber()) {
+  if (value.isNumber()) 
     //qDebug() << "variable isNumber " << name << endl;
     LOG(DEBUG) << "variable isNumber " << name.toStdString();
   }
@@ -826,26 +844,6 @@ void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
     //qDebug() << "variable isObject " << name << endl;
     //    QVector<double> myv = value.property("values");
     //qDebug() << myv.at(0) << ";" << myv.at(1) << endl;
-    /*    table->setColumnCount(table->columnCount() + 1);
-
-    int c = table->columnCount() - 1;
-    table->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
-
-    QJSValueIterator it(value);
-    while (it.hasNext()) {
-      it.next();
-      LOG(DEBUG) << it.name().toStdString() << ": " << it.value().toString().toStdString();
-    }
-
-    for (int r=0; r<value.property("length").toInt(); r++) {
-      //qDebug() << it.name() << ": " << it.value().toString();
-      QString valueAsString = value.property(r).toString();
-      //      sprintf(formattedData, "%g", value.property(r).toInt());
-      //table->setItem(r, c, new ScriptEditorItem(formattedData));
-      table->setItem(r,c, new QTableWidgetItem(valueAsString));
-    }
-    */
-
   }
   // if (value.isQMetaObject()) {
   //   LOG(DEBUG) << "variable isQMetaObject " << name.toStdString();
@@ -862,13 +860,6 @@ void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
   if (value.isString()) {
     //qDebug() << "variable isString " << name << endl;
     LOG(DEBUG) << "variable isString " << name.toStdString();
-    /*
-    table->setColumnCount(table->columnCount() + 1);
-
-    int c = table->columnCount() - 1;
-    table->setHorizontalHeaderItem(c, new QTableWidgetItem(name));
-    table->setItem(0,c, new QTableWidgetItem(value.toString()));
-    */
   }
   if (value.isUndefined()) {
     //qDebug() << "variable isUndefined " << name << endl;
@@ -880,6 +871,7 @@ void ScriptEditorView::addVariableToScriptEditor(QString name, QJSValue value) {
   }
 
 }
+ */
 
 void ScriptEditorView::criticalMessage(std::string message)
 {
@@ -901,7 +893,7 @@ void ScriptEditorView::criticalMessage(std::string message)
 }
 
 
-
+/*
 void ScriptEditorView::printQJSEngineContext() {
 
     // print the context ...                                                                                                   
@@ -925,3 +917,4 @@ void ScriptEditorView::printQJSEngineContext() {
     LOG(DEBUG) << "end current QJSEngine context";
 
 }
+*/

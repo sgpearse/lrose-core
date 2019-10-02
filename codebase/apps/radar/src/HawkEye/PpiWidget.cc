@@ -1345,7 +1345,7 @@ void PpiWidget::ExamineEdit(const RadxRay *closestRay) {
   
   sheetView->init();
   sheetView->show();
-  sheetView->layout()->setSizeConstraint(QLayout::SetFixedSize);
+  // sheetView->layout()->setSizeConstraint(QLayout::SetFixedSize);
   
 }
 
@@ -1391,7 +1391,7 @@ void PpiWidget::EditRunScript() {
   
   scriptEditorView->init();
   scriptEditorView->show();
-  scriptEditorView->layout()->setSizeConstraint(QLayout::SetFixedSize);
+  // scriptEditorView->layout()->setSizeConstraint(QLayout::SetFixedSize);
   
 }
 

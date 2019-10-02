@@ -72,6 +72,8 @@ QString  SoloFunctions::REMOVE_AIRCRAFT_MOTION(QString field) {
   */
 
   vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data);
+ // ,
+								  //								  _currentSweep, _currentRay);
   //  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(x, dataModel);
 
   // TODO: what is being returned? the name of the new field in the model that
