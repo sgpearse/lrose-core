@@ -178,7 +178,7 @@ void ScriptEditorController::open(string fileName)
 void ScriptEditorController::setupSoloFunctions(SoloFunctions *soloFunctions)
 {
   
-  QJSValue myExt = engine.newQObject(_soloFunctions); // new SoloFunctions());
+  QJSValue myExt = engine.newQObject(soloFunctions); // new SoloFunctions());
   engine.globalObject().setProperty("cat", myExt.property("cat"));
   engine.globalObject().setProperty("sqrt", myExt.property("sqrt"));
   engine.globalObject().setProperty("REMOVE_AIRCRAFT_MOTION", myExt.property("REMOVE_AIRCRAFT_MOTION"));
@@ -568,6 +568,12 @@ uncate(100);
     }
       // ======                                                                                            
     //    try {
+
+
+    // for each ray
+    _soloFunctions.setCurrentRayToFirst();
+
+    while (_soloFunctions.moreRays()) {
       QJSValue result = engine.evaluate(script);
       if (result.isError()) {
         QString message;
@@ -614,6 +620,8 @@ uncate(100);
           }
         }
       }
+      _soloFunctions.nextRay();
+    }
       /*
     } catch (const std::exception& ex) {
       criticalMessage(ex.what());

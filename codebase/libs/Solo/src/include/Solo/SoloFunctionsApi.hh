@@ -20,7 +20,10 @@ public:
   CreateBoundary(short *xpoints, short *ypoints, int npoints, char *name);
 
   // data is in/out parameter
-  RemoveAircraftMotion(short *data, char *boundary_name); 
+  RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
+				   ew_gndspd_corr, tilt, elevation,
+				   short *data, bad, parameter_scale, parameter_bias, dgi_clip_gate,
+				   dds_radd_eff_unamb_vel, seds_nyquist_velocity, char *boundary_name); 
   /*   //SoloFunctionsApi soloFunctionsApi;                                                       
   int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
 				   ew_gndspd_corr, tilt, elevation,

@@ -1,3 +1,4 @@
+#include "BoundaryPointManagement.hh"
 
 
 void BoundaryPointManagement::BoundaryPointAtts() {

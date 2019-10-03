@@ -29,7 +29,9 @@ void SoloFunctionsModel::CreateBoundary(vector<Points> vertexList, string name) 
 }
 
 
-vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol) { // SpreadSheetModel *context) {
+// TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data
+vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
+							int rayIdx, int sweepIdx) { 
 
   // TODO: what is being returned? the name of the new field in the model that
   // contains the results.
@@ -104,7 +106,27 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   // TODO: these should be library calls ...
   // TODO: we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
   //       all the f(x) in a script
+  char boundary_name[20] = "name-1";
+  
+  SoloFunctions soloFunctionsApi;
 
+  // TODO: Actually, I want to move this boundary stuff to a couple levels up 
+  // because the boundary is for a particular ray; then the boundary
+  // can be used with multiple functions
+  soloFunctionsApi.CreateBoundary(xpoints, ypoints, npoints, boundary_name);
+
+  // get the boundary mask for this ray
+  short *boundaryMask = soloFunctionsApi.GetBoundaryMask(boundaryList,
+						     &radar_origin,
+						     &boundary_origin,
+				nGates, // for this ray
+				gateSize, // for this ray
+				distanceToCellNInMeters, // for this ray
+				azimuth, // ray azimuth
+						     radar_scan_mode,
+						     radar_type,
+						     tilt_angle,
+						     rotation_angle);
   //Radx::fl32 *rawData;
   //rawData = field->getDataFl32();
   //Radx::fl32 *ptr = rawData;
@@ -144,11 +166,10 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
   LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
   
-  //SoloFunctionsApi soloFunctionsApi;
-  int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
+  int result = soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
      ew_gndspd_corr, tilt, elevation,
      field->getDataSi16(), bad, parameter_scale, parameter_bias, dgi_clip_gate,
-     dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundary);
+     dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundaryMask);
   
   LOG(DEBUG) << " result: " << result;
   LOG(DEBUG) << " A few data values ";

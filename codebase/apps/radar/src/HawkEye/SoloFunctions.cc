@@ -71,7 +71,9 @@ QString  SoloFunctions::REMOVE_AIRCRAFT_MOTION(QString field) {
   cerr << endl;
   */
 
-  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data);
+  //  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data);
+  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data,
+								  _currentRayIdx, _currentSweepIdx);
  // ,
 								  //								  _currentSweep, _currentRay);
   //  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(x, dataModel);
