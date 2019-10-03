@@ -3,7 +3,8 @@
 #include <iostream>
 
 #include "SoloFunctionsModel.hh"
-#include "RemoveAcMotion.cc"
+#include "RemoveAcMotion.cc" // This comes from an external library
+#include "BoundaryPointEditor.hh"
 
 
 #include <Radx/RadxField.hh>
@@ -11,6 +12,7 @@
 #include <Radx/RadxCfactors.hh>
 #include <Radx/RadxGeoref.hh>
 #include <toolsa/LogStream.hh>
+#include <Solo/SoloFunctions.hh>
 
 using namespace std;
 
@@ -19,6 +21,13 @@ SoloFunctionsModel::SoloFunctionsModel() {
 
 }
 */
+void SoloFunctionsModel::CreateBoundary(vector<Points> vertexList, string name) {
+
+  SoloFunctions soloFunctions;
+  soloFunctions.CreateBoundary(xpoints, ypoints, npoints, "one");
+
+}
+
 
 vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol) { // SpreadSheetModel *context) {
 
@@ -88,6 +97,14 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
     throw  "ERROR - data is not 16-bit signed integer as expected";
   } 
 
+  // TODO: where is the  boundary?
+  short *boundary;
+  vector<Point> boundaryPoints = BoundaryPointEditor.getInstance()->getWorldPoints();
+  // TODO: need to map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
+  // TODO: these should be library calls ...
+  // TODO: we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
+  //       all the f(x) in a script
+
   //Radx::fl32 *rawData;
   //rawData = field->getDataFl32();
   //Radx::fl32 *ptr = rawData;
@@ -107,6 +124,7 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   short bad = field->getMissingSi16(); // doradeData.bad_data;
   float parameter_scale = 1.0 / field->getScale(); // doradeData.parameter_scale; 
   float parameter_bias = -1.0 * field->getOffset() * field->getScale(); // doradeData.parameter_bias; 
+
   int dgi_clip_gate = field->getNPoints(); // field->num_samples; // or number_cells
   short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
   int seds_nyquist_velocity = 0; // TODO: what is this value?
@@ -130,7 +148,7 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
      ew_gndspd_corr, tilt, elevation,
      field->getDataSi16(), bad, parameter_scale, parameter_bias, dgi_clip_gate,
-     dds_radd_eff_unamb_vel, seds_nyquist_velocity);
+     dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundary);
   
   LOG(DEBUG) << " result: " << result;
   LOG(DEBUG) << " A few data values ";
