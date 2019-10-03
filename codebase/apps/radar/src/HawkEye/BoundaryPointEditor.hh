@@ -7,6 +7,7 @@
 #include <QPaintEngine>
 #include <QPushButton>
 #include <QBrush>
+#include <QSlider>
 #include <list>
 
 using namespace std;
@@ -77,7 +78,8 @@ struct Point
 enum class BoundaryToolType
 {
   polygon,
-  circle
+  circle,
+	smartBrush
 };
 
 /*
@@ -98,7 +100,8 @@ class BoundaryPointEditor
 	void draw(WorldPlot worldPlot, QPainter &painter);
 	bool isOverAnyPoint(int worldX, int worldY);
 	void moveNearestPointTo(int worldX, int worldY);
-	bool isPolygonFinished();
+	bool isAClosedPolygon();
+	void checkToAddOrDelPoint(int x, int y);
 	void clear();
 	void save(string path);
 	void load(string path);
@@ -106,6 +109,11 @@ class BoundaryPointEditor
 	BoundaryToolType getCurrentTool();
 	bool updateScale(double xRange);
 	vector<Point> getWorldPoints();
+	bool setCircleRadius(int value);
+	void setSmartBrushRadius(int value);
+	bool getIsCircle();
+	int getCircleRadius();
+	int getSmartBrushRadius();
 
   private:
 	BoundaryPointEditor(){};
@@ -117,8 +125,13 @@ class BoundaryPointEditor
 
 	float CLOSE_DISTANCE = 10;
 	float pointBoxScale = 1;
+	Point circleOrigin;
 	QPushButton *_clearBtn;
 	QPushButton *_saveBtn;
+  QSlider *_radiusSlider;
+	int circleRadius = 50;
+	int smartBrushRadius = 20;
+
 	vector<Point> points;
 	static BoundaryPointEditor* m_pInstance;
 	BoundaryToolType currentTool = BoundaryToolType::polygon;

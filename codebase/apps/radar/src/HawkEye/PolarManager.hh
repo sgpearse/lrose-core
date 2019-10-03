@@ -50,6 +50,7 @@
 #include "DisplayManager.hh"
 #include "RayLoc.hh"
 #include "ContextEditingView.hh"
+#include "BoundaryPointEditor.hh"
 #include <QMainWindow>
 #include <QListWidgetItem>
 #include <euclid/SunPosn.hh>
@@ -239,6 +240,7 @@ private:
   QPushButton *_boundaryEditorSaveBtn;
   QPushButton *_boundaryEditorPolygonBtn;
   QPushButton *_boundaryEditorCircleBtn;
+  QPushButton *_boundaryEditorSmartBrushBtn;
   QListWidget *_boundaryEditorList;
 
   // time controller settings dialog
@@ -257,6 +259,8 @@ private:
   QVBoxLayout *_timeLayout;
 
   QSlider *_timeSlider;
+  QSlider *_circleRadiusSlider;
+  QSlider *_smartBrushRadiusSlider;
 
   RadxTime _archiveIntermediateTime;
 
@@ -396,6 +400,10 @@ private slots:
   void _timeSliderReleased();
   void _timeSliderPressed();
   
+  //circle radius slider for BoundaryPointEditor
+  void _circleRadiusSliderValueChanged(int value);
+  void _smartBrushRadiusSliderValueChanged(int value);
+
   // images
 
   void _saveImageToFile(bool interactive = true);
@@ -419,9 +427,10 @@ private slots:
   void clearBoundaryEditorClick();
   void polygonBtnBoundaryEditorClick();
   void circleBtnBoundaryEditorClick();
+  void smartBrushBtnBoundaryEditorClick();
   void onBoundaryEditorListItemClicked(QListWidgetItem* item);
   void saveBoundaryEditorClick();
-
+  void selectBoundaryTool(BoundaryToolType tool);
 };
 
 #endif

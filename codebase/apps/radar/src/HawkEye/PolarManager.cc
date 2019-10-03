@@ -83,6 +83,7 @@
 #include <QToolBar>
 #include <QIcon>
 #include <QAction>
+#include <QTimer>
 
 #include <fstream>
 #include <toolsa/toolsa_macros.h>
@@ -2101,6 +2102,17 @@ void PolarManager::_placeTimeControl()
   }
 }
 
+void PolarManager::_circleRadiusSliderValueChanged(int value)
+{
+	if (BoundaryPointEditor::Instance()->setCircleRadius(value))  //returns true if existing circle was resized with this new radius
+		_ppi->update();
+}
+
+void PolarManager::_smartBrushRadiusSliderValueChanged(int value)
+{
+	BoundaryPointEditor::Instance()->setSmartBrushRadius(value);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // print time slider actions for debugging
 
@@ -2994,8 +3006,7 @@ void PolarManager::_howto()
 void PolarManager::createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
-//	_boundaryEditorDialog->setMaximumHeight(200);
-	_boundaryEditorDialog->setMaximumHeight(308);
+	_boundaryEditorDialog->setMaximumHeight(368);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
 
 	Qt::Alignment alignCenter(Qt::AlignCenter);
@@ -3014,6 +3025,7 @@ void PolarManager::createBoundaryEditorDialog()
 	_boundaryEditorDialogLayout->addWidget(toolsCaption, ++row, 0, 1, 2, alignCenter);
 
 	_boundaryEditorPolygonBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorPolygonBtn->setMaximumWidth(130);
 	_boundaryEditorPolygonBtn->setText(" Polygon");
 	_boundaryEditorPolygonBtn->setIcon(QIcon("images/polygon.png"));
 	_boundaryEditorPolygonBtn->setCheckable(TRUE);
@@ -3021,14 +3033,50 @@ void PolarManager::createBoundaryEditorDialog()
   connect(_boundaryEditorPolygonBtn, SIGNAL(clicked()), this, SLOT(polygonBtnBoundaryEditorClick()));
 
 	_boundaryEditorCircleBtn = new QPushButton(_boundaryEditorDialog);
-	_boundaryEditorCircleBtn->setText(" Circle");
+	_boundaryEditorCircleBtn->setMaximumWidth(130);
+	_boundaryEditorCircleBtn->setText(" Circle  ");
 	_boundaryEditorCircleBtn->setIcon(QIcon("images/circle.png"));
 	_boundaryEditorCircleBtn->setCheckable(TRUE);
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorCircleBtn, row, 1);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorCircleBtn, ++row, 0);
   connect(_boundaryEditorCircleBtn, SIGNAL(clicked()), this, SLOT(circleBtnBoundaryEditorClick()));
 
-	_boundaryEditorPolygonBtn->setChecked(TRUE);
+  _circleRadiusSlider = new QSlider(Qt::Horizontal);
+  _circleRadiusSlider->setFocusPolicy(Qt::StrongFocus);
+  _circleRadiusSlider->setTracking(true);
+  _circleRadiusSlider->setSingleStep(1);
+  _circleRadiusSlider->setPageStep(0);
+  _circleRadiusSlider->setFixedWidth(100);
+  _circleRadiusSlider->setToolTip("Set the circle radius");
+  _circleRadiusSlider->setMaximumWidth(180);
+  _circleRadiusSlider->setValue(50);
+  _circleRadiusSlider->setMinimum(8);
+  _circleRadiusSlider->setMaximum(200);
+  _boundaryEditorDialogLayout->addWidget(_circleRadiusSlider, row, 1);
+  connect(_circleRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_circleRadiusSliderValueChanged(int)));
 
+	_boundaryEditorSmartBrushBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorSmartBrushBtn->setMaximumWidth(130);
+	_boundaryEditorSmartBrushBtn->setText(" Smart ");
+	_boundaryEditorSmartBrushBtn->setIcon(QIcon("images/smart_brush.png"));
+	_boundaryEditorSmartBrushBtn->setCheckable(TRUE);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSmartBrushBtn, ++row, 0);
+  connect(_boundaryEditorSmartBrushBtn, SIGNAL(clicked()), this, SLOT(smartBrushBtnBoundaryEditorClick()));
+
+  _smartBrushRadiusSlider = new QSlider(Qt::Horizontal);
+  _smartBrushRadiusSlider->setFocusPolicy(Qt::StrongFocus);
+  _smartBrushRadiusSlider->setTracking(true);
+  _smartBrushRadiusSlider->setSingleStep(1);
+  _smartBrushRadiusSlider->setPageStep(0);
+  _smartBrushRadiusSlider->setFixedWidth(100);
+  _smartBrushRadiusSlider->setToolTip("Set the smart brush radius");
+  _smartBrushRadiusSlider->setMaximumWidth(180);
+  _smartBrushRadiusSlider->setValue(30);
+  _smartBrushRadiusSlider->setMinimum(8);
+  _smartBrushRadiusSlider->setMaximum(100);
+  _boundaryEditorDialogLayout->addWidget(_smartBrushRadiusSlider, row, 1);
+  connect(_smartBrushRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_smartBrushRadiusSliderValueChanged(int)));
+
+	_boundaryEditorPolygonBtn->setChecked(TRUE);
 	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
 
 	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);
@@ -3061,18 +3109,45 @@ void PolarManager::createBoundaryEditorDialog()
   connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(saveBoundaryEditorClick()));
 
   connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
+
+  //set tab order
+  _boundaryEditorDialog->setTabOrder(_boundaryEditorClearBtn, _boundaryEditorSaveBtn); // a to b
+  _boundaryEditorDialog->setTabOrder(_boundaryEditorSaveBtn, _boundaryEditorPolygonBtn); // a to b to c
+}
+
+void PolarManager::selectBoundaryTool(BoundaryToolType tool)
+{
+	_boundaryEditorPolygonBtn->setChecked(false);
+	_boundaryEditorCircleBtn->setChecked(false);
+	_boundaryEditorSmartBrushBtn->setChecked(false);
+
+	if (tool == BoundaryToolType::polygon)
+		_boundaryEditorPolygonBtn->setChecked(true);
+	else if (tool == BoundaryToolType::circle)
+		_boundaryEditorCircleBtn->setChecked(true);
+	else
+		_boundaryEditorSmartBrushBtn->setChecked(true);
 }
 
 void PolarManager::polygonBtnBoundaryEditorClick()
 {
-	_boundaryEditorCircleBtn->setChecked(!_boundaryEditorPolygonBtn->isChecked());
+	selectBoundaryTool(BoundaryToolType::polygon);
 	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::polygon);
+	_ppi->update();
 }
 
 void PolarManager::circleBtnBoundaryEditorClick()
 {
-	_boundaryEditorPolygonBtn->setChecked(!_boundaryEditorCircleBtn->isChecked());
+	selectBoundaryTool(BoundaryToolType::circle);
 	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::circle);
+	_ppi->update();
+}
+
+void PolarManager::smartBrushBtnBoundaryEditorClick()
+{
+	selectBoundaryTool(BoundaryToolType::smartBrush);
+	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::smartBrush);
+	_ppi->update();
 }
 
 void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
@@ -3085,6 +3160,26 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 		string outputDir;
 		string path = _getOutputPath(false, outputDir, fileExt);
 		BoundaryPointEditor::Instance()->load(path);
+
+		_boundaryEditorCircleBtn->setChecked(BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle);
+		_boundaryEditorPolygonBtn->setChecked(BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::polygon);
+
+		if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle)
+		{
+			cout << "setting circleRadius=" << BoundaryPointEditor::Instance()->getCircleRadius() << endl;
+			_circleRadiusSlider->setValue(BoundaryPointEditor::Instance()->getCircleRadius());
+			QTimer::singleShot(0, _boundaryEditorCircleBtn, SLOT(setFocus()));
+		}
+		else if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::smartBrush)
+		{
+			cout << "setting smartBrushRadius=" << BoundaryPointEditor::Instance()->getSmartBrushRadius() << endl;
+			_smartBrushRadiusSlider->setValue(BoundaryPointEditor::Instance()->getSmartBrushRadius());
+			QTimer::singleShot(0, _boundaryEditorSmartBrushBtn, SLOT(setFocus()));
+		}
+		else
+			QTimer::singleShot(0, _boundaryEditorPolygonBtn, SLOT(setFocus()));
+
+
 		_ppi->update();   //forces repaint which clears existing polygon
 	}
 }

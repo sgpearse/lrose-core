@@ -356,11 +356,11 @@ void PolarWidget::mouseMoveEvent(QMouseEvent * e)
   int worldX = (int)_zoomWorld.getXWorld(e->pos().x());
   int worldY = (int)_zoomWorld.getYWorld(e->pos().y());
 
-  if (_manager._boundaryEditorDialog->isVisible() && BoundaryPointEditor::Instance()->isPolygonFinished() && BoundaryPointEditor::Instance()->isOverAnyPoint(worldX, worldY))
+  if (_manager._boundaryEditorDialog->isVisible() && BoundaryPointEditor::Instance()->isAClosedPolygon() && BoundaryPointEditor::Instance()->isOverAnyPoint(worldX, worldY))
   {
-	BoundaryPointEditor::Instance()->moveNearestPointTo(worldX, worldY);
-	update();
-	return;
+		BoundaryPointEditor::Instance()->moveNearestPointTo(worldX, worldY);
+		update();
+		return;
   }
 
   // Zooming with the mouse

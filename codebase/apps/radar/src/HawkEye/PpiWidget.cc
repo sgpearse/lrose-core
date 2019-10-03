@@ -38,7 +38,6 @@
 #include <QLayout>
 #include <QMessageBox>
 #include <QErrorMessage>
-#include <QApplication>
 
 using namespace std;
 
@@ -420,7 +419,7 @@ void PpiWidget::timerEvent(QTimerEvent *event)
 		double xRange = _zoomWorld.getXMaxWorld() - _zoomWorld.getXMinWorld();
 		doUpdate = BoundaryPointEditor::Instance()->updateScale(xRange);   //user may have zoomed in or out, so update the polygon point boxes so they are the right size on screen
 	}
-  bool isBoundaryFinished = BoundaryPointEditor::Instance()->isPolygonFinished();
+  bool isBoundaryFinished = BoundaryPointEditor::Instance()->isAClosedPolygon();
   bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
   if ((isBoundaryEditorVisible && !isBoundaryFinished) || (isBoundaryEditorVisible && isBoundaryFinished && isShiftKeyDown))
     this->setCursor(Qt::CrossCursor);
@@ -463,24 +462,17 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
     {
     	if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::polygon)
     	{
-				if (!BoundaryPointEditor::Instance()->isPolygonFinished())
+				if (!BoundaryPointEditor::Instance()->isAClosedPolygon())
 					BoundaryPointEditor::Instance()->addPoint(_worldReleaseX, _worldReleaseY);
 				else  //polygon finished, user may want to insert/delete a point
-				{
-					bool isOverExistingPt = BoundaryPointEditor::Instance()->isOverAnyPoint(_worldReleaseX, _worldReleaseY);
-					bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
-					if (isShiftKeyDown)
-					{
-						if (isOverExistingPt)
-								BoundaryPointEditor::Instance()->delNearestPoint(_worldReleaseX, _worldReleaseY);
-							else
-								BoundaryPointEditor::Instance()->insertPoint(_worldReleaseX, _worldReleaseY);
-					}
-				}
+					BoundaryPointEditor::Instance()->checkToAddOrDelPoint(_worldReleaseX, _worldReleaseY);
     	}
     	else //circle
     	{
-				BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
+				if (BoundaryPointEditor::Instance()->isAClosedPolygon())
+					BoundaryPointEditor::Instance()->checkToAddOrDelPoint(_worldReleaseX, _worldReleaseY);
+				else
+					BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
     	}
     }
 

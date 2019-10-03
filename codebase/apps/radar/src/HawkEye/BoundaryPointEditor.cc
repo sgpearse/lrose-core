@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <QApplication>
 
 /*
  * BoundaryPointEditor.cc
@@ -24,6 +25,8 @@ BoundaryPointEditor* BoundaryPointEditor::Instance()
 
 void BoundaryPointEditor::setTool(BoundaryToolType tool)
 {
+	if (tool != currentTool)
+		clear();
 	currentTool = tool;
 }
 
@@ -40,7 +43,7 @@ vector<Point> BoundaryPointEditor::getWorldPoints()
 
 void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 {
-	if (points.size() > 1 && pt.distanceTo(points[0].x, points[0].y) < CLOSE_DISTANCE)
+	if (points.size() > 2 && pt.distanceTo(points[0].x, points[0].y) < CLOSE_DISTANCE)
 	{
 		pt.x = points[0].x;
 		pt.y = points[0].y;
@@ -49,7 +52,9 @@ void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 
 void BoundaryPointEditor::addPoint(int x, int y)
 {
-	if (!isPolygonFinished())
+	currentTool == BoundaryToolType::polygon;
+
+	if (!isAClosedPolygon())
 	{
 		Point pt;
 		pt.x = x;
@@ -158,9 +163,9 @@ bool BoundaryPointEditor::isOverAnyPoint(int x, int y)
 	return(false);
 }
 
-bool BoundaryPointEditor::isPolygonFinished()
+bool BoundaryPointEditor::isAClosedPolygon()
 {
-	return( (points.size() > 2) && points[0].equals(points[points.size()-1]));
+	return(currentTool == BoundaryToolType::polygon && (points.size() > 2) && points[0].equals(points[points.size()-1]));
 }
 
 void BoundaryPointEditor::coutPoints()
@@ -175,12 +180,12 @@ void BoundaryPointEditor::coutPoints()
 void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 {
 	painter.setPen(Qt::yellow);
-	bool isFinished = isPolygonFinished();
+	bool isFinished = isAClosedPolygon();
 
 	for (int i=1; i < points.size(); i++)
 	{
 		worldPlot.drawLine(painter, points[i-1].x, points[i-1].y, points[i].x, points[i].y);
-		if (isFinished)
+		if (isFinished && currentTool == BoundaryToolType::polygon)
 		  drawPointBox(worldPlot, painter, points[i]);
 	}
 }
@@ -209,17 +214,33 @@ void BoundaryPointEditor::clear()
 	points.clear();
 }
 
+bool BoundaryPointEditor::setCircleRadius(int value)
+{
+	circleRadius = value;
+	bool resizeExistingCircle = (currentTool == BoundaryToolType::circle && points.size() > 1);
+	if (resizeExistingCircle)  //resize existing circle
+		makeCircle(circleOrigin.x, circleOrigin.y);
+	return(resizeExistingCircle);
+}
+
+void BoundaryPointEditor::setSmartBrushRadius(int value)
+{
+	smartBrushRadius = value;
+}
+
 void BoundaryPointEditor::makeCircle(int x, int y)
 {
 	points.clear();
-	float radius = pointBoxScale * 60;
+	currentTool == BoundaryToolType::circle;
+	circleOrigin.x = x;
+	circleOrigin.y = y;
 
 	Point firstPoint;
 	for (double angle=0; angle < 2*PI; angle+=0.4)
 	{
 		Point pt;
-		pt.x = x + radius*cos(angle);
-		pt.y = y + radius*sin(angle);
+		pt.x = x + (float)circleRadius * cos(angle);
+		pt.y = y + (float)circleRadius * sin(angle);
 		if (angle == 0)
 			firstPoint = pt;
 		points.push_back(pt);
@@ -228,12 +249,52 @@ void BoundaryPointEditor::makeCircle(int x, int y)
 	points.push_back(firstPoint);
 }
 
+void BoundaryPointEditor::checkToAddOrDelPoint(int x, int y)
+{
+	bool isOverExistingPt = isOverAnyPoint(x, y);
+	bool isShiftKeyDown = (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier) == true);
+	if (isShiftKeyDown)
+	{
+		if (isOverExistingPt)
+				BoundaryPointEditor::Instance()->delNearestPoint(x, y);
+			else
+				BoundaryPointEditor::Instance()->insertPoint(x, y);
+	}
+}
+
+int BoundaryPointEditor::getCircleRadius()
+{
+	return(circleRadius);
+}
+
+int BoundaryPointEditor::getSmartBrushRadius()
+{
+	return(smartBrushRadius);
+}
+
 void BoundaryPointEditor::save(string path)
 {
 	cout << "BoundaryPointEditor, saving boundary with " << points.size() << " points to " << path << endl;
 
 	FILE *file;
 	file = fopen(path.c_str(), "wb");
+
+	int tool;
+	if (currentTool == BoundaryToolType::circle)
+		tool = 0;
+	else if (currentTool == BoundaryToolType::polygon)
+		tool = 1;
+	else
+		tool = 2; //smart brush
+
+	//write the header (five ints)
+	fwrite(&tool, sizeof(int), 1, file);
+	fwrite(&circleRadius, sizeof(int), 1, file);
+	fwrite(&circleOrigin.x, sizeof(int), 1, file);
+	fwrite(&circleOrigin.y, sizeof(int), 1, file);
+	fwrite(&smartBrushRadius, sizeof(int), 1, file);
+
+	//now write the points
 	for (int i=0; i < points.size(); i++)
 	{
 		fwrite(&points[i].x, sizeof(int), 1, file);
@@ -252,11 +313,20 @@ void BoundaryPointEditor::load(string path)
 
 		//get number of points in file (from file size)
 		fseek(file, 0L, SEEK_END);
-		int size = ftell(file);
+		int headerSize = 5 * sizeof(int);
+		int size = ftell(file) - headerSize;
 		fseek (file, 0, SEEK_SET);
 		int numPoints = size / sizeof(Point);
 
-		//read each point and add to boundary
+		//read the header
+		int tool;
+		fread(&tool, sizeof(int), 1, file);
+		fread(&circleRadius, sizeof(int), 1, file);
+		fread(&circleOrigin.x, sizeof(int), 1, file);
+		fread(&circleOrigin.y, sizeof(int), 1, file);
+		fread(&smartBrushRadius, sizeof(int), 1, file);
+
+		//now read each point and add to boundary
 		points.clear();
 		for (int i=0; i < numPoints; i++)
 		{
@@ -267,6 +337,12 @@ void BoundaryPointEditor::load(string path)
 		}
 		fclose (file);
 
+		if (tool == 0)
+			currentTool = BoundaryToolType::circle;
+		else if (tool == 1)
+			currentTool = BoundaryToolType::polygon;
+		else
+			currentTool = BoundaryToolType::smartBrush;
 		cout << "BoundaryPointEditor, read " << points.size() << " points from " << path << endl;
 	}
 	else
