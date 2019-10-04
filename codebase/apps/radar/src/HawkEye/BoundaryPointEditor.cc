@@ -228,10 +228,21 @@ void BoundaryPointEditor::setSmartBrushRadius(int value)
 	smartBrushRadius = value;
 }
 
+void BoundaryPointEditor::addToSmartBrushShape(int x, int y)
+{
+	if (points.size() == 0)
+	{
+		int temp = circleRadius;
+		circleRadius = smartBrushRadius;
+		makeCircle(x, y);
+		circleRadius = temp;
+	}
+}
+
 void BoundaryPointEditor::makeCircle(int x, int y)
 {
 	points.clear();
-	currentTool == BoundaryToolType::circle;
+//	currentTool == BoundaryToolType::circle;
 	circleOrigin.x = x;
 	circleOrigin.y = y;
 

@@ -94,6 +94,7 @@ class BoundaryPointEditor
   public:
 	static BoundaryPointEditor* Instance();
 	void makeCircle(int x, int y);
+	void addToSmartBrushShape(int x, int y);
 	void addPoint(int x, int y);
 	void insertPoint(int x, int y);
 	void delNearestPoint(int x, int y);

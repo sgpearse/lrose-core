@@ -467,13 +467,15 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 				else  //polygon finished, user may want to insert/delete a point
 					BoundaryPointEditor::Instance()->checkToAddOrDelPoint(_worldReleaseX, _worldReleaseY);
     	}
-    	else //circle
+    	else if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle)
     	{
 				if (BoundaryPointEditor::Instance()->isAClosedPolygon())
 					BoundaryPointEditor::Instance()->checkToAddOrDelPoint(_worldReleaseX, _worldReleaseY);
 				else
 					BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
     	}
+    	else //smart brush
+    		BoundaryPointEditor::Instance()->addToSmartBrushShape(_worldReleaseX, _worldReleaseY);
     }
 
     double x_km = _worldReleaseX;
