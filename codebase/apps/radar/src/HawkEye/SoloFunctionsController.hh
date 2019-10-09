@@ -1,5 +1,5 @@
-#ifndef SOLOFUNCTIONS_H
-#define SOLOFUNCTIONS_H
+#ifndef SOLOFUNCTIONSCONTROLLER_H
+#define SOLOFUNCTIONSCONTROLLER_H
 
 #include <stdio.h>
 #include <QtWidgets>
@@ -50,13 +50,13 @@ static QJSValue VectorOp(QJSContext *context, QJSEngine *engine)
 */
 
 
-class SoloFunctions : public QObject
+class SoloFunctionsController : public QObject
 {
   Q_OBJECT
 
 public:
   //  SoloFunctions(SpreadSheetController *controller);
-  SoloFunctions(RadxVol *data, QObject *parent = nullptr) : QObject(parent) {_data = data;}
+  SoloFunctionsController(RadxVol *data, QObject *parent = nullptr) : QObject(parent) {_data = data;}
   //SoloFunctions(QObject *parent = nullptr) : QObject(parent) { }
 
   Q_INVOKABLE QString cat(QString animal) {return animal+"_cat"; }
@@ -87,6 +87,15 @@ public:
      for (int i=0; i<3; i++) v3[i]=v[i]+v2[i]; return v3; }
   */
   Q_INVOKABLE QVector<int> addI(QVector<int> v, QVector<int> v2) { QVector<int> v3(3); for (int i=0; i<3; i++) v3[i]=v[i]+v2[i]; return v3; }
+
+  void setCurrentRayToFirst();
+  boolean moreRays();
+  void nextRay();
+
+  void setCurrentSweepToFirst();
+  boolean moreSweeps();
+  void nextSweep();
+
  
 private:
 

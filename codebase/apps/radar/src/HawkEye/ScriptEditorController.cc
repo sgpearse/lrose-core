@@ -58,8 +58,8 @@ ScriptEditorController::ScriptEditorController(ScriptEditorView *view, ScriptEdi
   _currentModel = model;
 
   //  functionsModel = new SoloFunctionsModel(_currentModel);
-  _soloFunctions = new SoloFunctions(_currentModel->_vol);
-  setupSoloFunctions(_soloFunctions);
+  _soloFunctionsController = new SoloFunctionsController(_currentModel->_vol);
+  setupSoloFunctions(_soloFunctionsController);
 
   // connect view signals to controller slots
 
@@ -571,9 +571,12 @@ uncate(100);
 
 
     // for each ray
-    _soloFunctions.setCurrentRayToFirst();
+    _soloFunctionsController.setCurrentRayToFirst();
 
-    while (_soloFunctions.moreRays()) {
+    while (_soloFunctionsController.moreRays()) {
+
+      // TODO: calculate boundary mask for each ray ???
+
       QJSValue result = engine.evaluate(script);
       if (result.isError()) {
         QString message;
@@ -620,7 +623,7 @@ uncate(100);
           }
         }
       }
-      _soloFunctions.nextRay();
+      _soloFunctionsController.nextRay();
     }
       /*
     } catch (const std::exception& ex) {

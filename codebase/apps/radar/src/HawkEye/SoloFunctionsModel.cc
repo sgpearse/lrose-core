@@ -12,7 +12,7 @@
 #include <Radx/RadxCfactors.hh>
 #include <Radx/RadxGeoref.hh>
 #include <toolsa/LogStream.hh>
-#include <Solo/SoloFunctions.hh>
+#include <Solo/SoloFunctionsApi.hh>
 
 using namespace std;
 
@@ -21,10 +21,67 @@ SoloFunctionsModel::SoloFunctionsModel() {
 
 }
 */
-void SoloFunctionsModel::CreateBoundary(vector<Points> vertexList, string name) {
+void SoloFunctionsModel::CreateBoundary(vector<Point> vertexList, string name) {
 
-  SoloFunctions soloFunctions;
-  soloFunctions.CreateBoundary(xpoints, ypoints, npoints, "one");
+  
+
+  // TODO: where is the  boundary?
+  short *boundary;
+  vector<Point> *boundaryPoints = BoundaryPointEditor.getInstance()->getWorldPoints();
+ 
+  int nBoundaryPoints = boundaryPoints.length();
+  short *xpoints = new short[nBoundaryPoints];
+  short *ypoints = new short[nBoundaryPoints];
+
+  // convert data types ...  
+  vector<Point>::iterator it;
+  int i = 0;
+  for (it = boundaryPoints->begin(); it != boundaryPoints->end(); it++) {
+    xpoints[i] = it->x;
+    ypoints[i] = it->y;
+    i += 1;
+  }
+
+  // TODO: need to map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
+  // TODO: these should be library calls ...
+  // TODO: we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
+  //       all the f(x) in a script
+  char boundary_name[20] = "name-1";
+  
+  SoloFunctions soloFunctionsApi;
+
+  // TODO: Actually, I want to move this boundary stuff to a couple levels up 
+  // because the boundary is for a particular ray; then the boundary
+  // can be used with multiple functions
+  soloFunctionsApi.CreateBoundary(xpoints, ypoints, nBoundaryPoints, boundary_name);
+  //SoloFunctionsApi soloFunctionsApi;
+  //soloFunctionsApi.CreateBoundary(xpoints, ypoints, npoints, "one");
+
+
+
+  delete xpoints;
+  delete ypoints;
+}
+
+// call this for each new ray, since the azimuth changes each time the ray changes
+void SoloFunctionsModel::CalculateBoundaryMask() {
+
+  // HERE ====>>> 
+  // Wait! The SoloFunctionsApi doesn't store state!!!! So, we need to 
+  // pass around the boundary mask.  
+  // get the boundary mask for this ray
+  short *boundaryMask = soloFunctionsApi.GetBoundaryMask(boundaryList, // is this boundary_name?
+						     &radar_origin,
+						     &boundary_origin,
+				nGates, // for this ray
+				gateSize, // for this ray
+				distanceToCellNInMeters, // for this ray
+				azimuth, // ray azimuth
+						     radar_scan_mode,
+						     radar_type,
+						     tilt_angle,
+						     rotation_angle);
+
 
 }
 
@@ -99,34 +156,6 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
     throw  "ERROR - data is not 16-bit signed integer as expected";
   } 
 
-  // TODO: where is the  boundary?
-  short *boundary;
-  vector<Point> boundaryPoints = BoundaryPointEditor.getInstance()->getWorldPoints();
-  // TODO: need to map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
-  // TODO: these should be library calls ...
-  // TODO: we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
-  //       all the f(x) in a script
-  char boundary_name[20] = "name-1";
-  
-  SoloFunctions soloFunctionsApi;
-
-  // TODO: Actually, I want to move this boundary stuff to a couple levels up 
-  // because the boundary is for a particular ray; then the boundary
-  // can be used with multiple functions
-  soloFunctionsApi.CreateBoundary(xpoints, ypoints, npoints, boundary_name);
-
-  // get the boundary mask for this ray
-  short *boundaryMask = soloFunctionsApi.GetBoundaryMask(boundaryList,
-						     &radar_origin,
-						     &boundary_origin,
-				nGates, // for this ray
-				gateSize, // for this ray
-				distanceToCellNInMeters, // for this ray
-				azimuth, // ray azimuth
-						     radar_scan_mode,
-						     radar_type,
-						     tilt_angle,
-						     rotation_angle);
   //Radx::fl32 *rawData;
   //rawData = field->getDataFl32();
   //Radx::fl32 *ptr = rawData;
@@ -165,6 +194,8 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
   LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
   LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
+
+  SoloFunctionsApi soloFunctionsApi;
   
   int result = soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
      ew_gndspd_corr, tilt, elevation,

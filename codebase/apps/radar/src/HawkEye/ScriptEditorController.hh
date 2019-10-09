@@ -10,7 +10,7 @@
 #include "SoloFunctionsModel.hh"
 //#include "PolarWidget.hh"
 //#include <Radx/RadxVol.hh>
-#include "SoloFunctions.hh"
+#include "SoloFunctionsController.hh"
 
 #include <vector>
 
@@ -54,7 +54,7 @@ private:
 
   ScriptEditorModel *_currentModel;
   ScriptEditorView *_currentView;
-  SoloFunctions *_soloFunctions;
+  SoloFunctionsController *_soloFunctionsController;
 
   QJSEngine engine;
 

@@ -6,14 +6,14 @@
 #include <sstream>
 #include <iterator>
 
-#include "SoloFunctions.hh"
+#include "SoloFunctionsController.hh"
 #include "SoloFunctionsModel.hh"
 // #include "SpreadSheetModel.hh"
 
 using namespace std;
 
 template<typename Out>
-void SoloFunctions::split(const string &s, char delim, Out result) {
+void SoloFunctionsController::split(const string &s, char delim, Out result) {
   stringstream ss(s);
   string item;
   double value;
@@ -31,7 +31,7 @@ vector<string> SoloFunctions::split(const string &s, char delim) {
 }
 */
 
-vector<double> SoloFunctions::splitDouble(const string &s, char delim) {
+vector<double> SoloFunctionsController::splitDouble(const string &s, char delim) {
   vector<double> elems;
   split(s, delim, back_inserter(elems));
   return elems;
@@ -55,7 +55,7 @@ QVector<double> add(QVector<double> v, QVector<double> v2) {
 
 
 // TODO:  parameters should be DataField ??
-QString  SoloFunctions::REMOVE_AIRCRAFT_MOTION(QString field) { 
+QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) { 
 
   SoloFunctionsModel soloFunctionsModel;
 

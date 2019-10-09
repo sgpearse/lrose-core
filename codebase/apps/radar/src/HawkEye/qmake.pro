@@ -65,7 +65,7 @@ HEADERS += SpreadSheetItem.hh
 HEADERS += SpreadSheetUtils.hh
 HEADERS += SpreadSheetDelegate.hh
 HEADERS += FunctionEditor.hh
-HEADERS += SoloFunctions.hh
+HEADERS += SoloFunctionsController.hh
 HEADERS += DataField.hh
 
 SOURCES += AllocCheck.cc
@@ -117,7 +117,7 @@ SOURCES += SpreadSheetItem.cc
 SOURCES += SpreadSheetUtils.cc
 SOURCES += SpreadSheetDelegate.cc
 SOURCES += FunctionEditor.cc
-SOURCES += SoloFunctions.cc
+SOURCES += SoloFunctionsController.cc
 SOURCES += SoloFunctionsModel.cc
 SOURCES += WorldPlot.cc
 

@@ -1,5 +1,5 @@
 
-#include "GeneralDefinitions.hh"
+#include <Solo/GeneralDefinitions.hh>
 #include "AcVel.cc"
 
 /* c------------------------------------------------------------------------ */
