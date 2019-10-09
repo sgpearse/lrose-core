@@ -2818,12 +2818,6 @@ string PolarManager::_getOutputPath(bool interactive, bool useImagesOutputDir, s
 	    _plotEndTime = _ppi->getPlotEndTime();
 	  }
 
-string path= (string(getenv("HOME")) + "/jeff-test.txt").c_str();
-cout << path << endl;
-std::ofstream file(path); //open in constructor
-std::string data("hello jeff");
-file << data;
-
 	  // compute output dir
 	  if (useImagesOutputDir)
 	  	outputDir = _params.images_output_dir;
