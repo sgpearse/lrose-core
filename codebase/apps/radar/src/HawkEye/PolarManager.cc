@@ -2807,7 +2807,7 @@ void PolarManager::_createImageFiles()
 
 }
 
-string PolarManager::_getOutputPath(bool interactive, string &outputDir, string fileExt)
+string PolarManager::_getOutputPath(bool interactive, bool useImagesOutputDir, string &outputDir, string fileExt)
 {
 	  // set times from plots
 	  if (_rhiMode) {
@@ -2818,9 +2818,17 @@ string PolarManager::_getOutputPath(bool interactive, string &outputDir, string 
 	    _plotEndTime = _ppi->getPlotEndTime();
 	  }
 
-	  // compute output dir
+string path= (string(getenv("HOME")) + "/jeff-test.txt").c_str();
+cout << path << endl;
+std::ofstream file(path); //open in constructor
+std::string data("hello jeff");
+file << data;
 
-	  outputDir = _params.images_output_dir;
+	  // compute output dir
+	  if (useImagesOutputDir)
+	  	outputDir = _params.images_output_dir;
+	  else
+	  	outputDir = string(getenv("HOME")) + PATH_DELIM + "HawkEyeBoundaries";
 	  char dayStr[1024];
 	  if (_params.images_write_to_day_dir) {
 	    sprintf(dayStr, "%.4d%.2d%.2d",
@@ -2921,7 +2929,7 @@ void PolarManager::_saveImageToFile(bool interactive)
   QImage image = pixmap.toImage();
 
   string outputDir;
-  string outputPath = _getOutputPath(interactive, outputDir, _params.images_file_name_extension);
+  string outputPath = _getOutputPath(interactive, true, outputDir, _params.images_file_name_extension);
 
   // write the file
   if (!image.save(outputPath.c_str())) {
@@ -3157,7 +3165,7 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 	{
 		cout << "clicked on item " << fileExt << endl;
 		string outputDir;
-		string path = _getOutputPath(false, outputDir, fileExt);
+		string path = _getOutputPath(false, false, outputDir, fileExt);
 		BoundaryPointEditor::Instance()->load(path);
 
 		if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle)
@@ -3194,7 +3202,7 @@ void PolarManager::saveBoundaryEditorClick()
 
 	string outputDir;
 	string fileExt = _boundaryEditorList->currentItem()->text().toUtf8().constData();
-	string path = _getOutputPath(false, outputDir, fileExt);
+	string path = _getOutputPath(false, false, outputDir, fileExt);
 	BoundaryPointEditor::Instance()->save(path);
 }
 
@@ -3228,7 +3236,7 @@ void PolarManager::showBoundaryEditor()
       {
 				string outputDir;
 				string fileExt = "Boundary" + to_string(i+1);
-				string path = _getOutputPath(false, outputDir, fileExt);
+				string path = _getOutputPath(false, false, outputDir, fileExt);
 				ifstream infile(path);
 				if (infile.good())
 					_boundaryEditorList->item(i)->setText(fileExt.c_str());

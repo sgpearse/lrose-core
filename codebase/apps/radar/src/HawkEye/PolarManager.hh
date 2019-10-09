@@ -283,7 +283,7 @@ private:
   void _openFile();
   void _saveFile();
   void _moveUpDown();
-  string _getOutputPath(bool interactive, string &outputDir, string fileExt);
+  string _getOutputPath(bool interactive, bool useImagesOutputDir, string &outputDir, string fileExt);
 
   // set top bar
 
