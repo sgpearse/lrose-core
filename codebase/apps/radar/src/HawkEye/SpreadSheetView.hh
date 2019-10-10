@@ -7,7 +7,8 @@
 #include "SpreadSheetUtils.hh"
 #include "SpreadSheetController.hh"
 #include "SpreadSheetDelegate.hh"
-#include "SoloFunctions.hh"
+
+#include <vector>
 
 #include <QWidget>
 #include <QAction>
@@ -18,6 +19,8 @@
 #include <QTableWidget>
 #include <QString>
 #include <QJSEngine>
+
+using namespace std;
 
 class SpreadSheetView : public QMainWindow
 {
@@ -72,7 +75,7 @@ public slots:
   void notImplementedMessage();
 
 
-  void setupSoloFunctions(SoloFunctions *soloFunctions);
+  //  void setupSoloFunctions(SoloFunctions *soloFunctions);
 
   void fieldNamesProvided(vector<string> fieldNames);
   void fieldDataSent(vector<float> *data, int useless, int c);

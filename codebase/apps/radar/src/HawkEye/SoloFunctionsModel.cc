@@ -21,55 +21,104 @@ SoloFunctionsModel::SoloFunctionsModel() {
 
 }
 */
-void SoloFunctionsModel::CreateBoundary(vector<Point> vertexList, string name) {
 
+// call this for each new ray, since the azimuth changes each time the ray changes
+void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
+					 int rayIdx, int sweepIdx) {
   
-
-  // TODO: where is the  boundary?
   short *boundary;
-  vector<Point> *boundaryPoints = BoundaryPointEditor.getInstance()->getWorldPoints();
- 
-  int nBoundaryPoints = boundaryPoints.length();
+
+  // TODO: make this a call to BoundaryPointModel?
+  BoundaryPointEditor *bpe = BoundaryPointEditor::Instance();
+  vector<Point> boundaryPoints = bpe->getWorldPoints();
+
+  //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
+  int nBoundaryPoints = boundaryPoints.size();
   short *xpoints = new short[nBoundaryPoints];
   short *ypoints = new short[nBoundaryPoints];
 
-  // convert data types ...  
+  // convert data models  ...  
   vector<Point>::iterator it;
   int i = 0;
-  for (it = boundaryPoints->begin(); it != boundaryPoints->end(); it++) {
+  for (it = boundaryPoints.begin(); it != boundaryPoints.end(); it++) {
     xpoints[i] = it->x;
     ypoints[i] = it->y;
     i += 1;
   }
 
-  // TODO: need to map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
-  // TODO: these should be library calls ...
-  // TODO: we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
+  //  we want the boundary algorithm to be outside of the individual f(x).  Because it applies to 
   //       all the f(x) in a script
-  char boundary_name[20] = "name-1";
   
-  SoloFunctions soloFunctionsApi;
-
-  // TODO: Actually, I want to move this boundary stuff to a couple levels up 
-  // because the boundary is for a particular ray; then the boundary
-  // can be used with multiple functions
-  soloFunctionsApi.CreateBoundary(xpoints, ypoints, nBoundaryPoints, boundary_name);
-  //SoloFunctionsApi soloFunctionsApi;
-  //soloFunctionsApi.CreateBoundary(xpoints, ypoints, npoints, "one");
-
-
-
-  delete xpoints;
-  delete ypoints;
-}
-
-// call this for each new ray, since the azimuth changes each time the ray changes
-void SoloFunctionsModel::CalculateBoundaryMask() {
-
-  // HERE ====>>> 
   // Wait! The SoloFunctionsApi doesn't store state!!!! So, we need to 
   // pass around the boundary mask.  
   // get the boundary mask for this ray
+
+  SoloFunctionsApi soloFunctionsApi;
+
+  // TODO: Actually, I want to move this boundary stuff to a couple levels up 
+  // because the boundary is for a particular ray; then the boundary
+  // can be used with multiple functions ?? maybe NOT!
+
+  // wrestle this information out of the ray and radar volume ...
+  float radar_origin_latitude = vol->getLatitudeDeg();
+  float radar_origin_longitude = vol->getLongitudeDeg();
+  float radar_origin_altitude = vol->getAltitudeKm() * 1000.0;
+  float boundary_origin_tilt = 0.0;
+  float boundary_origin_latitude = 0.0;
+  float boundary_origin_longitude = 0.0;
+  float boundary_origin_altitude = 0.0;
+  int nGates = 0;
+  float gateSize = 0.0;
+  float distanceToCellNInMeters = 0.0;
+  float azimuth = 0.0;
+  // need to do some conversions here ...
+  int radar_scan_mode = 1; 
+  int radar_type = 1; 
+  float tilt_angle = 0.0;
+  float rotation_angle = 0.0; 
+
+
+    short *boundaryMask = soloFunctionsApi.GetBoundaryMask(xpoints, ypoints, nBoundaryPoints,
+                         radar_origin_latitude,
+                         radar_origin_longitude,
+                         radar_origin_altitude,
+                         boundary_origin_tilt,
+                         boundary_origin_latitude,
+                         boundary_origin_longitude,
+                         boundary_origin_altitude,
+                                           nGates,
+                                           gateSize,
+                                           distanceToCellNInMeters,
+                                           azimuth,
+                                           radar_scan_mode,
+                                           radar_type,
+                                           tilt_angle,
+                                           rotation_angle);
+
+  /*
+  short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+                         //float radar_origin_x,                                                                                     
+                         //  float radar_origin_y,                                                                                   
+                         //  float radar_origin_z,                                                                                   
+                         float radar_origin_latitude,
+                         float radar_origin_longitude,
+                         float radar_origin_altitude,
+                         float boundary_origin_tilt,
+                         // float boundary_origin_x,                                                                                 
+                         // float boundary_origin_y,                                                                                 
+                         // float boundary_origin_z,                                                                                 
+                         float boundary_origin_latitude,
+                         float boundary_origin_longitude,
+                         float boundary_origin_altitude,
+                                           int nGates,
+                                           float gateSize,
+                                           float distanceToCellNInMeters,
+                                           float azimuth,
+                                           int radar_scan_mode,
+                                           int radar_type,
+                                           float tilt_angle,
+                                           float rotation_angle);
+
   short *boundaryMask = soloFunctionsApi.GetBoundaryMask(boundaryList, // is this boundary_name?
 						     &radar_origin,
 						     &boundary_origin,
@@ -81,6 +130,12 @@ void SoloFunctionsModel::CalculateBoundaryMask() {
 						     radar_type,
 						     tilt_angle,
 						     rotation_angle);
+  */
+  _boundaryMask = boundaryMask;
+
+
+  delete[] xpoints;
+  delete[] ypoints;
 
 
 }
@@ -180,8 +235,9 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
   int seds_nyquist_velocity = 0; // TODO: what is this value?
 
-  LOG(DEBUG) << "sizeof(short) = " << sizeof(short);
-
+  cerr << "sizeof(short) = " << sizeof(short);
+  if (sizeof(short) != 16) 
+    throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
   LOG(DEBUG) << "args: ";
   LOG(DEBUG) << "vert_velocity " << vert_velocity;
   LOG(DEBUG) <<   "ew_velocity " << ew_velocity;
@@ -195,14 +251,22 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
   LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
 
+  // TODO: convert the field data from Si16 to short
+
   SoloFunctionsApi soloFunctionsApi;
+
+  short fakeData[3] = {0, 1, 2};  
+
+//field->getDataSi16(), 
+						     
+  soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
+						     ew_gndspd_corr, tilt, elevation,
+						     fakeData,
+						     bad, parameter_scale, parameter_bias, dgi_clip_gate,
+						     dds_radd_eff_unamb_vel, seds_nyquist_velocity,
+						     _boundaryMask);
   
-  int result = soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
-     ew_gndspd_corr, tilt, elevation,
-     field->getDataSi16(), bad, parameter_scale, parameter_bias, dgi_clip_gate,
-     dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundaryMask);
-  
-  LOG(DEBUG) << " result: " << result;
+  //LOG(DEBUG) << " result: " << result;
   LOG(DEBUG) << " A few data values ";
   for (int i=0; i< 10; i++) {
       LOG(DEBUG) << field->getDoubleValue(i);

@@ -74,6 +74,22 @@ public:
 
   void dd_latlon_relative(PointInSpace *p0, PointInSpace *p1);
 
+  /*
+  void dd_latlon_relative(double p0_tilt,
+			  double p0_latitude,
+			  double p0_longitude,
+			  double p0_altitude,
+			  double p1_x,
+			  double p1_y,
+			  double p1_z,
+			  double p1_latitude,
+			  double p1_longitude,
+			  double p1_altitude,
+			  float *q_x,
+			  float *q_y,
+			  float *q_z);
+  */
+
   void se_nab_segment(int num, double *r0, double *r1, 
                       OneBoundary *ob);
 

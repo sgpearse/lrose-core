@@ -6,10 +6,10 @@
 #include <QObject>
 #include "SpreadSheetView.hh"
 #include "SpreadSheetModel.hh"
-#include "SoloFunctionsModel.hh"
+//#include "SoloFunctionsModel.hh"
 //#include "PolarWidget.hh"
 //#include <Radx/RadxVol.hh>
-#include "SoloFunctions.hh"
+//#include "SoloFunctions.hh"
 
 #include <vector>
 
@@ -48,7 +48,7 @@ private:
 
   SpreadSheetModel *_currentModel;
   SpreadSheetView *_currentView;
-  SoloFunctions *_soloFunctions;
+  //SoloFunctions *_soloFunctions;
 
 };
 

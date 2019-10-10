@@ -14,7 +14,7 @@
 //#include "ScriptEditorDelegate.hh"
 //#include "ScriptEditorItem.hh"
 #include "ScriptEditorModel.hh"
-#include "SoloFunctions.hh"
+#include "SoloFunctionsController.hh"
 #include <toolsa/LogStream.hh>
 
 ScriptEditorController::ScriptEditorController(ScriptEditorView *view)
@@ -175,7 +175,7 @@ void ScriptEditorController::open(string fileName)
 }
 
 // SoloFunctions object comes in with data model already attached 
-void ScriptEditorController::setupSoloFunctions(SoloFunctions *soloFunctions)
+void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFunctions)
 {
   
   QJSValue myExt = engine.newQObject(soloFunctions); // new SoloFunctions());
@@ -571,11 +571,13 @@ uncate(100);
 
 
     // for each ray
-    _soloFunctionsController.setCurrentRayToFirst();
+    _soloFunctionsController->setCurrentRayToFirst();
 
-    while (_soloFunctionsController.moreRays()) {
+    while (_soloFunctionsController->moreRays()) {
 
-      // TODO: calculate boundary mask for each ray ???
+      // calculate boundary mask for each ray? 
+      // Yes, when the ray index changes a new boundary mask is calculated 
+      // in the SoloFunctionsController
 
       QJSValue result = engine.evaluate(script);
       if (result.isError()) {
@@ -623,7 +625,7 @@ uncate(100);
           }
         }
       }
-      _soloFunctionsController.nextRay();
+      _soloFunctionsController->nextRay();
     }
       /*
     } catch (const std::exception& ex) {

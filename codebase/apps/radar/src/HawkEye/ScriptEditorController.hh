@@ -58,7 +58,7 @@ private:
 
   QJSEngine engine;
 
-  void setupSoloFunctions(SoloFunctions *soloFunctions);
+  void setupSoloFunctions(SoloFunctionsController *soloFunctions);
   void fieldNamesProvided(vector<string> fieldNames);
 };
 

@@ -26,11 +26,11 @@
 #define SOLOFUNCTIONSAPI_H
 
 #include <stdio.h>
-#include <vector>
-#include <iostream>
+//#include <vector>
+//#include <iostream>
 
-#include <Solo/PointInSpace.hh>
-#include <Solo/OneBoundary.hh>
+//#include <Solo/PointInSpace.hh>
+//#include <Solo/OneBoundary.hh>
 
 using namespace std;
 
@@ -43,15 +43,27 @@ class SoloFunctionsApi
 public:
   SoloFunctionsApi();
 
-  void CreateBoundary(short *xpoints, short *ypoints, int npoints, char *name);
+  //  void CreateBoundary(short *xpoints, short *ypoints, int npoints, char *name);
 
 
   // 
   // call BoundaryPointMap::get_boundary_mask to do the work
   // 
-  short *GetBoundaryMask(OneBoundary *boundaryList,
-					   PointInSpace *radar_origin,
-					   PointInSpace *boundary_origin,
+  //  short *GetBoundaryMask(OneBoundary *boundaryList,
+  short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+			 //float radar_origin_x,                                                      
+			 //  float radar_origin_y,                                                    
+			 //  float radar_origin_z,                                                    
+			 float radar_origin_latitude,
+			 float radar_origin_longitude,
+			 float radar_origin_altitude,
+			 float boundary_origin_tilt,
+			 // float boundary_origin_x,                                                
+			 // float boundary_origin_y,                                                
+			 // float boundary_origin_z,                                                
+			 float boundary_origin_latitude,
+			 float boundary_origin_longitude,
+			 float boundary_origin_altitude,
 					   int nGates,
 					   float gateSize,
 					   float distanceToCellNInMeters,
@@ -72,7 +84,7 @@ public:
 			    float ew_gndspd_corr, float tilt, float elevation,
 			    short *data, short bad, float parameter_scale, 
 			    float parameter_bias, int dgi_clip_gate,
-			    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity, char *boundary_name); 
+			    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity, short *boundary_mask); 
   /*   //SoloFunctionsApi soloFunctionsApi;                                                       
   int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
 				   ew_gndspd_corr, tilt, elevation,

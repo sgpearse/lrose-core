@@ -838,6 +838,44 @@ void BoundaryPointMap::dd_latlon_relative(PointInSpace *p0, PointInSpace *p1)
 }
 
 
+/*
+// out params:
+//    q_x, q_y, q_zz
+//
+void BoundaryPointMap::dd_latlon_relative(double p0_tilt,
+					  double p0_latitude,
+					  double p0_longitude,
+					  double p0_altitude,
+					  double p1_x,
+					  double p1_y,
+					  double p1_z,
+					  double p1_latitude,
+					  double p1_longitude,
+					  double p1_altitude,
+					  float *q_x,
+					  float *q_y,
+					  float *q_z)
+{
+  // routine to calculate (x,y,z) for p1 so as to line up                                                   
+  // with (0,0,0) for p0                                                                                    
+  //
+  //double del_lat;
+ //del_lon,
+ //double lat=RADIANS(p1->latitude);
+    double xx, yy, zz, R_earth;
+
+    R_earth = dd_earthr(p1_latitude);
+    // TODO: note! the p0 lat, long, altitude are changed?
+    loop_ll2xy_v3( &p0_latitude, &p0_longitude, &p0_altitude
+                   , &xx, &yy, &zz
+                   , p1_latitude, p1_longitude, p1_altitude
+                   , R_earth, 1 );
+    q_x = (float)xx;
+    q_y = (float)yy;
+    q_z = (float)zz;
+}
+*/
+
 /* c------------------------------------------------------------------------ */
 
 //
@@ -1500,8 +1538,6 @@ void BoundaryPointMap::se_shift_bnd( // ob, boundary_radar, current_radar, scan_
     }
   }
 }
-
-
 
 /* c------------------------------------------------------------------------ */
 

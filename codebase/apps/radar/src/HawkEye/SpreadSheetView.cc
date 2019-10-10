@@ -13,7 +13,7 @@
 #include "SpreadSheetView.hh"
 #include "SpreadSheetDelegate.hh"
 #include "SpreadSheetItem.hh"
-#include "SoloFunctions.hh"
+//#include "SoloFunctions.hh"
 #include "DataField.hh"
 
 
@@ -492,7 +492,7 @@ float  SpreadSheetView::myPow()
   return(999.9);
 }
 
-// SoloFunctions object comes in with data model already attached
+/* SoloFunctions object comes in with data model already attached
 void SpreadSheetView::setupSoloFunctions(SoloFunctions *soloFunctions) {
 
   LOG(DEBUG) << "defining REMOVE_AIRCRAFT_MOTION function";
@@ -508,25 +508,9 @@ void SpreadSheetView::setupSoloFunctions(SoloFunctions *soloFunctions) {
     // print the context ...
     printQJSEngineContext();
 
-    /*
-    LOG(DEBUG) << "current QJSEngine context ...";
-
-    std::map<QString, QString> currentVariableContext;
-    QJSValue theGlobalObject = engine.globalObject();
-
-      QJSValueIterator it(theGlobalObject);
-      while (it.hasNext()) {
-	it.next();
-        QString theValue = it.value().toString();
-        theValue.truncate(100);
-
-	qDebug() << it.name() << ": " << theValue; // it.value().toString().truncate(100);
-        currentVariableContext[it.name()] = it.value().toString();
-      }
-      LOG(DEBUG) << "end current QJSEngine context";
-    */
   
 }
+*/
 
 void SpreadSheetView::applyChanges()
 {

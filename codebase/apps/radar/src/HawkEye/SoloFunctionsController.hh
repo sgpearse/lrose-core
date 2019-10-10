@@ -89,19 +89,20 @@ public:
   Q_INVOKABLE QVector<int> addI(QVector<int> v, QVector<int> v2) { QVector<int> v3(3); for (int i=0; i<3; i++) v3[i]=v[i]+v2[i]; return v3; }
 
   void setCurrentRayToFirst();
-  boolean moreRays();
+  bool moreRays();
   void nextRay();
 
   void setCurrentSweepToFirst();
-  boolean moreSweeps();
+  bool moreSweeps();
   void nextSweep();
 
- 
+  void applyBoundary();
+
 private:
 
   RadxVol *_data;
-  RadxSweep *_currentSweep;
-  RadxRay *_currentRay;
+  int _currentSweepIdx;
+  int _currentRayIdx;
 
   template<typename Out>
   void split(const string &s, char delim, Out result);

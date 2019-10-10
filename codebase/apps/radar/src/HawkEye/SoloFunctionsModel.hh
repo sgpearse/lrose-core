@@ -18,12 +18,19 @@ class SoloFunctionsModel
 public:
   SoloFunctionsModel() {}
 
-  vector<double> RemoveAircraftMotion(vector<double>, RadxVol *vol); // SpreadSheetModel *context);
-  vector<double> RemoveAircraftMotion(string fieldName, RadxVol *vol); // SpreadSheetModel *context);
+  vector<double> RemoveAircraftMotion(vector<double>, RadxVol *vol);
+  vector<double> RemoveAircraftMotion(string fieldName, RadxVol *vol);
+  vector<double> RemoveAircraftMotion(string fieldName, RadxVol *vol,
+				      int rayIdx, int sweepIdx);
+
+
+  void SetBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx);
  
 private:
 
   //  SpreadSheetModel *dataModel;
+  short *_boundaryMask;
+
 };
 
 

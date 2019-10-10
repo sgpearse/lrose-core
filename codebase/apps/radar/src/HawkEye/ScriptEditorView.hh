@@ -6,7 +6,7 @@
 #include "TextEdit.hh"
 #include "ScriptEditorController.hh"
 //#include "ScriptEditorDelegate.hh"
-#include "SoloFunctions.hh"
+#include "SoloFunctionsController.hh"
 
 #include <QWidget>
 #include <QAction>

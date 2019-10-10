@@ -99,6 +99,28 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
   return newData;
 }
 
+void SoloFunctionsController::applyBoundary() {
+  
+  SoloFunctionsModel soloFunctionsModel;
+  soloFunctionsModel.SetBoundaryMask(_data, _currentRayIdx, _currentSweepIdx);
+}
+
+
+void SoloFunctionsController::setCurrentRayToFirst() {
+  _currentRayIdx = 0;
+  applyBoundary();
+
+}
+
+void SoloFunctionsController::nextRay() {
+  _currentRayIdx += 1;
+  applyBoundary();
+}
+
+bool SoloFunctionsController::moreRays() {
+  return (_currentRayIdx > 3);
+}
+
 
 
 /*

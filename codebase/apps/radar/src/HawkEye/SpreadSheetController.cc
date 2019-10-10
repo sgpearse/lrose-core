@@ -54,8 +54,8 @@ SpreadSheetController::SpreadSheetController(SpreadSheetView *view, SpreadSheetM
   _currentModel = model;
 
   //  functionsModel = new SoloFunctionsModel(_currentModel);
-  _soloFunctions = new SoloFunctions(_currentModel->_vol);
-  _currentView->setupSoloFunctions(_soloFunctions);
+  //_soloFunctions = new SoloFunctions(_currentModel->_vol);
+  //_currentView->setupSoloFunctions(_soloFunctions);
 
   // connect view signals to controller slots
 

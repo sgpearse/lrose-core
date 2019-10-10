@@ -13,7 +13,7 @@
 #include "ScriptEditorView.hh"
 //#include "ScriptEditorDelegate.hh"
 //#include "ScriptEditorItem.hh"
-#include "SoloFunctions.hh"
+#include "SoloFunctionsController.hh"
 #include "DataField.hh"
 
 
