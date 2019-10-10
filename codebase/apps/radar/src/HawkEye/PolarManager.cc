@@ -2108,9 +2108,9 @@ void PolarManager::_circleRadiusSliderValueChanged(int value)
 		_ppi->update();
 }
 
-void PolarManager::_smartBrushRadiusSliderValueChanged(int value)
+void PolarManager::_brushRadiusSliderValueChanged(int value)
 {
-	BoundaryPointEditor::Instance()->setSmartBrushRadius(value);
+	BoundaryPointEditor::Instance()->setBrushRadius(value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3058,28 +3058,28 @@ void PolarManager::createBoundaryEditorDialog()
   _boundaryEditorDialogLayout->addWidget(_circleRadiusSlider, row, 1);
   connect(_circleRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_circleRadiusSliderValueChanged(int)));
 
-	_boundaryEditorSmartBrushBtn = new QPushButton(_boundaryEditorDialog);
-	_boundaryEditorSmartBrushBtn->setMaximumWidth(130);
-	_boundaryEditorSmartBrushBtn->setText(" Smart ");
-	_boundaryEditorSmartBrushBtn->setIcon(QIcon("images/smart_brush.png"));
-	_boundaryEditorSmartBrushBtn->setCheckable(TRUE);
-	_boundaryEditorSmartBrushBtn->setFocusPolicy(Qt::NoFocus);
-	_boundaryEditorDialogLayout->addWidget(_boundaryEditorSmartBrushBtn, ++row, 0);
-  connect(_boundaryEditorSmartBrushBtn, SIGNAL(clicked()), this, SLOT(smartBrushBtnBoundaryEditorClick()));
+	_boundaryEditorBrushBtn = new QPushButton(_boundaryEditorDialog);
+	_boundaryEditorBrushBtn->setMaximumWidth(130);
+	_boundaryEditorBrushBtn->setText(" Brush ");
+	_boundaryEditorBrushBtn->setIcon(QIcon("images/brush.png"));
+	_boundaryEditorBrushBtn->setCheckable(TRUE);
+	_boundaryEditorBrushBtn->setFocusPolicy(Qt::NoFocus);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorBrushBtn, ++row, 0);
+  connect(_boundaryEditorBrushBtn, SIGNAL(clicked()), this, SLOT(brushBtnBoundaryEditorClick()));
 
-  _smartBrushRadiusSlider = new QSlider(Qt::Horizontal);
-  _smartBrushRadiusSlider->setFocusPolicy(Qt::StrongFocus);
-  _smartBrushRadiusSlider->setTracking(true);
-  _smartBrushRadiusSlider->setSingleStep(1);
-  _smartBrushRadiusSlider->setPageStep(0);
-  _smartBrushRadiusSlider->setFixedWidth(100);
-  _smartBrushRadiusSlider->setToolTip("Set the smart brush radius");
-  _smartBrushRadiusSlider->setMaximumWidth(180);
-  _smartBrushRadiusSlider->setValue(30);
-  _smartBrushRadiusSlider->setMinimum(8);
-  _smartBrushRadiusSlider->setMaximum(100);
-  _boundaryEditorDialogLayout->addWidget(_smartBrushRadiusSlider, row, 1);
-  connect(_smartBrushRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_smartBrushRadiusSliderValueChanged(int)));
+  _brushRadiusSlider = new QSlider(Qt::Horizontal);
+  _brushRadiusSlider->setFocusPolicy(Qt::StrongFocus);
+  _brushRadiusSlider->setTracking(true);
+  _brushRadiusSlider->setSingleStep(1);
+  _brushRadiusSlider->setPageStep(0);
+  _brushRadiusSlider->setFixedWidth(100);
+  _brushRadiusSlider->setToolTip("Set the smart brush radius");
+  _brushRadiusSlider->setMaximumWidth(180);
+  _brushRadiusSlider->setValue(30);
+  _brushRadiusSlider->setMinimum(8);
+  _brushRadiusSlider->setMaximum(100);
+  _boundaryEditorDialogLayout->addWidget(_brushRadiusSlider, row, 1);
+  connect(_brushRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_brushRadiusSliderValueChanged(int)));
 
 	_boundaryEditorPolygonBtn->setChecked(TRUE);
 	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
@@ -3120,14 +3120,14 @@ void PolarManager::selectBoundaryTool(BoundaryToolType tool)
 {
 	_boundaryEditorPolygonBtn->setChecked(false);
 	_boundaryEditorCircleBtn->setChecked(false);
-	_boundaryEditorSmartBrushBtn->setChecked(false);
+	_boundaryEditorBrushBtn->setChecked(false);
 
 	if (tool == BoundaryToolType::polygon)
 		_boundaryEditorPolygonBtn->setChecked(true);
 	else if (tool == BoundaryToolType::circle)
 		_boundaryEditorCircleBtn->setChecked(true);
 	else
-		_boundaryEditorSmartBrushBtn->setChecked(true);
+		_boundaryEditorBrushBtn->setChecked(true);
 }
 
 void PolarManager::polygonBtnBoundaryEditorClick()
@@ -3144,10 +3144,10 @@ void PolarManager::circleBtnBoundaryEditorClick()
 	_ppi->update();
 }
 
-void PolarManager::smartBrushBtnBoundaryEditorClick()
+void PolarManager::brushBtnBoundaryEditorClick()
 {
-	selectBoundaryTool(BoundaryToolType::smartBrush);
-	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::smartBrush);
+	selectBoundaryTool(BoundaryToolType::brush);
+	BoundaryPointEditor::Instance()->setTool(BoundaryToolType::brush);
 	_ppi->update();
 }
 
@@ -3167,10 +3167,10 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 			_circleRadiusSlider->setValue(BoundaryPointEditor::Instance()->getCircleRadius());
 			selectBoundaryTool(BoundaryToolType::circle);
 		}
-		else if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::smartBrush)
+		else if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::brush)
 		{
-			_smartBrushRadiusSlider->setValue(BoundaryPointEditor::Instance()->getSmartBrushRadius());
-			selectBoundaryTool(BoundaryToolType::smartBrush);
+			_brushRadiusSlider->setValue(BoundaryPointEditor::Instance()->getBrushRadius());
+			selectBoundaryTool(BoundaryToolType::brush);
 		}
 		else
 		{

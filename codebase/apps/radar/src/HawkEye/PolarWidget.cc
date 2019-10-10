@@ -362,8 +362,8 @@ void PolarWidget::mouseMoveEvent(QMouseEvent * e)
 
   	if (tool == BoundaryToolType::polygon && BoundaryPointEditor::Instance()->isAClosedPolygon() && BoundaryPointEditor::Instance()->isOverAnyPoint(worldX, worldY))
 			BoundaryPointEditor::Instance()->moveNearestPointTo(worldX, worldY);
-  	else if (tool == BoundaryToolType::smartBrush)
-  		BoundaryPointEditor::Instance()->addToSmartBrushShape(worldX, worldY);
+  	else if (tool == BoundaryToolType::brush)
+  		BoundaryPointEditor::Instance()->addToBrushShape(worldX, worldY);
 		update();
 		return;
 	}

@@ -234,56 +234,81 @@ bool BoundaryPointEditor::setCircleRadius(int value)
 	return(resizeExistingCircle);
 }
 
-void BoundaryPointEditor::setSmartBrushRadius(int value)
+void BoundaryPointEditor::setBrushRadius(int value)
 {
-	smartBrushRadius = value;
+	brushRadius = value;
 }
 
-void BoundaryPointEditor::addToSmartBrushShape(int x, int y)
+void BoundaryPointEditor::addToBrushShape(int x, int y)
 {
-	float distToPrevPt = points.size() == 0 ? 0 : smartBrushLastOrigin.distanceTo(x, y);
+	float distToPrevPt = points.size() == 0 ? 0 : brushLastOrigin.distanceTo(x, y);
+	if (brushRadius < 12)
+		brushToolNextPtDistance = 7;
+	else
+		brushToolNextPtDistance = 10;
 
 	if (points.size() == 0)
 	{
+		points.clear();
 		int temp = circleRadius;
-		circleRadius = smartBrushRadius;
+		circleRadius = brushRadius;
 		makeCircle(x, y);
 		circleRadius = temp;
-		smartBrushLastOrigin.x = x;
-		smartBrushLastOrigin.y = y;
+		brushLastOrigin.x = x;
+		brushLastOrigin.y = y;
 	}
-	else if (distToPrevPt > 10) //initial circle exists so create second circle and merge them
+	else if (distToPrevPt > brushToolNextPtDistance) //initial circle exists so create second circle and merge them
 	{
 		reorderPointsSoStartingPointIsOppositeOfXY(x, y);
 
 		//next, delete all the existing points that fall inside the new circle whose origin is (x,y)
-		int indexToInsertAt = erasePointsCloseToXY(x, y, smartBrushRadius);
-		mergePoints.clear();
-
-		//now insert the new points
-		for (double angle=2*PI; angle > 0; angle -= 0.4)
+		int indexToInsertAt = erasePointsCloseToXY(x, y, brushRadius);
+		if (indexToInsertAt == -1)  //rapid mouse motion outside of original circle!
 		{
-			Point pt;
-			pt.x = x + (float)smartBrushRadius * cos(angle);
-			pt.y = y + (float)smartBrushRadius * sin(angle);
+			int temp = circleRadius;
+			circleRadius = brushRadius;
+			makeCircle(x, y);
+		}
+		else
+		{
+			mergePoints.clear();
 
-			//is this new point outside the previous circle? if so, add insert it!
-			if (pt.distanceTo(smartBrushLastOrigin.x, smartBrushLastOrigin.y) > smartBrushRadius)
-				mergePoints.push_back(pt);
+			//now insert the new points
+			for (double angle=2*PI; angle > 0; angle -= 0.25)
+			{
+				Point pt;
+				pt.x = x + (float)brushRadius * cos(angle);
+				pt.y = y + (float)brushRadius * sin(angle);
+
+				//is this new point outside the previous circle? if so, add insert it!
+				if (pt.distanceTo(brushLastOrigin.x, brushLastOrigin.y) > brushRadius)
+					mergePoints.push_back(pt);
+			}
+
+			int nearestIndex = getNearestPointIndex(points[indexToInsertAt].x, points[indexToInsertAt].y, mergePoints);
+			nearestIndex++;
+			for (int i=0; i < mergePoints.size(); i++)
+			{
+				int mergePointsIndexToUse = i+nearestIndex;
+				if (mergePointsIndexToUse >= mergePoints.size())
+					mergePointsIndexToUse -= mergePoints.size();
+/*
+float dist = points[indexToInsertAt-1].distanceTo(mergePoints[mergePointsIndexToUse].x, mergePoints[mergePointsIndexToUse].y);
+				if (dist > brushRadius && mergePointsIndexToUse > 0 && indexToInsertAt >= 0 && indexToInsertAt < points.size())
+				{
+					cout << "dist=" << dist << endl;
+					mergePoints[mergePointsIndexToUse].lerp(points[indexToInsertAt], 0.8);
+					dist = points[indexToInsertAt-1].distanceTo(mergePoints[mergePointsIndexToUse].x, mergePoints[mergePointsIndexToUse].y);
+					cout << "after lerp, dist=" << dist << endl;
+					indexToInsertAt++;
+				}
+*/
+				points.insert(points.begin() + indexToInsertAt++, mergePoints[mergePointsIndexToUse]);
+			}
 		}
 
-		int nearestIndex = getNearestPointIndex(points[indexToInsertAt].x, points[indexToInsertAt].y, mergePoints);
-		nearestIndex++;
-		for (int i=0; i < mergePoints.size(); i++)
-		{
-			int mergePointsIndexToUse = i+nearestIndex;
-			if (mergePointsIndexToUse >= mergePoints.size())
-				mergePointsIndexToUse -= mergePoints.size();
-			points.insert(points.begin() + indexToInsertAt++, mergePoints[mergePointsIndexToUse]);
-		}
-
-		smartBrushLastOrigin.x = x;
-		smartBrushLastOrigin.y = y;
+		brushLastOrigin.x = x;
+		brushLastOrigin.y = y;
 	}
 }
 
@@ -372,8 +397,8 @@ void BoundaryPointEditor::makeCircle(int x, int y)
 	circleOrigin.y = y;
 
 	Point firstPoint;
-	//for (double angle=0; angle < 2*PI; angle+=0.4)
-	for (double angle=2*PI; angle > 0; angle -= 0.4)
+//	for (double angle=2*PI; angle > 0; angle -= 0.4)
+	for (double angle=2*PI; angle > 0; angle -= 0.25)
 	{
 		Point pt;
 		pt.x = x + (float)circleRadius * cos(angle);
@@ -404,9 +429,9 @@ int BoundaryPointEditor::getCircleRadius()
 	return(circleRadius);
 }
 
-int BoundaryPointEditor::getSmartBrushRadius()
+int BoundaryPointEditor::getBrushRadius()
 {
-	return(smartBrushRadius);
+	return(brushRadius);
 }
 
 void BoundaryPointEditor::save(string path)
@@ -422,14 +447,14 @@ void BoundaryPointEditor::save(string path)
 	else if (currentTool == BoundaryToolType::polygon)
 		tool = 1;
 	else
-		tool = 2; //smart brush
+		tool = 2; //brush
 
 	//write the header (five ints)
 	fwrite(&tool, sizeof(int), 1, file);
 	fwrite(&circleRadius, sizeof(int), 1, file);
 	fwrite(&circleOrigin.x, sizeof(int), 1, file);
 	fwrite(&circleOrigin.y, sizeof(int), 1, file);
-	fwrite(&smartBrushRadius, sizeof(int), 1, file);
+	fwrite(&brushRadius, sizeof(int), 1, file);
 
 	//now write the points
 	for (int i=0; i < points.size(); i++)
@@ -461,7 +486,7 @@ void BoundaryPointEditor::load(string path)
 		fread(&circleRadius, sizeof(int), 1, file);
 		fread(&circleOrigin.x, sizeof(int), 1, file);
 		fread(&circleOrigin.y, sizeof(int), 1, file);
-		fread(&smartBrushRadius, sizeof(int), 1, file);
+		fread(&brushRadius, sizeof(int), 1, file);
 
 		//now read each point and add to boundary
 		points.clear();
@@ -479,7 +504,7 @@ void BoundaryPointEditor::load(string path)
 		else if (tool == 1)
 			currentTool = BoundaryToolType::polygon;
 		else
-			currentTool = BoundaryToolType::smartBrush;
+			currentTool = BoundaryToolType::brush;
 		cout << "BoundaryPointEditor, read " << points.size() << " points from " << path << endl;
 	}
 	else

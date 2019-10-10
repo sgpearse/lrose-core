@@ -240,7 +240,7 @@ private:
   QPushButton *_boundaryEditorSaveBtn;
   QPushButton *_boundaryEditorPolygonBtn;
   QPushButton *_boundaryEditorCircleBtn;
-  QPushButton *_boundaryEditorSmartBrushBtn;
+  QPushButton *_boundaryEditorBrushBtn;
   QListWidget *_boundaryEditorList;
 
   // time controller settings dialog
@@ -260,7 +260,7 @@ private:
 
   QSlider *_timeSlider;
   QSlider *_circleRadiusSlider;
-  QSlider *_smartBrushRadiusSlider;
+  QSlider *_brushRadiusSlider;
 
   RadxTime _archiveIntermediateTime;
 
@@ -402,7 +402,7 @@ private slots:
   
   //circle radius slider for BoundaryPointEditor
   void _circleRadiusSliderValueChanged(int value);
-  void _smartBrushRadiusSliderValueChanged(int value);
+  void _brushRadiusSliderValueChanged(int value);
 
   // images
 
@@ -427,7 +427,7 @@ private slots:
   void clearBoundaryEditorClick();
   void polygonBtnBoundaryEditorClick();
   void circleBtnBoundaryEditorClick();
-  void smartBrushBtnBoundaryEditorClick();
+  void brushBtnBoundaryEditorClick();
   void onBoundaryEditorListItemClicked(QListWidgetItem* item);
   void saveBoundaryEditorClick();
   void selectBoundaryTool(BoundaryToolType tool);

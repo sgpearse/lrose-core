@@ -18,7 +18,13 @@ struct Point
   int x;
   int y;
 
-  float distanceTo(int x2, int y2)
+  void lerp(Point pt, float amount)
+  {
+  	x = x + amount * (float)(pt.x - x);
+  	y = y + amount * (float)(pt.y - y);
+  }
+
+  float distanceTo(float x2, float y2)
   {
     float dx = (float)(x2 - x);
     float dy = (float)(y2 - y);
@@ -80,7 +86,7 @@ enum class BoundaryToolType
 {
   polygon,
   circle,
-	smartBrush
+	brush
 };
 
 /*
@@ -95,7 +101,7 @@ class BoundaryPointEditor
   public:
 	static BoundaryPointEditor* Instance();
 	void makeCircle(int x, int y);
-	void addToSmartBrushShape(int x, int y);
+	void addToBrushShape(int x, int y);
 	void addPoint(int x, int y);
 	void insertPoint(int x, int y);
 	void delNearestPoint(int x, int y);
@@ -112,10 +118,10 @@ class BoundaryPointEditor
 	bool updateScale(double xRange);
 	vector<Point> getWorldPoints();
 	bool setCircleRadius(int value);
-	void setSmartBrushRadius(int value);
+	void setBrushRadius(int value);
 	bool getIsCircle();
 	int getCircleRadius();
-	int getSmartBrushRadius();
+	int getBrushRadius();
 
   private:
 	BoundaryPointEditor(){};
@@ -138,8 +144,9 @@ class BoundaryPointEditor
 	QPushButton *_saveBtn;
   QSlider *_radiusSlider;
 	int circleRadius = 50;
-	int smartBrushRadius = 20;
-	Point smartBrushLastOrigin;
+	int brushRadius = 20;
+	int brushToolNextPtDistance = 10;
+	Point brushLastOrigin;
 	QBrush *yellowBrush = new QBrush(QColor(255,255,0));
 	void coutMemUsage();
 	vector<Point> points;
