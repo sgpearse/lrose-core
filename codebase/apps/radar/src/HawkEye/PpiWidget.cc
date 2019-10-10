@@ -474,8 +474,6 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 				else
 					BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
     	}
-    	else //smart brush
-    		BoundaryPointEditor::Instance()->addToSmartBrushShape(_worldReleaseX, _worldReleaseY);
     }
 
     double x_km = _worldReleaseX;

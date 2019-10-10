@@ -7,6 +7,7 @@
 #include <QPaintEngine>
 #include <QPushButton>
 #include <QBrush>
+#include <QColor>
 #include <QSlider>
 #include <list>
 
@@ -118,11 +119,17 @@ class BoundaryPointEditor
 
   private:
 	BoundaryPointEditor(){};
-	int getNearestPointIndex(int x, int y);
+	int getNearestPointIndex(int x, int y, vector<Point> &pts);
 	float getNearestDistToLineSegment(int x, int y, int segmentPtIndex1, int segmentPtIndex2);
 	void coutPoints();
 	void drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point);
 	void checkToMovePointToOriginIfVeryClose(Point &pt);
+	int getClosestPtIndex(int x, int y);
+	int getFurthestPtIndex(int x, int y);
+	int erasePointsCloseToXY(int x, int y, int thresholdDistance);
+	void reorderPointsSoStartingPointIsOppositeOfXY(int x, int y);
+	void appendFirstPointAsLastPoint();
+	void eraseLastPoint();
 
 	float CLOSE_DISTANCE = 10;
 	float pointBoxScale = 1;
@@ -132,8 +139,11 @@ class BoundaryPointEditor
   QSlider *_radiusSlider;
 	int circleRadius = 50;
 	int smartBrushRadius = 20;
-
+	Point smartBrushLastOrigin;
+	QBrush *yellowBrush = new QBrush(QColor(255,255,0));
+	void coutMemUsage();
 	vector<Point> points;
+	vector<Point> mergePoints;
 	static BoundaryPointEditor* m_pInstance;
 	BoundaryToolType currentTool = BoundaryToolType::polygon;
 
