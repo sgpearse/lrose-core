@@ -152,7 +152,8 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
 					   int rayIdx, int sweepIdx,
 					   string newFieldName) {
-  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx;
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
   cerr << "inside SoloFunctionsModel::RemoveAircraftMotion" << endl;
 
   // gather data from context -- most of the data are in a DoradeRadxFile object
@@ -203,32 +204,42 @@ float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
     cerr << newData[i] << ", ";
   cerr << endl;
 
-  // ========
+  // I have the ray, can't I just add a field to it?
 
+  // ========
+  /*
   RadxRay *newRay = new RadxRay();
 
   newRay->setVolumeNumber(1);
   newRay->setSweepNumber(sweepIdx);
   newRay->setRayNumber(rayIdx);
-
+  */
   //      const string name = "VEL";                                                                  
   //const string units = "m/s";                                                                       
-  Radx::si16 missingValue = -999;
+  Radx::fl32 missingValue = -999;
   //      const Radx::si16 *data = &rawData[0];                                                       
   double scale = 1.0;
   double offset = 0.0;
   bool isLocal = false;
 
-  RadxField *field1 = newRay->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
   //  RadxField *field1 = newRay->addField(newFieldName, "m/s", nGates, missingValue, newData, scale, offset, isLocal);
 
+  /*
   // to avoid this warning ...                                                                        
   // WARNING - Range geom has not been set on ray                                                     
   double startRangeKm = 3.0;
   double gateSpacingKm = 5.0;
   newRay->setRangeGeom(startRangeKm, gateSpacingKm);
+  */
 
-  vol->addRay(newRay);
+  //vol->addRay?Field?();  // apparently this is not needed!
+
+  // STOPPED HERE ...  Kinda close ... adds fields VEL_xyz, VEL_xyz2, ... VEL_xyz4 one for each sweep, 
+  // and the missing value is wonky 
 
   // ============
 

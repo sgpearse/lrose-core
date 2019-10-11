@@ -119,12 +119,21 @@ void SoloFunctionsController::applyBoundary() {
   soloFunctionsModel.SetBoundaryMask(_data, _currentRayIdx, _currentSweepIdx);
 }
 
+void SoloFunctionsController::setCurrentSweepToFirst() {
+  cerr << "entry setCurrentSweepToFirst" << endl;
+  _currentSweepIdx = 0;
+  cerr << "exit setCurrentSweepToFirst" << endl;
+
+  //LOG(DEBUG) << "exit";
+
+}
+
 
 void SoloFunctionsController::setCurrentRayToFirst() {
-  cerr << "entry setCurrentRayToFirst";
+  //cerr << "entry setCurrentRayToFirst" << endl;
   _currentRayIdx = 0;
   applyBoundary();
-  cerr << "exit setCurrentRayToFirst";
+  //cerr << "exit setCurrentRayToFirst" << endl;
 
   //LOG(DEBUG) << "exit";
 
@@ -132,18 +141,42 @@ void SoloFunctionsController::setCurrentRayToFirst() {
 
 void SoloFunctionsController::nextRay() {
   //LOG(DEBUG) << "entry";
-  cerr << "entry nextRay";
+  //cerr << "entry nextRay" << endl;
   _currentRayIdx += 1;
   applyBoundary();
-  cerr << "exit nextRay";
+  //cerr << "exit nextRay" << endl;
   //LOG(DEBUG) << "exit";
 
 }
 
 bool SoloFunctionsController::moreRays() {
   //  LOG(DEBUG) << "entry";
-  cerr << "entry moreRays";
-  return (_currentRayIdx < 20);
+  //cerr << "entry moreRays" << endl;
+  size_t nRays = _data->getNRays();
+  cerr << "There are nRays " << nRays << endl;
+  //if (_currentRayIdx >= nRays)
+  //  _data->loadFieldsFromRays();
+
+  return (_currentRayIdx < nRays);
+}
+
+void SoloFunctionsController::nextSweep() {
+  //LOG(DEBUG) << "entry";
+  //cerr << "entry nextSweep" << endl;
+  _currentSweepIdx += 1;
+  //cerr << "exit nextSweep" << endl;
+  //LOG(DEBUG) << "exit";
+}
+
+bool SoloFunctionsController::moreSweeps() {
+  //  LOG(DEBUG) << "entry";
+  //cerr << "entry moreSweeps" << endl;
+  size_t nSweeps = _data->getNSweeps();
+  cerr << " there are " << nSweeps << endl;
+  if (_currentSweepIdx >= nSweeps)
+    _data->loadFieldsFromRays();
+
+  return (_currentSweepIdx < nSweeps);
 }
 
 

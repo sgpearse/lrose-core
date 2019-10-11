@@ -577,7 +577,10 @@ uncate(100);
       // ======                                                                                            
     //    try {
 
+    // for each sweep
+   _soloFunctionsController->setCurrentSweepToFirst();
 
+   //while (_soloFunctionsController->moreSweeps()) {
     // for each ray
     _soloFunctionsController->setCurrentRayToFirst();
 
@@ -605,37 +608,40 @@ uncate(100);
 
         if (result.isArray()) {
           cerr << " the result is an array\n";
-        //vector<int> myvector;                                                                            
-        //myvector = engine.fromScriptValue(result);                                                       
+	  //vector<int> myvector;                                                                            
+	  //myvector = engine.fromScriptValue(result);                                                       
         }
         if (result.isNumber()) {
           cerr << " the result is a number " << result.toString().toStdString() << endl;
           //setSelectionToValue(result.toString());                                                        
         }
 	/*
-      // ======                                                                                            
-      //  YES! This works.  The new global variables are listed here;                                      
-      // just find them and add them to the spreadsheet and to the Model??                                 
-      // HERE!!!                                                                                           
-      // try iterating over the properties of the globalObject to find new variables                       
+	// ======                                                                                            
+	//  YES! This works.  The new global variables are listed here;                                      
+	// just find them and add them to the spreadsheet and to the Model??                                 
+	// HERE!!!                                                                                           
+	// try iterating over the properties of the globalObject to find new variables                       
         QJSValue newGlobalObject = engine.globalObject();
 
         QJSValueIterator it2(newGlobalObject);
         while (it2.hasNext()) {
-          it2.next();
-          QString theValue = it2.value().toString();
-          theValue.truncate(100);
-          LOG(DEBUG) << it2.name().toStdString() << ": " << theValue.toStdString();
-          if (currentVariableContext.find(it2.name()) == currentVariableContext.end()) {
-            // we have a newly defined variable                                                            
-            LOG(DEBUG) << "NEW VARIABLE " << it2.name().toStdString() <<  ": " << theValue.toStdString();
-            addVariableToScriptEditor(it2.name(), it2.value());
-          }
+	it2.next();
+	QString theValue = it2.value().toString();
+	theValue.truncate(100);
+	LOG(DEBUG) << it2.name().toStdString() << ": " << theValue.toStdString();
+	if (currentVariableContext.find(it2.name()) == currentVariableContext.end()) {
+	// we have a newly defined variable                                                            
+	LOG(DEBUG) << "NEW VARIABLE " << it2.name().toStdString() <<  ": " << theValue.toStdString();
+	addVariableToScriptEditor(it2.name(), it2.value());
+	}
         }
 	*/
       }
       _soloFunctionsController->nextRay();
     }
+    //_soloFunctionsController->nextSweep();
+    
+    //}
       /*
     } catch (const std::exception& ex) {
       criticalMessage(ex.what());
