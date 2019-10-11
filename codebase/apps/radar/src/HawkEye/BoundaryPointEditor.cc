@@ -63,9 +63,25 @@ void BoundaryPointEditor::addPoint(int x, int y)
 
 		checkToMovePointToOriginIfVeryClose(pt);
 
-		points.push_back(pt);
+		if (points.size() < 4 || !doesLastSegmentIntersectAnyOtherSegment(pt))
+			points.push_back(pt);
+		else
+			cout << "Invalid point crosses existing line segment! Discarding." << endl;
 	//	coutPoints();
 	}
+}
+
+bool BoundaryPointEditor::doesLastSegmentIntersectAnyOtherSegment(Point &lastPoint)
+{
+	cout << "points.size()=" << points.size() << endl;
+
+	for (int i=0; i < points.size()-2; i++)
+	{
+//		cout << "checking (" << points[i].x << "," << points[i].y << ") (" << points[i+1].x << "," << points[i+1].y << ") and (" << points[points.size()-1].x << "," << points[points.size()-1].y << ") (" << lastPoint.x << "," << lastPoint.y << ")" << endl;
+		if (SegmentUtils::doIntersect(points[i], points[i+1], points[points.size()-1], lastPoint))
+			return(true);
+	}
+	return(false);
 }
 
 void BoundaryPointEditor::insertPoint(int x, int y)
@@ -137,7 +153,7 @@ void BoundaryPointEditor::eraseLastPoint()
 	points.erase(points.begin() + points.size()-1);
 }
 
-int BoundaryPointEditor::getNearestPointIndex(int x, int y, vector<Point> &pts)
+int BoundaryPointEditor::getNearestPointIndex(float x, float y, vector<Point> &pts)
 {
 	int nearestPointIndex;
 	float nearestDistance = 99999;
@@ -243,7 +259,7 @@ void BoundaryPointEditor::addToBrushShape(int x, int y)
 {
 	float distToPrevPt = points.size() == 0 ? 0 : brushLastOrigin.distanceTo(x, y);
 	if (brushRadius < 12)
-		brushToolNextPtDistance = 7;
+		brushToolNextPtDistance = 6;
 	else
 		brushToolNextPtDistance = 10;
 
@@ -274,11 +290,11 @@ void BoundaryPointEditor::addToBrushShape(int x, int y)
 			mergePoints.clear();
 
 			//now insert the new points
-			for (double angle=2*PI; angle > 0; angle -= 0.25)
+			for (double angle=2*PI; angle > 0; angle -= 0.35)
 			{
 				Point pt;
-				pt.x = x + (float)brushRadius * cos(angle);
-				pt.y = y + (float)brushRadius * sin(angle);
+				pt.x = (float)x + (float)brushRadius * cos(angle);
+				pt.y = (float)y + (float)brushRadius * sin(angle);
 
 				//is this new point outside the previous circle? if so, add insert it!
 				if (pt.distanceTo(brushLastOrigin.x, brushLastOrigin.y) > brushRadius)
@@ -292,24 +308,34 @@ void BoundaryPointEditor::addToBrushShape(int x, int y)
 				int mergePointsIndexToUse = i+nearestIndex;
 				if (mergePointsIndexToUse >= mergePoints.size())
 					mergePointsIndexToUse -= mergePoints.size();
-/*
-float dist = points[indexToInsertAt-1].distanceTo(mergePoints[mergePointsIndexToUse].x, mergePoints[mergePointsIndexToUse].y);
-				if (dist > brushRadius && mergePointsIndexToUse > 0 && indexToInsertAt >= 0 && indexToInsertAt < points.size())
-				{
-					cout << "dist=" << dist << endl;
-					mergePoints[mergePointsIndexToUse].lerp(points[indexToInsertAt], 0.8);
-					dist = points[indexToInsertAt-1].distanceTo(mergePoints[mergePointsIndexToUse].x, mergePoints[mergePointsIndexToUse].y);
-					cout << "after lerp, dist=" << dist << endl;
-					indexToInsertAt++;
-				}
-*/
 				points.insert(points.begin() + indexToInsertAt++, mergePoints[mergePointsIndexToUse]);
 			}
+		}
+
+		float maxGap = getMaxGapInPoints();
+		if (maxGap > brushRadius)  //user may have backed over shape or curved around and intersected it. Invalid condition
+		{
+			cout << "Invalid point in shape! maxGap=" << maxGap << " Clearing shape and starting over" << endl;
+			points.clear();
 		}
 
 		brushLastOrigin.x = x;
 		brushLastOrigin.y = y;
 	}
+}
+
+float BoundaryPointEditor::getMaxGapInPoints()
+{
+	float maxDist = -99999;
+	for (int i=0; i < points.size(); i++)
+		if (i > 0)
+		{
+			float dist = points[i].distanceTo(points[i-1].x, points[i-1].y);
+			if (dist > maxDist)
+				maxDist = dist;
+		}
+
+	return(maxDist);
 }
 
 void BoundaryPointEditor::reorderPointsSoStartingPointIsOppositeOfXY(int x, int y)
@@ -318,7 +344,6 @@ void BoundaryPointEditor::reorderPointsSoStartingPointIsOppositeOfXY(int x, int 
 	eraseLastPoint();
 
 	int furthestIndex = getFurthestPtIndex(x, y);
-//cout << "furthestIndex=" << furthestIndex << endl;
 
 	vector<Point> tempPoints;
 	for (int i=0; i < points.size(); i++)
@@ -398,7 +423,7 @@ void BoundaryPointEditor::makeCircle(int x, int y)
 
 	Point firstPoint;
 //	for (double angle=2*PI; angle > 0; angle -= 0.4)
-	for (double angle=2*PI; angle > 0; angle -= 0.25)
+	for (double angle=2*PI; angle > 0; angle -= 0.35)
 	{
 		Point pt;
 		pt.x = x + (float)circleRadius * cos(angle);

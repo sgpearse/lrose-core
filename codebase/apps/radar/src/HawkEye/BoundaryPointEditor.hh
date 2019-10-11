@@ -15,8 +15,8 @@ using namespace std;
 
 struct Point
 {
-  int x;
-  int y;
+  float x;
+  float y;
 
   void lerp(Point pt, float amount)
   {
@@ -82,6 +82,74 @@ struct Point
   }
 };
 
+class SegmentUtils
+{
+public:
+	// The main function that returns true if line segment 'p1q1'
+	// and 'p2q2' intersect.
+	static bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+	{
+		if ((int)p1.x == (int)q2.x && (int)p1.y == (int)q2.y)  //if two segments share common point, return false
+			return(false);
+
+	    // Find the four orientations needed for general and
+	    // special cases
+	    int o1 = orientation(p1, q1, p2);
+	    int o2 = orientation(p1, q1, q2);
+	    int o3 = orientation(p2, q2, p1);
+	    int o4 = orientation(p2, q2, q1);
+
+	    // General case
+	    if (o1 != o2 && o3 != o4)
+	        return true;
+
+	    // Special Cases
+	    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+	    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+	    // p1, q1 and q2 are colinear and q2 lies on segment p1q1
+	    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+	    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+	    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+	     // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+	    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+	    return false; // Doesn't fall in any of the above cases
+	}
+private:
+	// Given three colinear points p, q, r, the function checks if
+	// point q lies on line segment 'pr'
+	static bool onSegment(Point p, Point q, Point r)
+	{
+	    if ((int)q.x <= max((int)p.x, (int)r.x) && (int)q.x >= min((int)p.x, (int)r.x) &&
+	    		(int)q.y <= max((int)p.y, (int)r.y) && (int)q.y >= min((int)p.y, (int)r.y))
+	       return true;
+
+	    return false;
+	}
+
+	// To find orientation of ordered triplet (p, q, r).
+	// The function returns following values
+	// 0 --> p, q and r are colinear
+	// 1 --> Clockwise
+	// 2 --> Counterclockwise
+	static int orientation(Point p, Point q, Point r)
+	{
+	    // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
+	    // for details of below formula.
+	    int val = ((int)q.y - (int)p.y) * ((int)r.x - (int)q.x) -
+	              ((int)q.x - (int)p.x) * ((int)r.y - (int)q.y);
+
+	    if (val == 0) return 0;  // colinear
+
+	    return (val > 0)? 1: 2; // clock or counterclock wise
+	}
+};
+
+
+
 enum class BoundaryToolType
 {
   polygon,
@@ -125,7 +193,7 @@ class BoundaryPointEditor
 
   private:
 	BoundaryPointEditor(){};
-	int getNearestPointIndex(int x, int y, vector<Point> &pts);
+	int getNearestPointIndex(float x, float y, vector<Point> &pts);
 	float getNearestDistToLineSegment(int x, int y, int segmentPtIndex1, int segmentPtIndex2);
 	void coutPoints();
 	void drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point);
@@ -136,6 +204,8 @@ class BoundaryPointEditor
 	void reorderPointsSoStartingPointIsOppositeOfXY(int x, int y);
 	void appendFirstPointAsLastPoint();
 	void eraseLastPoint();
+	float getMaxGapInPoints();
+	bool doesLastSegmentIntersectAnyOtherSegment(Point &lastPoint);
 
 	float CLOSE_DISTANCE = 10;
 	float pointBoxScale = 1;
