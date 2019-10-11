@@ -270,10 +270,10 @@ void ScriptEditorView::applyChanges()
 void ScriptEditorView::acceptFormulaInput()
 {
     QString oneTimeOnlyScript = formulaInput->getText();
-    cerr << "text entered: " << oneTimeOnlyScript.toStdString() << endl;
+    cerr << "OneTimeOnly text entered: " << oneTimeOnlyScript.toStdString() << endl;
 
     QString forEachRayScript = formulaInputForEachRay->getText();
-    cerr << "text entered: " << forEachRayScript.toStdString() << endl;
+    cerr << "ForEachRay text entered: " << forEachRayScript.toStdString() << endl;
     
     // Send the scripts to the controller for processing
     try {
@@ -348,6 +348,8 @@ void ScriptEditorView::acceptFormulaInput()
     } catch (const std::exception& ex) {
       criticalMessage(ex.what());
     } catch (const std::string& ex) {
+      criticalMessage(ex);
+    } catch (const char*  ex) {
       criticalMessage(ex);
     } catch (...) {
       criticalMessage("Error occurred during evaluation");

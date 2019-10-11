@@ -24,6 +24,10 @@ public:
 				      int rayIdx, int sweepIdx);
 
 
+  float *ZeroMiddleThird(string fieldName,  RadxVol *vol,
+			 int rayIdx, int sweepIdx,
+			 string newFieldName);
+
   void SetBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx);
  
 private:

@@ -10,7 +10,8 @@
 #include <vector>
 #include <iostream>
 
-#include "Radx/RadxVol.hh"
+#include <Radx/RadxVol.hh>
+//#include "HawkEyeLogger.hh"
 
 using namespace std;
 
@@ -62,6 +63,9 @@ public:
   Q_INVOKABLE QString cat(QString animal) {return animal+"_cat"; }
   //  Q_INVOKABLE QString ZERO(QString field); // return the name of the new field that contains the result
   Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field); // return the name of the new field that contains the result
+
+  Q_INVOKABLE QString ZERO_MIDDLE_THIRD(QString field); // return the name of the new field that contains the result
+
   //  Q_INVOKABLE QString  REMOVE_AIRCRAFT_MOTION(QString field); //  { return field+"_trump"; }
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }
   Q_INVOKABLE QVector<double> add(QVector<double> v, QVector<double> v2) {

@@ -99,6 +99,20 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
   return newData;
 }
 
+QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) { 
+
+  SoloFunctionsModel soloFunctionsModel;
+
+  float *result = soloFunctionsModel.ZeroMiddleThird(field.toStdString(), _data,
+						     _currentRayIdx, _currentSweepIdx,
+						     "VEL_xyz");
+
+  // TODO: returns name of new field in RadxVol
+
+  return QString("zero middle result");
+}
+
+
 void SoloFunctionsController::applyBoundary() {
   
   SoloFunctionsModel soloFunctionsModel;
@@ -107,18 +121,29 @@ void SoloFunctionsController::applyBoundary() {
 
 
 void SoloFunctionsController::setCurrentRayToFirst() {
+  cerr << "entry setCurrentRayToFirst";
   _currentRayIdx = 0;
   applyBoundary();
+  cerr << "exit setCurrentRayToFirst";
+
+  //LOG(DEBUG) << "exit";
 
 }
 
 void SoloFunctionsController::nextRay() {
+  //LOG(DEBUG) << "entry";
+  cerr << "entry nextRay";
   _currentRayIdx += 1;
   applyBoundary();
+  cerr << "exit nextRay";
+  //LOG(DEBUG) << "exit";
+
 }
 
 bool SoloFunctionsController::moreRays() {
-  return (_currentRayIdx > 3);
+  //  LOG(DEBUG) << "entry";
+  cerr << "entry moreRays";
+  return (_currentRayIdx < 20);
 }
 
 

@@ -182,10 +182,11 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("cat", myExt.property("cat"));
   engine.globalObject().setProperty("sqrt", myExt.property("sqrt"));
   engine.globalObject().setProperty("REMOVE_AIRCRAFT_MOTION", myExt.property("REMOVE_AIRCRAFT_MOTION"));
+  engine.globalObject().setProperty("ZERO_MIDDLE_THIRD", myExt.property("ZERO_MIDDLE_THIRD"));
   engine.globalObject().setProperty("add", myExt.property("add"));
 
   // print the context ...
-  printQJSEngineContext();
+  // printQJSEngineContext();
   
 }
 
@@ -466,7 +467,9 @@ void ScriptEditorController::selectFont()
 
 void ScriptEditorController::runOneTimeOnlyScript(QString script)
 {
+  LOG(DEBUG) << "enter"; 
 
+  /*
     // Grab the context before evaluating the formula                                                      
     //  YES! This works.  The new global variables are listed here;                                        
     // just find them and add them to the spreadsheet and to the Model??                                   
@@ -485,6 +488,7 @@ void ScriptEditorController::runOneTimeOnlyScript(QString script)
 uncate(100);                                                                                               
       currentVariableContext[it.name()] = it.value().toString();
     }
+  */
       // ======                                                                                            
     //    try {
       QJSValue result = engine.evaluate(script);
@@ -512,7 +516,7 @@ uncate(100);
           cerr << " the result is a number " << result.toString().toStdString() << endl;
           //setSelectionToValue(result.toString());                                                        
         }
-
+	/*
       // ======                                                                                            
       //  YES! This works.  The new global variables are listed here;                                      
       // just find them and add them to the spreadsheet and to the Model??                                 
@@ -532,6 +536,7 @@ uncate(100);
             addVariableToScriptEditor(it2.name(), it2.value());
           }
         }
+	*/
       }
       /*
     } catch (const std::exception& ex) {
@@ -542,12 +547,14 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
+      LOG(DEBUG) << "exit";
 }
 
 
 void ScriptEditorController::runForEachRayScript(QString script)
 {
-
+  LOG(DEBUG) << "enter";
+  /*
     // Grab the context before evaluating the formula                                                      
     //  YES! This works.  The new global variables are listed here;                                        
     // just find them and add them to the spreadsheet and to the Model??                                   
@@ -566,6 +573,7 @@ void ScriptEditorController::runForEachRayScript(QString script)
 uncate(100);                                                                                               
       currentVariableContext[it.name()] = it.value().toString();
     }
+  */
       // ======                                                                                            
     //    try {
 
@@ -574,7 +582,7 @@ uncate(100);
     _soloFunctionsController->setCurrentRayToFirst();
 
     while (_soloFunctionsController->moreRays()) {
-
+      LOG(DEBUG) << "more rays ...";
       // calculate boundary mask for each ray? 
       // Yes, when the ray index changes a new boundary mask is calculated 
       // in the SoloFunctionsController
@@ -604,7 +612,7 @@ uncate(100);
           cerr << " the result is a number " << result.toString().toStdString() << endl;
           //setSelectionToValue(result.toString());                                                        
         }
-
+	/*
       // ======                                                                                            
       //  YES! This works.  The new global variables are listed here;                                      
       // just find them and add them to the spreadsheet and to the Model??                                 
@@ -624,6 +632,7 @@ uncate(100);
             addVariableToScriptEditor(it2.name(), it2.value());
           }
         }
+	*/
       }
       _soloFunctionsController->nextRay();
     }
@@ -636,6 +645,7 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
+    LOG(DEBUG) << "exit";
 }
 
 // request filled by Controller in response to needFieldNames signal                                       
@@ -658,8 +668,10 @@ void ScriptEditorController::fieldNamesProvided(vector<string> fieldNames) {
       // //    try {                                                                                       
       ////QJSValue objectValue = engine.newQObject(new DataField(*it));                                    
       ////engine.globalObject().setProperty(fieldName, objectValue.property("name"));                      
-      //engine.globalObject().setProperty(fieldName, fieldName);                                           
+      engine.globalObject().setProperty(fieldName, fieldName);                                           
 
+      /*
+      // ===== set field to array of numbers; begin =====
       QJSValue fieldArray = engine.newArray(20);
       QString vectorName = fieldName; //  + "_VECTOR";                                                     
       for (int i=0; i<20; i++) {
@@ -668,7 +680,8 @@ void ScriptEditorController::fieldNamesProvided(vector<string> fieldNames) {
       cout << "adding vector form " << vectorName.toStdString() << endl;
       engine.globalObject().setProperty(vectorName, fieldArray);
       cout << "end adding vector form " << vectorName.toStdString() << endl;
-
+      // ===== set field to array of numbers; end ==== 
+      */
       //someValue += 1;                                                                                    
 
       // //} catch (Exception ex) {                                                                        

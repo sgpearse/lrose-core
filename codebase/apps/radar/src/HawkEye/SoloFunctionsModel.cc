@@ -26,6 +26,8 @@ SoloFunctionsModel::SoloFunctionsModel() {
 void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 					 int rayIdx, int sweepIdx) {
   
+  LOG(DEBUG) << "enter"; 
+
   short *boundary;
 
   // TODO: make this a call to BoundaryPointModel?
@@ -34,6 +36,12 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 
   //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
   int nBoundaryPoints = boundaryPoints.size();
+  LOG(DEBUG) << "nBoundaryPoints = " << nBoundaryPoints;
+
+  // if we have less than three points, then it is NOT a boundary
+  if (nBoundaryPoints < 3) 
+    return;
+ 
   short *xpoints = new short[nBoundaryPoints];
   short *ypoints = new short[nBoundaryPoints];
 
@@ -137,9 +145,96 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
   delete[] xpoints;
   delete[] ypoints;
 
+  LOG(DEBUG) << "exit"; 
 
 }
 
+float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
+					   int rayIdx, int sweepIdx,
+					   string newFieldName) {
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx;
+  cerr << "inside SoloFunctionsModel::RemoveAircraftMotion" << endl;
+
+  // gather data from context -- most of the data are in a DoradeRadxFile object
+
+  // TODO: convert the context RadxVol to DoradeRadxFile and DoradeData format;
+  //RadxVol vol = context->_vol;
+  // make sure the radar angles have been calculated.
+
+  //  vol->loadFieldsFromRays();
+  vol->loadRaysFromFields();
+
+  
+  const RadxField *field;
+  /*
+  field = vol->getFieldFromRay(fieldName);
+  if (field == NULL) {
+    LOG(DEBUG) << "no RadxField found in volume";
+    throw "No data field with name " + fieldName;;
+  }
+  */
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  float *newData = new float[nGates];
+  for (int i=0; i<10; i++)
+    newData[i] = data[i];   
+  for (int i=10; i<30; i++)
+    newData[i] = 0;
+  for (int i=30; i<nGates; i++)
+    newData[i] = data[i];   
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  // ========
+
+  RadxRay *newRay = new RadxRay();
+
+  newRay->setVolumeNumber(1);
+  newRay->setSweepNumber(sweepIdx);
+  newRay->setRayNumber(rayIdx);
+
+  //      const string name = "VEL";                                                                  
+  //const string units = "m/s";                                                                       
+  Radx::si16 missingValue = -999;
+  //      const Radx::si16 *data = &rawData[0];                                                       
+  double scale = 1.0;
+  double offset = 0.0;
+  bool isLocal = false;
+
+  RadxField *field1 = newRay->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+  //  RadxField *field1 = newRay->addField(newFieldName, "m/s", nGates, missingValue, newData, scale, offset, isLocal);
+
+  // to avoid this warning ...                                                                        
+  // WARNING - Range geom has not been set on ray                                                     
+  double startRangeKm = 3.0;
+  double gateSpacingKm = 5.0;
+  newRay->setRangeGeom(startRangeKm, gateSpacingKm);
+
+  vol->addRay(newRay);
+
+  // ============
+
+  return newData;
+
+}
 
 // TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data
 vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
@@ -162,7 +257,7 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   //RadxVol vol = context->_vol;
   // make sure the radar angles have been calculated.
 
-  // TODO: getting to this point
+  vol->loadFieldsFromRays();
 
   const RadxField *field;
   field = vol->getFieldFromRay(fieldName);
@@ -172,21 +267,28 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   }
   
 
-  // TODO: get the ray for this field 
+  //  get the ray for this field 
   const vector<RadxRay *>  &rays = vol->getRays();
   if (rays.size() > 1) {
     LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
   }
-  RadxRay *ray = rays.at(0);
+  RadxRay *ray = rays.at(rayIdx);
   if (ray == NULL) {
-    LOG(DEBUG) << "ERROR - first ray is NULL";
+    LOG(DEBUG) << "ERROR - ray is NULL";
     throw "Ray is null";
   } 
+
+  
 
   const RadxGeoref *georef = ray->getGeoreference();
   if (georef == NULL) {
     LOG(DEBUG) << "ERROR - georef is NULL";
-    throw "Georef is null";
+    LOG(DEBUG) << "      trying to recover ...";
+    vol->setLocationFromStartRay();
+    georef = ray->getGeoreference();
+    if (georef == NULL) {
+      throw "Georef is null";
+    }
   } 
  
   float vert_velocity = georef->getVertVelocity();  // fl32
