@@ -216,10 +216,10 @@ float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
   */
   //      const string name = "VEL";                                                                  
   //const string units = "m/s";                                                                       
-  Radx::fl32 missingValue = -999;
+  Radx::fl32 missingValue = Radx::missingFl32; // -999;
   //      const Radx::si16 *data = &rawData[0];                                                       
-  double scale = 1.0;
-  double offset = 0.0;
+  //  double scale = 1.0;
+  //double offset = 0.0;
   bool isLocal = false;
 
   //RadxField *newField = new RadxField(newFieldName, "m/s");
