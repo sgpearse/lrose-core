@@ -472,7 +472,7 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
 				if (BoundaryPointEditor::Instance()->isAClosedPolygon())
 					BoundaryPointEditor::Instance()->checkToAddOrDelPoint(_worldReleaseX, _worldReleaseY);
 				else
-					BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY);
+					BoundaryPointEditor::Instance()->makeCircle(_worldReleaseX, _worldReleaseY, BoundaryPointEditor::Instance()->getCircleRadius());
     	}
     }
 

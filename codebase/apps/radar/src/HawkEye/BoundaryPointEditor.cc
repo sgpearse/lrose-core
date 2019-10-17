@@ -44,7 +44,7 @@ vector<Point> BoundaryPointEditor::getWorldPoints()
 
 void BoundaryPointEditor::checkToMovePointToOriginIfVeryClose(Point &pt)
 {
-	if (points.size() > 2 && pt.distanceTo(points[0].x, points[0].y) < CLOSE_DISTANCE)
+	if (points.size() > 2 && pt.distanceTo(points[0]) < CLOSE_DISTANCE)
 	{
 		pt.x = points[0].x;
 		pt.y = points[0].y;
@@ -78,7 +78,7 @@ bool BoundaryPointEditor::doesLastSegmentIntersectAnyOtherSegment(Point &lastPoi
 	for (int i=0; i < points.size()-2; i++)
 	{
 //		cout << "checking (" << points[i].x << "," << points[i].y << ") (" << points[i+1].x << "," << points[i+1].y << ") and (" << points[points.size()-1].x << "," << points[points.size()-1].y << ") (" << lastPoint.x << "," << lastPoint.y << ")" << endl;
-		if (SegmentUtils::doIntersect(points[i], points[i+1], points[points.size()-1], lastPoint))
+		if (PolygonUtils::doSegmentsIntersect(points[i], points[i+1], points[points.size()-1], lastPoint, true))
 			return(true);
 	}
 	return(false);
@@ -246,7 +246,7 @@ bool BoundaryPointEditor::setCircleRadius(int value)
 	circleRadius = value;
 	bool resizeExistingCircle = (currentTool == BoundaryToolType::circle && points.size() > 1);
 	if (resizeExistingCircle)  //resize existing circle
-		makeCircle(circleOrigin.x, circleOrigin.y);
+		makeCircle(circleOrigin.x, circleOrigin.y, circleRadius);
 	return(resizeExistingCircle);
 }
 
@@ -266,75 +266,149 @@ void BoundaryPointEditor::addToBrushShape(int x, int y)
 	if (points.size() == 0)
 	{
 		points.clear();
-		int temp = circleRadius;
-		circleRadius = brushRadius;
-		makeCircle(x, y);
-		circleRadius = temp;
+		makeCircle(x, y, brushRadius);
 		brushLastOrigin.x = x;
 		brushLastOrigin.y = y;
+cout << "point.size was zero, so just finished makeCircle" << endl;
 	}
-	else if (distToPrevPt > brushToolNextPtDistance) //initial circle exists so create second circle and merge them
+	else if (distToPrevPt > brushToolNextPtDistance) //mouse has moved enough to warrant an update, and initial circle exists so create second circle and merge them
 	{
+cout << "distToPrevPt > brushToolNextPtDistance" << endl;
 		reorderPointsSoStartingPointIsOppositeOfXY(x, y);
 
+		Point brushPt;
+		brushPt.x = x;
+		brushPt.y = y;
+		bool isPointInsidePolygon = PolygonUtils::isPointInsidePolygon(brushPt, points);
+
 		//next, delete all the existing points that fall inside the new circle whose origin is (x,y)
-		int indexToInsertAt = erasePointsCloseToXY(x, y, brushRadius);
-		if (indexToInsertAt == -1)  //rapid mouse motion outside of original circle!
+		int firstIndexErased = erasePointsCloseToXYandReturnFirstIndexErased(x, y, brushRadius);
+
+		if (firstIndexErased == -1 && !isPointInsidePolygon)  //rapid mouse motion so we have jumped completely outside of original circle! start over with a new circle.
 		{
-			int temp = circleRadius;
-			circleRadius = brushRadius;
-			makeCircle(x, y);
+			makeCircle(x, y, brushRadius);
+cout << "just finished makeCircle" << endl;
 		}
-		else
+		else if (!(firstIndexErased == -1 && isPointInsidePolygon))
 		{
 			mergePoints.clear();
 
-			//now insert the new points
-			for (double angle=2*PI; angle > 0; angle -= 0.35)
+			//now insert some of the new points
+			for (float angle=TwoPI; angle > 0; angle -= 0.35)
 			{
 				Point pt;
 				pt.x = (float)x + (float)brushRadius * cos(angle);
 				pt.y = (float)y + (float)brushRadius * sin(angle);
 
-				//is this new point outside the previous circle? if so, add insert it!
-				if (pt.distanceTo(brushLastOrigin.x, brushLastOrigin.y) > brushRadius)
+
+				//is this new point outside the previous circle? if so, add it to the mergePoints list
+				if (pt.distanceTo(brushLastOrigin) > brushRadius && !PolygonUtils::isPointInsidePolygon(pt, points))
 					mergePoints.push_back(pt);
 			}
 
-			int nearestIndex = getNearestPointIndex(points[indexToInsertAt].x, points[indexToInsertAt].y, mergePoints);
+			int nearestIndex = getNearestPointIndex(points[firstIndexErased].x, points[firstIndexErased].y, mergePoints);
 			nearestIndex++;
 			for (int i=0; i < mergePoints.size(); i++)
 			{
 				int mergePointsIndexToUse = i+nearestIndex;
 				if (mergePointsIndexToUse >= mergePoints.size())
 					mergePointsIndexToUse -= mergePoints.size();
-				points.insert(points.begin() + indexToInsertAt++, mergePoints[mergePointsIndexToUse]);
+				points.insert(points.begin() + firstIndexErased++, mergePoints[mergePointsIndexToUse]);
 			}
 		}
 
 		float maxGap = getMaxGapInPoints();
-		if (maxGap > brushRadius)  //user may have backed over shape or curved around and intersected it. Invalid condition
+		float maxGapAllowed = 1.1*brushRadius;
+
+		if (maxGap > maxGapAllowed)  //user may have backed over shape or curved around and intersected it.
 		{
-			cout << "Invalid point in shape! maxGap=" << maxGap << " Clearing shape and starting over" << endl;
-			points.clear();
+			cout << "Invalid point in shape? maxGap=" << maxGap << ". Attempting to fix polygon shape" << endl;
+			removePointsExceedingMaxGap();
 		}
+
+		if (!PolygonUtils::isValidPolygon(points))  //something went wrong, just start over with a new circle
+			points.clear();
 
 		brushLastOrigin.x = x;
 		brushLastOrigin.y = y;
 	}
 }
 
+int BoundaryPointEditor::getAvgDistBetweenPoints()
+{
+	int cntUsed = 0;
+	float totalDist = 0;
+
+	for (int i=1; i < points.size(); i++)
+	{
+		float dist = points[i].distanceTo(points[i-1]);
+		if (dist < brushRadius)
+		{
+			totalDist += dist;
+			cntUsed++;
+		}
+	}
+
+	return(totalDist / cntUsed);
+}
+
+void BoundaryPointEditor::removePointsExceedingMaxGap()
+{
+	float maxGap = 4 * getAvgDistBetweenPoints();
+	if (maxGap < 20)
+		maxGap = 20;
+	cout << "removePointsExceedingMaxGap with maxGap=" << maxGap << endl;
+
+	bool done = false;
+
+	while (!done)
+	{
+		int indexToRemove = -1;
+		if (points.size() < 3)  //we've removed too many points in this loop, give up
+			return;
+
+		for (int i=1; i < points.size()-1; i++)
+		{
+			float dist = points[i].distanceTo(points[i-1]);
+
+			if (dist > maxGap)
+			{
+				cout << "might remove " << i << " because dist=" << dist << endl;
+
+				if (i < points.size()-1)
+				{
+					float dist2 = points[i+1].distanceTo(points[i-1]);
+					if (dist2 > dist)
+						continue;
+				}
+				indexToRemove = i;
+				break;
+			}
+		}
+
+		if (indexToRemove == -1)
+		{
+			eraseLastPoint();
+			appendFirstPointAsLastPoint();
+			return;
+		}
+		else
+		{
+    	points.erase(points.begin() + indexToRemove);
+    	cout << "just erased " << indexToRemove << endl;
+		}
+	}
+}
+
 float BoundaryPointEditor::getMaxGapInPoints()
 {
 	float maxDist = -99999;
-	for (int i=0; i < points.size(); i++)
-		if (i > 0)
-		{
+	for (int i=1; i < points.size(); i++)
+	{
 			float dist = points[i].distanceTo(points[i-1].x, points[i-1].y);
 			if (dist > maxDist)
 				maxDist = dist;
-		}
-
+	}
 	return(maxDist);
 }
 
@@ -362,10 +436,11 @@ void BoundaryPointEditor::reorderPointsSoStartingPointIsOppositeOfXY(int x, int 
 	tempPoints.swap(tempVector);
 }
 
-int BoundaryPointEditor::erasePointsCloseToXY(int x, int y, int thresholdDistance)
+int BoundaryPointEditor::erasePointsCloseToXYandReturnFirstIndexErased(int x, int y, int thresholdDistance)
 {
 	bool isDone = false;
 	int firstIndexErased = -1;
+	int cntErasedPts = 0;
 
 	while (!isDone)
 	{
@@ -382,6 +457,7 @@ int BoundaryPointEditor::erasePointsCloseToXY(int x, int y, int thresholdDistanc
 		if (indexToErase != -1)
 		{
 			points.erase(points.begin() + indexToErase);
+			cntErasedPts++;
 			if (firstIndexErased == -1)
 				firstIndexErased = indexToErase;
 		}
@@ -392,6 +468,7 @@ int BoundaryPointEditor::erasePointsCloseToXY(int x, int y, int thresholdDistanc
 		points[points.size()-1].y = points[0].y;
 	}
 
+	cout << "erased " << cntErasedPts << " points, firstIndexErased=" << firstIndexErased << endl;
 	return(firstIndexErased);
 }
 
@@ -414,26 +491,21 @@ int BoundaryPointEditor::getFurthestPtIndex(int x, int y)
 	return(indexAtMaxDist);
 }
 
-void BoundaryPointEditor::makeCircle(int x, int y)
+void BoundaryPointEditor::makeCircle(int x, int y, int radius)
 {
 	points.clear();
-//	currentTool == BoundaryToolType::circle;
 	circleOrigin.x = x;
 	circleOrigin.y = y;
 
-	Point firstPoint;
-//	for (double angle=2*PI; angle > 0; angle -= 0.4)
-	for (double angle=2*PI; angle > 0; angle -= 0.35)
+	for (float angle=TwoPI; angle > 0; angle -= 0.35)
 	{
 		Point pt;
-		pt.x = x + (float)circleRadius * cos(angle);
-		pt.y = y + (float)circleRadius * sin(angle);
-		if (angle == 2*PI)
-			firstPoint = pt;
+		pt.x = (float)x + (float)radius * cos(angle);
+		pt.y = (float)y + (float)radius * sin(angle);
 		points.push_back(pt);
 	}
 
-	points.push_back(firstPoint);
+	points.push_back(points[0]);
 }
 
 void BoundaryPointEditor::checkToAddOrDelPoint(int x, int y)

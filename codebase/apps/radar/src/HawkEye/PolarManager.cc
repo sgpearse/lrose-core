@@ -3076,7 +3076,7 @@ void PolarManager::createBoundaryEditorDialog()
   _brushRadiusSlider->setToolTip("Set the smart brush radius");
   _brushRadiusSlider->setMaximumWidth(180);
   _brushRadiusSlider->setValue(30);
-  _brushRadiusSlider->setMinimum(8);
+  _brushRadiusSlider->setMinimum(14);
   _brushRadiusSlider->setMaximum(100);
   _boundaryEditorDialogLayout->addWidget(_brushRadiusSlider, row, 1);
   connect(_brushRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_brushRadiusSliderValueChanged(int)));
