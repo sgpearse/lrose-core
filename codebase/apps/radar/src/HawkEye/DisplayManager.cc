@@ -86,13 +86,15 @@ bool DisplayManager::_firstTimerEvent = true;
 
 DisplayManager::DisplayManager(const Params &params,
                                Reader *reader,
-                               const vector<DisplayField *> &fields,
+			       //                               const vector<DisplayField *> &fields,
+			       DisplayFieldController *displayFieldController,
                                bool haveFilteredFields) :
         QMainWindow(NULL),
         _params(params),
         _reader(reader),
         _initialRay(true),
-        _fields(fields),
+	//        _fields(fields),
+	_displayFieldController(displayFieldController),
         _haveFilteredFields(haveFilteredFields)
         
 {
@@ -385,9 +387,13 @@ void DisplayManager::_createFieldPanel()
     nCols = 4;
   }
 
-  _selectedField = _fields[0];
-  _selectedLabel = _fields[0]->getLabel();
-  _selectedName = _fields[0]->getName();
+  displayFieldController->setSelectedField(0);
+  _selectedField = displayFieldController->getSelectedField(); //_fields[0];
+  _selectedLabel = _selectedField->getLabel(); //_fields[0]->getLabel();
+  _selectedName = _selectedField->getName(); // _fields[0]->getName();
+  //  _selectedField = _fields[0];
+  //_selectedLabel = _fields[0]->getLabel();
+  //_selectedName = _fields[0]->getName();
   _selectedLabelWidget = new QLabel(_selectedLabel.c_str(), _fieldPanel);
   QFont font6 = _selectedLabelWidget->font();
   font6.setPixelSize(fsize6);
@@ -431,23 +437,16 @@ void DisplayManager::_createFieldPanel()
   // add fields, one row at a time
   // a row can have 1 or 2 buttons, depending on whether the
   // filtered field is present
-
-  for (size_t ifield = 0; ifield < _fields.size(); ifield++) {
+  size_t nFields = displayFieldController->getNFields();
+  for (size_t ifield = 0; ifield < nFields; ifield++) {
 
     // get raw field - always present
     
-    const DisplayField *rawField = _fields[ifield];
+    const DisplayField *rawField = displayFieldController->getField(ifield); // _fields[ifield];
     int buttonRow = rawField->getButtonRow();
     
     // get filt field - may not be present
-    
-    const DisplayField *filtField = NULL;
-    if (ifield < _fields.size() - 1) {
-      if (_fields[ifield+1]->getButtonRow() == buttonRow &&
-          _fields[ifield+1]->getIsFilt()) {
-        filtField = _fields[ifield+1];
-      }
-    }
+    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
 
     QLabel *label = new QLabel(_fieldPanel);
     label->setFont(font);
@@ -508,6 +507,152 @@ void DisplayManager::_createFieldPanel()
 
 }
 
+//////////////////////////////////////////////
+// update the field panel
+
+void DisplayManager::_updateFieldPanel()
+{
+  LOG(DEBUG) << "enter";
+  Qt::Alignment alignCenter(Qt::AlignCenter);
+  Qt::Alignment alignRight(Qt::AlignRight);
+  
+  int fsize = _params.label_font_size;
+  int fsize2 = _params.label_font_size + 2;
+  int fsize4 = _params.label_font_size + 4;
+  int fsize6 = _params.label_font_size + 6;
+
+  //_fieldPanel = new QGroupBox(_main);
+  //_fieldGroup = new QButtonGroup;
+  //_fieldsLayout = new QGridLayout(_fieldPanel);
+  //_fieldsLayout->setVerticalSpacing(5);
+
+  int row = 0;
+  int nCols = 3;
+  if (_haveFilteredFields) {
+    nCols = 4;
+  }
+  /*
+  _selectedField = _fields[0];
+  _selectedLabel = _fields[0]->getLabel();
+  _selectedName = _fields[0]->getName();
+  _selectedLabelWidget = new QLabel(_selectedLabel.c_str(), _fieldPanel);
+  QFont font6 = _selectedLabelWidget->font();
+  font6.setPixelSize(fsize6);
+  _selectedLabelWidget->setFont(font6);
+  _fieldsLayout->addWidget(_selectedLabelWidget, row, 0, 1, nCols, alignCenter);
+  row++;
+
+  QFont font4 = _selectedLabelWidget->font();
+  font4.setPixelSize(fsize4);
+  QFont font2 = _selectedLabelWidget->font();
+  font2.setPixelSize(fsize2);
+  */
+  QFont font = _selectedLabelWidget->font();
+  font.setPixelSize(fsize);
+  /*
+  _valueLabel = new QLabel("", _fieldPanel);
+  _valueLabel->setFont(font);
+  _fieldsLayout->addWidget(_valueLabel, row, 0, 1, nCols, alignCenter);
+  row++;
+
+  QLabel *fieldHeader = new QLabel("FIELD LIST", _fieldPanel);
+  fieldHeader->setFont(font);
+  _fieldsLayout->addWidget(fieldHeader, row, 0, 1, nCols, alignCenter);
+  row++;
+
+  QLabel *nameHeader = new QLabel("Name", _fieldPanel);
+  nameHeader->setFont(font);
+  _fieldsLayout->addWidget(nameHeader, row, 0, alignCenter);
+  QLabel *keyHeader = new QLabel("HotKey", _fieldPanel);
+  keyHeader->setFont(font);
+  _fieldsLayout->addWidget(keyHeader, row, 1, alignCenter);
+  if (_haveFilteredFields) {
+    QLabel *rawHeader = new QLabel("Raw", _fieldPanel);
+    rawHeader->setFont(font);
+    _fieldsLayout->addWidget(rawHeader, row, 2, alignCenter);
+    QLabel *filtHeader = new QLabel("Filt", _fieldPanel);
+    filtHeader->setFont(font);
+    _fieldsLayout->addWidget(filtHeader, row, 3, alignCenter);
+  }
+  row++;
+  */
+
+  size_t nFields = displayFieldController->getNFields();
+  row = 4 + nFields;
+  // add fields, one row at a time
+  // a row can have 1 or 2 buttons, depending on whether the
+  // filtered field is present
+
+  //  for (size_t ifield = 0; ifield < _fields.size(); ifield++) {
+  size_t ifield = 8;
+    // get raw field - always present
+    
+  const DisplayField *rawField = displayFieldController->getField(ifield); //_fields[ifield];
+    int buttonRow = rawField->getButtonRow();
+    
+    // get filt field - may not be present
+    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
+
+    QLabel *label = new QLabel(_fieldPanel);
+    label->setFont(font);
+    label->setText(rawField->getLabel().c_str());
+    QLabel *key = new QLabel(_fieldPanel);
+    key->setFont(font);
+    if (rawField->getShortcut().size() > 0) {
+      char text[4];
+      text[0] = rawField->getShortcut()[0];
+      text[1] = '\0';
+      key->setText(text);
+      char text2[128];
+      sprintf(text2, "Hit %s for %s, ALT-%s for filtered",
+	      text, rawField->getName().c_str(), text);
+      label->setToolTip(text2);
+      key->setToolTip(text2);
+    }
+
+    QRadioButton *rawButton = new QRadioButton(_fieldPanel);
+    rawButton->setToolTip(rawField->getName().c_str());
+    if (ifield == 0) {
+      rawButton->click();
+    }
+    _fieldsLayout->addWidget(label, row, 0, alignCenter);
+    _fieldsLayout->addWidget(key, row, 1, alignCenter);
+    _fieldsLayout->addWidget(rawButton, row, 2, alignCenter);
+    _fieldGroup->addButton(rawButton, ifield);
+    // connect slot for field change
+    connect(rawButton, SIGNAL(toggled(bool)), this, SLOT(_changeFieldVariable(bool)));
+
+    _fieldButtons.push_back(rawButton);
+    if (filtField != NULL) {
+      QRadioButton *filtButton = new QRadioButton(_fieldPanel);
+      filtButton->setToolTip(filtField->getName().c_str());
+      _fieldsLayout->addWidget(filtButton, row, 3, alignCenter);
+      _fieldGroup->addButton(filtButton, ifield + 1);
+      _fieldButtons.push_back(filtButton);
+      // connect slot for field change
+      connect(filtButton, SIGNAL(toggled(bool)), this, SLOT(_changeFieldVariable(bool)));
+    }
+
+    if (filtField != NULL) {
+      ifield++;
+    }
+
+        row++;
+    //}
+
+  QLabel *spacerRow = new QLabel("", _fieldPanel);
+  _fieldsLayout->addWidget(spacerRow, row, 0);
+  _fieldsLayout->setRowStretch(row, 1);
+  row++;
+
+  // connect slot for field change
+  
+  //connect(_fieldGroup, SIGNAL(buttonClicked(int)),
+  //        this, SLOT(_changeField(int)));
+  LOG(DEBUG) << "exit";
+}
+
+
 void DisplayManager::_changeFieldVariable(bool value) {
 
   if (_params.debug) {
@@ -531,6 +676,10 @@ void DisplayManager::colorMapRedefineReceived(string fieldName, ColorMap newColo
   
   // connect the new color map with the field
   // find the fieldName in the list of FieldDisplays
+  displayFieldController->setColorMap(fieldName, newColorMap);
+  _changeField(fieldName, true); 
+
+  /*
   bool found = false;
   vector<DisplayField *>::iterator it;
   int fieldId = 0;
@@ -556,7 +705,7 @@ void DisplayManager::colorMapRedefineReceived(string fieldName, ColorMap newColo
     // change the field variable
     _changeField(fieldId, true); 
   }
-  
+  */
   LOG(DEBUG) << "exit";
 }
 
@@ -624,23 +773,16 @@ void DisplayManager::_createClickReportDialog()
   // add fields, one row at a time
   // a row can have 1 or 2 buttons, depending on whether the
   // filtered field is present
-
-  for (size_t ifield = 0; ifield < _fields.size(); ifield++) {
+  size_t nFields = displayFieldController->getNFields();
+  for (size_t ifield = 0; ifield < nFields; ifield++) {
 
     // get raw field - always present
     
-    DisplayField *rawField = _fields[ifield];
+    DisplayField *rawField = displayFieldController->getField(ifield); // _fields[ifield];
     int buttonRow = rawField->getButtonRow();
     
     // get filt field - may not be present
-    
-    DisplayField *filtField = NULL;
-    if (ifield < _fields.size() - 1) {
-      if (_fields[ifield+1]->getButtonRow() == buttonRow &&
-          _fields[ifield+1]->getIsFilt()) {
-        filtField = _fields[ifield+1];
-      }
-    }
+    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
 
     QLabel *label = new QLabel(_clickReportDialog);
     label->setText(rawField->getLabel().c_str());

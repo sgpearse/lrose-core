@@ -651,6 +651,7 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
+    emit volumeUpdated();
     LOG(DEBUG) << "exit";
 }
 

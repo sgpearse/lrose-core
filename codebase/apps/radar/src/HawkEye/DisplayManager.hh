@@ -82,7 +82,8 @@ public:
   
   DisplayManager(const Params &params,
                  Reader *reader,
-                 const vector<DisplayField *> &fields,
+		 //                 const vector<DisplayField *> &fields,
+		 DisplayFieldController *displayFieldController,
                  bool haveFilteredFields);
   
   // destructor
@@ -98,8 +99,10 @@ public:
   const string &getSelectedFieldLabel() const { return _selectedLabel; }
   const string &getSelectedFieldName() const { return _selectedName; }
   const string &getSelectedFieldUnits() const { return _selectedUnits; }
-  const DisplayField &getSelectedField() const { return *_fields[_fieldNum]; }
-  const vector<DisplayField *> &getDisplayFields() const { return _fields; }
+  const DisplayField &getSelectedField() const { return displayFieldController->getField(_fieldNum); }
+  // const vector<DisplayField *> &getDisplayFields() const { return _fields; }
+  //  const DisplayField &getSelectedField() const { return *_fields[_fieldNum]; }
+  //  const vector<DisplayField *> &getDisplayFields() const { return _fields; }
 
   // location
 
@@ -155,8 +158,8 @@ protected:
   bool _frozen;
 
   // data fields
-
-  vector<DisplayField *> _fields;
+  // TODO: what to do here? return the controller? the model?
+  // vector<DisplayField *> _fields;
   bool _haveFilteredFields;
 
   // windows
@@ -272,6 +275,7 @@ protected:
   
   void _createStatusPanel();
   void _createFieldPanel();
+  void _updateFieldPanel();
   void _createClickReportDialog();
   void _updateStatusPanel(const RadxRay *ray);
   double _getInstHtKm(const RadxRay *ray);

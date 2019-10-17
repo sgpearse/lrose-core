@@ -118,14 +118,16 @@ void Beam::resetFieldBrush(size_t field, const QBrush *brush)
 ////////////////////////////////////////////////////////////////
 
 void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
-		      const std::vector<DisplayField*>& fields,
+		      //		      const std::vector<DisplayField*>& fields,
+		      DisplayFieldController *displayFieldController,
 		      const QBrush *background_brush)
 
 {
 
   for (size_t field = 0; field < _nFields; ++field) {
 
-    const ColorMap &map = fields[field]->getColorMap();
+    //    const ColorMap &map = fields[field]->getColorMap();
+    const ColorMap &map = displayFieldController->getColorMap(fieldIdx);
     const double *field_data = &(beam_data[field][0]);
     
     for (size_t igate = 0; igate < _nGates; ++igate) {

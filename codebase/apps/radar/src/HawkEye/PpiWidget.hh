@@ -143,7 +143,8 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 
   // pointers to active beams
 
-  std::vector<PpiBeam*> _ppiBeams;
+  //std::vector<PpiBeam*> _ppiBeams;
+  BeamController *beamController;
 
   // are we in archive mode? and if so are we at the start of a sweep?
 

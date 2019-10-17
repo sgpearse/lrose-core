@@ -93,7 +93,8 @@ public:
   
   PolarManager(const Params &params,
                Reader *reader,
-               const vector<DisplayField *> &fields,
+	       DisplayFieldController *displayFieldController,
+	       //               const vector<DisplayField *> &fields,
                bool haveFilteredFields);
   
   // destructor
@@ -140,6 +141,9 @@ public slots:
 				QColor annotationColor,
 				QColor backgroundColor);
   void setVolume(); // const RadxVol &radarDataVolume);
+  void updateVolume();
+  void _volumeDataChanged();
+  void _addNewFields();
 
 signals:
 

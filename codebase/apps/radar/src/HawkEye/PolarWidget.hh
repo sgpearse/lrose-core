@@ -111,7 +111,8 @@ class DLL_EXPORT PolarWidget : public QWidget
               const PolarManager &manager,
               const Params &params,
               const RadxPlatform &platform,
-              const vector<DisplayField *> &fields,
+              //const vector<DisplayField *> &fields,
+	      DisplayFieldController *displayFieldController,
               bool haveFilteredFields);
   
   /**
@@ -275,7 +276,7 @@ class DLL_EXPORT PolarWidget : public QWidget
    */
 
   void setAngleLines(const bool enabled);
-
+  void addNewFields(vector<DisplayField *> &newFields);
 
  protected:
 
@@ -328,15 +329,17 @@ class DLL_EXPORT PolarWidget : public QWidget
   
   // data fields
 
-  const vector<DisplayField *> &_fields;
+  //  const vector<DisplayField *> &_fields;
+  DisplayFieldController *displayFieldController;
   bool _haveFilteredFields;
 
   /**
    * @brief The renderer for each field.
    */
 
-  vector<FieldRenderer*> _fieldRenderers;
-  
+  //vector<FieldRenderer*> _fieldRenderers;
+  FieldRendererController *fieldRendererController;
+
   // overide refresh images
 
   virtual void _refreshImages() = 0;

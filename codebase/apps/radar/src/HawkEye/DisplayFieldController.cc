@@ -1,35 +1,25 @@
 
 #include "toolsa/LogStream.hh"
-#include "DisplayFieldModel.hh"
+#include "DisplayFieldController.hh"
 #include "DisplayField.hh"
 #include "ColorMap.hh"
 #include "ColorBar.hh"
 
 
-DisplayFieldModel::DisplayFieldModel(vector<DisplayField *> displayFields,
-				     string selectedFieldName,
-				     string gridColor,
-				     string emphasisColor,
-				     string annotationColor,
-				     string backgroundColor)
+DisplayFieldController::DisplayFieldController(DisplayFieldModel *displayFieldModel)
 {
   LOG(DEBUG) << "enter";
-  _fields = displayFields;
-  _selectedFieldName = selectedFieldName;
-  _gridColor = gridColor;
-  _emphasisColor = emphasisColor;
-  _annotationColor = annotationColor;
-  _backgroundColor = backgroundColor;
+  _current = displayFieldModel;
   LOG(DEBUG) << "exit";
 }
 
-DisplayFieldModel::~DisplayFieldModel() {
+DisplayFieldController::~DisplayFieldController() {
 
   // free  _workingCopies;
 }
 
 
-vector<string>  DisplayFieldModel::getFieldNames() {
+vector<string>  DisplayFieldController::getFieldNames() {
   vector<string> fieldNames;
   for (vector<DisplayField *>::iterator fieldItr = _fields.begin(); fieldItr != _fields.end(); fieldItr++) {
     DisplayField *field = *fieldItr;
@@ -40,20 +30,43 @@ vector<string>  DisplayFieldModel::getFieldNames() {
 
 } 
 
+size_t DisplayFieldController::getNFields() {
+  return _current->getNFields();
+}  
 
-string DisplayFieldModel::getSelectedField() {
+DisplayField *DisplayFieldController::getField(size_t fieldIdx) {
+  return _current->getField(fieldIdx);
+}  
 
-  return _selectedFieldName;
+DisplayField *DisplayFieldController::getField(string fieldName) {
+  return _current->getField(fieldName);
+}  
+
+
+DisplayField *DisplayFieldController::getSelectedField() {
+  return _current->getField(_selectedFieldIdx);
 } 
 
-void DisplayFieldModel::setSelectedField(string fieldName) {
+void DisplayFieldController::setSelectedField(string fieldName) {
   LOG(DEBUG) << "enter " << fieldName;
   _selectedFieldName = fieldName;
   LOG(DEBUG) << "exit";
 } 
 
+void DisplayFieldController::setSelectedField(size_t fieldIdx) {
+  if ((fieldIdx >= 0) && (fieldIdx < _current->getNFields()))
+    _selectedFieldIdx = fieldIdx;
+  else 
+    throw ArgumentException(...);
+} 
+
+DisplayField *DisplayFieldController::getFiltered(size_t ifield)
+{
+  return _current->getFiltered(ifield);
+}
+
 /*
-bool DisplayFieldModel::getChanges() {
+bool DisplayFieldController::getChanges() {
 
    //show();
    return false;
@@ -61,19 +74,7 @@ bool DisplayFieldModel::getChanges() {
 }
 */
 
-DisplayField *DisplayFieldModel::getFiltered(size_t ifield)
-{
-  const DisplayField *filtField = NULL;
-  if (ifield < _fields.size() - 1) {
-    if (_fields[ifield+1]->getButtonRow() == buttonRow &&
-        _fields[ifield+1]->getIsFilt()) {
-      filtField = _fields[ifield+1];
-    }
-  }
-  return filtField;
-}
-
-ColorMap *DisplayFieldModel::_getOriginalColorMap(string fieldName) {
+ColorMap *DisplayFieldController::_getOriginalColorMap(string fieldName) {
 
   LOG(DEBUG) << "looking for field ...";
   LOG(DEBUG) << fieldName;
@@ -107,7 +108,7 @@ ColorMap *DisplayFieldModel::_getOriginalColorMap(string fieldName) {
 
 // make a working copy of the colorMaps ... 
 // return NULL if not found
-ColorMap *DisplayFieldModel::getColorMap(string fieldName) {
+ColorMap *DisplayFieldController::getColorMap(string fieldName) {
   
   LOG(DEBUG) << "entry " << fieldName;
 
@@ -138,26 +139,18 @@ ColorMap *DisplayFieldModel::getColorMap(string fieldName) {
 
 // make a working copy of the colorMaps ... 
 // return NULL if not found
-void DisplayFieldModel::setColorMap(string fieldName, ColorMap *newColorMap) {
+void DisplayFieldController::setColorMap(string fieldName, ColorMap newColorMap) {
   
   LOG(DEBUG) << "entry " << fieldName;
 
-  // first, look in the working copies
-  map<string, ColorMap *>::iterator it = _workingCopies.find(fieldName);
-  if (it != _workingCopies.end()) {
-    LOG(DEBUG) << "found in the workingCopies";
-    _workingCopies.erase(it);  
-  } 
-
-  // insert new version into list
-  _workingCopies[fieldName] = newColorMap;
+  DisplayField *field = getField(fieldName);
+  field->replaceColorMap(newColorMap);
 
   LOG(DEBUG) << "exit";
-  
 }
 
 
-ColorMap *DisplayFieldModel::colorMapMaxChanged(double newValue) {
+ColorMap *DisplayFieldController::colorMapMaxChanged(double newValue) {
   LOG(DEBUG) << "entry " << newValue;
   LOG(DEBUG) << "_selectedFieldName " << _selectedFieldName;
 
@@ -181,7 +174,7 @@ ColorMap *DisplayFieldModel::colorMapMaxChanged(double newValue) {
   return workingVersion;
 }
 
-ColorMap *DisplayFieldModel::colorMapMinChanged(double newValue) {
+ColorMap *DisplayFieldController::colorMapMinChanged(double newValue) {
   LOG(DEBUG) << "entry " << newValue;
   LOG(DEBUG) << "_selectedFieldName " << _selectedFieldName;
 
@@ -196,7 +189,7 @@ ColorMap *DisplayFieldModel::colorMapMinChanged(double newValue) {
   return workingVersion;
 }
 
-void DisplayFieldModel::colorMapChanged(string newColorMapName) {
+void DisplayFieldController::colorMapChanged(string newColorMapName) {
   LOG(DEBUG) << "enter";
   // change the ColorMap for the currently selected field
   ColorMap *workingVersion = getColorMap(_selectedFieldName);
@@ -214,43 +207,43 @@ void DisplayFieldModel::colorMapChanged(string newColorMapName) {
   LOG(DEBUG) << "exit";
 }
 
-bool DisplayFieldModel::backgroundChanged(string fieldName) {
+bool DisplayFieldController::backgroundChanged(string fieldName) {
   LOG(DEBUG) << fieldName;
   LOG(DEBUG) << "background changed";
   return false;
 }
 
-string DisplayFieldModel::getGridColor() {
+string DisplayFieldController::getGridColor() {
   return _gridColor;
 }
 
-void DisplayFieldModel::setGridColor(string colorName) {
+void DisplayFieldController::setGridColor(string colorName) {
   LOG(DEBUG) << "enter " << colorName;
   _gridColor = colorName;
   LOG(DEBUG) << "exit";
 }
 
-string DisplayFieldModel::getEmphasisColor() {
+string DisplayFieldController::getEmphasisColor() {
   return _emphasisColor;
 }
 
-void DisplayFieldModel::setEmphasisColor(string colorName) {
+void DisplayFieldController::setEmphasisColor(string colorName) {
   _emphasisColor = colorName;
 }
 
-string DisplayFieldModel::getAnnotationColor() {
+string DisplayFieldController::getAnnotationColor() {
   return _annotationColor;
 }
 
-void DisplayFieldModel::setAnnotationColor(string colorName) {
+void DisplayFieldController::setAnnotationColor(string colorName) {
   _annotationColor = colorName;
 }
 
-string DisplayFieldModel::getBackgroundColor() {
+string DisplayFieldController::getBackgroundColor() {
   return _backgroundColor;
 }
 
-void DisplayFieldModel::setBackgroundColor(string colorName) {
+void DisplayFieldController::setBackgroundColor(string colorName) {
   _backgroundColor = colorName;
 }
 

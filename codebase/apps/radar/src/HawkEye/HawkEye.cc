@@ -197,8 +197,19 @@ int HawkEye::Run(QApplication &app)
   
   if (_params.display_mode == Params::POLAR_DISPLAY) {
 
+    string emphasis_color = "white";
+    string annotation_color = "white";
+    DisplayFieldModel *displayFieldModel =
+      new DisplayFieldModel(_displayFields, "NONE", // selectedField.getName(),
+                          _params.grid_and_range_ring_color,
+                          emphasis_color,
+                          annotation_color,
+                          _params.background_color);  
+    DisplayFieldController *displayFieldController = new DisplayFieldController(displayFieldModel);
+
     _polarManager = new PolarManager(_params, _reader,
-                                     _displayFields, _haveFilteredFields);
+                                     displayFieldController,
+				     _haveFilteredFields);
 
     if (_args.inputFileList.size() > 0) {
       _polarManager->setArchiveFileList(_args.inputFileList);

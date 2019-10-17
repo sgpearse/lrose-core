@@ -50,10 +50,12 @@ PpiWidget::PpiWidget(QWidget* parent,
                      const PolarManager &manager,
                      const Params &params,
                      const RadxPlatform &platform,
-                     const vector<DisplayField *> &fields,
+                     //const vector<DisplayField *> &fields,
+		     DisplayFieldController *displayFieldController,
                      bool haveFilteredFields) :
         PolarWidget(parent, manager, params, platform,
-                    fields, haveFilteredFields)
+                    displayFieldController, // fields, 
+		    haveFilteredFields)
         
 {
 
@@ -92,6 +94,7 @@ PpiWidget::~PpiWidget()
   for (size_t i = 0; i < _ppiBeams.size(); ++i) {
     Beam::deleteIfUnused(_ppiBeams[i]);
   }
+  LOG(DEBUG) << "_ppiBeams.clear()";
   _ppiBeams.clear();
 
 }
@@ -102,17 +105,20 @@ PpiWidget::~PpiWidget()
 
 void PpiWidget::clear()
 {
+  LOG(DEBUG) << "enter";
   // Clear out the beam array
   
   for (size_t i = 0; i < _ppiBeams.size(); i++) {
     Beam::deleteIfUnused(_ppiBeams[i]);
   }
+  LOG(DEBUG) << "_ppiBeams.clear()";
   _ppiBeams.clear();
   
   // Now rerender the images
   
   _refreshImages();
 
+  LOG(DEBUG) << "exit";
 }
 
 /*************************************************************************
@@ -135,24 +141,33 @@ void PpiWidget::selectVar(const size_t index)
 
   // If this field isn't being rendered in the background, render all of
   // the beams for it
-
+  
   if (!_fieldRenderers[index]->isBackgroundRendered()) {
+    LOG(DEBUG) << "isBackgroundRendered is FALSE";
+    LOG(DEBUG) << "number of beams in _ppiBeams = " << _ppiBeams.size();
+    LOG(DEBUG) << "number of _fieldRenderers = " << _fieldRenderers.size();
+    LOG(DEBUG) << " and here is the 1st beam ...";
+    _ppiBeams[0]->print(cout);
     std::vector< PpiBeam* >::iterator beam;
     for (beam = _ppiBeams.begin(); beam != _ppiBeams.end(); ++beam) {
       (*beam)->setBeingRendered(index, true);
       _fieldRenderers[index]->addBeam(*beam);
     }
   }
-  _performRendering();
+  
+  // Change the selected field index
+
+  _selectedField = index;
+
+  //  LOG(DEBUG) << "performRendering is next ...";
+  //_performRendering();
+
 
   // Do any needed housekeeping when the field selection is changed
 
   _fieldRenderers[_selectedField]->unselectField();
   _fieldRenderers[index]->selectField();
   
-  // Change the selected field index
-
-  _selectedField = index;
 
   // Update the display
 
@@ -229,11 +244,13 @@ void PpiWidget::addBeam(const RadxRay *ray,
                         const float start_angle,
                         const float stop_angle,
                         const std::vector< std::vector< double > > &beam_data,
-                        const std::vector< DisplayField* > &fields)
+			//                        const std::vector< DisplayField* > &fields)
+			displayFieldController)
 {
 
   LOG(DEBUG) << "enter";
 
+   
   // add a new beam to the display. 
   // The steps are:
   // 1. preallocate mode: find the beam to be drawn, or dynamic mode:
@@ -266,9 +283,12 @@ void PpiWidget::addBeam(const RadxRay *ray,
     // This beam does not cross the 0 degree angle.  Just add the beam to
     // the beam list.
 
-    PpiBeam* b = new PpiBeam(_params, ray, _fields.size(), 
+
+    // TODO: how to integrate this ....
+    //  _beamController->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
+        PpiBeam* b = new PpiBeam(_params, ray, _fields.size(), 
                              n_start_angle, n_stop_angle);
-    b->addClient();
+	b->addClient(); // TODO: register a callback with the beamController 
     _cullBeams(b);
     _ppiBeams.push_back(b);
     newBeams.push_back(b);
@@ -293,6 +313,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
     newBeams.push_back(b2);
 
   }
+  
 
   // compute angles and times in archive mode
 
@@ -346,7 +367,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
       }
     }
     
-  } /* endfor - beam */
+  } // endfor - beam 
 
   // Start the threads to render the new beams
 
@@ -1387,7 +1408,7 @@ void PpiWidget::EditRunScript() {
   // and send changes back to display
                                                                          
   connect(scriptEditorControl, SIGNAL(volumeChanged()),
-  	  &_manager, SLOT(setVolume()));
+  	  &_manager, SLOT(updateVolume()));
   
   scriptEditorView->init();
   scriptEditorView->show();

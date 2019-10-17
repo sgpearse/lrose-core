@@ -178,6 +178,7 @@ void PpiBeam::print(ostream &out)
   out << "  azimuth: " << _ray->getAzimuthDeg() << endl;
   out << "  startAngle: " << startAngle << endl;
   out << "  stopAngle: " << stopAngle << endl;
+  out << "  nFields: " << _nFields << endl;
   out << "=============================================" << endl;
 }
 

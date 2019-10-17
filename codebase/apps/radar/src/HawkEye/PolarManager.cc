@@ -107,12 +107,22 @@ PolarManager* PolarManager::Instance()
 
 // Constructor
 
+/*
 PolarManager::PolarManager(const Params &params,
                            Reader *reader,
                            const vector<DisplayField *> &fields,
                            bool haveFilteredFields) :
         DisplayManager(params, reader, fields, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
 {
+*/
+
+PolarManager::PolarManager(const Params &params,
+                           Reader *reader,
+			   DisplayFieldController *displayFieldController,
+                           bool haveFilteredFields) :
+  DisplayManager(params, reader, displayFieldController, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
+{
+
 	m_pInstance = this;
 
   // initialize
@@ -356,10 +366,10 @@ void PolarManager::keyPressEvent(QKeyEvent * e)
   }
   
   // check for short-cut keys to fields
-
-  for (size_t ifield = 0; ifield < _fields.size(); ifield++) {
+  size_t nFields = displayFieldController->getNFields();
+  for (size_t ifield = 0; ifield < nFields; ifield++) {
     
-    const DisplayField *field = _fields[ifield];
+    const DisplayField *field = displayFieldController->getField(ifield);
 
     char shortcut = 0;
     if (field->getShortcut().size() > 0) {
@@ -480,7 +490,7 @@ void PolarManager::_setupWindows()
 
   // configure the PPI
 
-  _ppi = new PpiWidget(_ppiFrame, *this, _params, _platform, _fields, _haveFilteredFields);
+  _ppi = new PpiWidget(_ppiFrame, *this, _params, _platform, displayFieldController, _haveFilteredFields);
 
   connect(this, SIGNAL(frameResized(const int, const int)),
 	  _ppi, SLOT(resize(const int, const int)));
@@ -488,7 +498,7 @@ void PolarManager::_setupWindows()
   // Create the RHI window
 
   _rhiWindow = new RhiWindow(this, _params, _platform,
-                             _fields, _haveFilteredFields);
+                             displayFieldController, _haveFilteredFields);
   _rhiWindow->setRadarName(_params.radar_name);
 
   // set pointer to the rhiWidget
@@ -1201,6 +1211,97 @@ void PolarManager::_applyDataEdits()
   _plotArchiveData();
 }
 
+
+/////////////////////////////////////
+// activate archive rendering
+
+void PolarManager::_addNewFields()
+{
+  vector<DisplayField *> newFields;
+
+  LOG(DEBUG) << "all fields in _vol ... ";
+  vector<RadxField *> allFields = _vol.getFields();
+  vector<RadxField *>::iterator it;
+  for (it = allFields.begin(); it != allFields.end(); it++) {
+    RadxField *radxField = *it;
+    LOG(DEBUG) << radxField->getName();
+  }
+
+  // make new DisplayFields for PpiWidget
+  // -----
+
+  // TODO: 
+  // inheret the color map, units, etc. from the similar field
+  ColorMap map(-20.0, 20.0, "default");
+
+    DisplayField *field =
+      // new DisplayField(pfld.label, pfld.raw_name, pfld.units,
+      //		       pfld.shortcut, map, ifield, false);
+      new DisplayField("VEL_xyz", "VEL_xyz", "m/x",
+		       "9", map, 9, false);
+    //if (noColorMap)
+      field->setNoColorMap();
+
+    newFields.push_back(field);
+    _fields.push_back(field);
+
+    // filtered field                                                                                    
+    /*
+    if (strlen(pfld.filtered_name) > 0) {
+      string filtLabel = string(pfld.label) + "-filt";
+      DisplayField *filt =
+        new DisplayField(filtLabel, pfld.filtered_name, pfld.units, pfld.shortcut,
+                         map, ifield, true);
+      newFields.push_back(filt);
+    }
+    */
+    // -----------
+
+  
+  if (_ppi) {
+    _ppi->addNewFields(newFields);
+  }
+  
+  if (_rhi) {
+    _rhi->addNewFields(newFields);
+  }
+  
+}
+
+
+/////////////////////////////
+// add results of scripts to display; new, edited  data in archive mode
+// the volume has been updated 
+
+void PolarManager::_volumeDataChanged()
+{
+  LOG(DEBUG) << "enter";
+  // the in memory RadxVol has changed; 
+  // new fields have been added or deleted
+
+  /* NOT THIS ...
+  //  load the sweep manager
+    _sweepManager.set(_vol);
+  */
+
+  _addNewFields();
+  _updateFieldPanel();
+  _fieldPanel->update();
+  // _applyDataEdits();
+
+  //_activateArchiveRendering();
+
+  /*
+  if (_params.debug) {
+    std::ofstream outfile("/tmp/voldebug_PolarManager_applyDataEdits.txt");
+    _vol.printWithFieldData(outfile);  
+    outfile << "_vol = " << &_vol << endl;
+  }
+  */
+  // _plotArchiveData();
+  LOG(DEBUG) << "exit"; 
+}
+
 /*
 RadxVol PolarManager::getDataVolume() {
   return _vol;
@@ -1705,6 +1806,18 @@ void PolarManager::setVolume() { // const RadxVol &radarDataVolume) {
   LOG(DEBUG) << "enter";
 
   _applyDataEdits(); // radarDataVolume);
+
+  LOG(DEBUG) << "exit";
+
+
+
+}
+
+void PolarManager::updateVolume() {
+
+  LOG(DEBUG) << "enter";
+
+  _volumeDataChanged();
 
   LOG(DEBUG) << "exit";
 
