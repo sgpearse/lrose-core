@@ -335,10 +335,15 @@ void BoundaryPointEditor::addToBrushShape(float x, float y)
 
 		if (maxGap > maxGapAllowed)  //user may have backed over shape or curved around and intersected it.
 		{
-			cout << "Invalid point in shape? maxGap=" << maxGap << ". Attempting to fix polygon shape" << endl;
+//			cout << "Invalid point in shape? maxGap=" << maxGap << ". Attempting to fix polygon shape" << endl;
 			removePointsExceedingMaxGap();
 		}
 
+		int loopCnt = 0;
+		while (loopCnt++ < 10 && !PolygonUtils::isValidPolygon(points))
+		{
+			PolygonUtils::fixInvalidPolygon(points);
+		}
 		if (!PolygonUtils::isValidPolygon(points))  //something went wrong, just start over with a new circle
 			points.clear();
 
@@ -378,7 +383,7 @@ void BoundaryPointEditor::removePointsExceedingMaxGap()
 	float maxGap = 4 * getAvgDistBetweenPoints();
 	if (maxGap < 20)
 		maxGap = 20;
-	cout << "removePointsExceedingMaxGap with maxGap=" << maxGap << endl;
+//	cout << "removePointsExceedingMaxGap with maxGap=" << maxGap << endl;
 
 	bool done = false;
 
@@ -397,11 +402,19 @@ void BoundaryPointEditor::removePointsExceedingMaxGap()
 				if (i < points.size()-1)
 				{
 					float dist2 = points[i+1].distanceTo(points[i-1]);
-cout << i << "_dist=" << dist << " and i+1_dist=" << dist2 << endl;
+//cout << i << "_dist=" << dist << " and i+1_dist=" << dist2 << endl;
 					if (dist2 > dist)
-						continue;
-					else
-						cout << "removing " << i << endl;
+					{
+						if (i+2 < points.size())
+						{
+							float dist3 = points[i+2].distanceTo(points[i-1]);
+//cout << i << "_dist2=" << dist2 << " and i+2_dist=" << dist3 << endl;
+							if (dist3 > dist)
+								continue;
+						}
+						else
+							continue;
+					}
 				}
 				indexToRemove = i;
 				break;
@@ -417,7 +430,7 @@ cout << i << "_dist=" << dist << " and i+1_dist=" << dist2 << endl;
 		else
 		{
     	points.erase(points.begin() + indexToRemove);
-    	cout << "just erased " << indexToRemove << endl;
+//    	cout << "just erased " << indexToRemove << endl;
 		}
 	}
 }
@@ -619,27 +632,17 @@ void BoundaryPointEditor::load(string path)
 			pt.x = x;
 			pt.y = y;
 			points.push_back(pt);
-			cout << "(" << pt.x << "," << pt.y << ")" << endl;
 		}
 		fclose (file);
 
 		checkToMovePointToOriginIfVeryClose(points[points.size()-1]);
 
 		if (tool == 0)
-		{
 			currentTool = BoundaryToolType::circle;
-			cout << "currentTool=circle" << endl;
-		}
 		else if (tool == 1)
-		{
 			currentTool = BoundaryToolType::polygon;
-			cout << "currentTool=polygon" << endl;
-		}
 		else
-		{
 			currentTool = BoundaryToolType::brush;
-			cout << "currentTool=brush" << endl;
-		}
 		cout << "BoundaryPointEditor, read " << points.size() << " points from " << path << endl;
 	}
 	else
