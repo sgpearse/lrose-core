@@ -244,8 +244,9 @@ void PpiWidget::addBeam(const RadxRay *ray,
                         const float start_angle,
                         const float stop_angle,
                         const std::vector< std::vector< double > > &beam_data,
+			size_t nFields)
 			//                        const std::vector< DisplayField* > &fields)
-			displayFieldController)
+			//displayFieldController)
 {
 
   LOG(DEBUG) << "enter";
@@ -286,7 +287,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
 
     // TODO: how to integrate this ....
     //  _beamController->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
-        PpiBeam* b = new PpiBeam(_params, ray, _fields.size(), 
+    PpiBeam* b = new PpiBeam(_params, ray, nFields, 
                              n_start_angle, n_stop_angle);
 	b->addClient(); // TODO: register a callback with the beamController 
     _cullBeams(b);
@@ -298,7 +299,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
     // The beam crosses the 0 degree angle.  First add the portion of the
     // beam to the left of the 0 degree point.
 
-    PpiBeam* b1 = new PpiBeam(_params, ray, _fields.size(), n_start_angle, 360.0);
+    PpiBeam* b1 = new PpiBeam(_params, ray, nFields, n_start_angle, 360.0);
     b1->addClient();
     _cullBeams(b1);
     _ppiBeams.push_back(b1);
@@ -306,7 +307,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
 
     // Now add the portion of the beam to the right of the 0 degree point.
 
-    PpiBeam* b2 = new PpiBeam(_params, ray, _fields.size(), 0.0, n_stop_angle);
+    PpiBeam* b2 = new PpiBeam(_params, ray, nFields, 0.0, n_stop_angle);
     b2->addClient();
     _cullBeams(b2);
     _ppiBeams.push_back(b2);
@@ -353,8 +354,144 @@ void PpiWidget::addBeam(const RadxRay *ray,
     
     // Set up the brushes for all of the fields in this beam.  This can be
     // done independently of a Painter object.
+    // TODO: Just send the number of fields
+    beam->fillColors(beam_data, nFields, &_backgroundBrush);
+
+    // Add the new beams to the render lists for each of the fields
     
-    beam->fillColors(beam_data, fields, &_backgroundBrush);
+    for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+      if (field == _selectedField ||
+          _fieldRenderers[field]->isBackgroundRendered()) {
+        _fieldRenderers[field]->addBeam(beam);
+      } else {
+        beam->setBeingRendered(field, false);
+      }
+    }
+    
+  } // endfor - beam 
+
+  // Start the threads to render the new beams
+
+  _performRendering();
+
+  LOG(DEBUG) << "exit";
+}
+
+
+// TODO: call from PolarManager::updateVolume ===> PolarManager::updateArchiveData
+void PpiWidget::updateBeam(const RadxRay *ray,
+                        const float start_angle,
+                        const float stop_angle,
+                        const std::vector< std::vector< double > > &beam_data,
+			size_t nFields)
+			//                        const std::vector< DisplayField* > &fields)
+			//displayFieldController)
+{
+
+  LOG(DEBUG) << "enter";
+
+   
+  // add new fields to an existing beam in the display. 
+  // The steps are:
+  // 1. preallocate mode: find the beam to be drawn, or dynamic mode:
+  //    create the beam(s) to be drawn.
+  // 2. fill the colors for all variables in the beams to be drawn
+  // 3. make the display list for the selected variables in the beams
+  //    to be drawn.
+  // 4. call the new display list(s)
+
+  std::vector< PpiBeam* > newBeams;
+
+  // The start and stop angle MUST specify a clockwise fill for the sector.
+  // Thus if start_angle > stop_angle, we know that we have crossed the 0
+  // boundary, and must break it up into 2 beams.
+
+  // Create the new beam(s), to keep track of the display information.
+  // Beam start and stop angles are adjusted here so that they always 
+  // increase clockwise. Likewise, if a beam crosses the 0 degree boundary,
+  // it is split into two beams, each of them again obeying the clockwise
+  // rule. Prescribing these rules makes the beam culling logic a lot simpler.
+
+  // Normalize the start and stop angles.  I'm not convinced that this works
+  // for negative angles, but leave it for now.
+
+  double n_start_angle = start_angle - ((int)(start_angle/360.0))*360.0;
+  double n_stop_angle = stop_angle - ((int)(stop_angle/360.0))*360.0;
+
+  
+  if (n_start_angle <= n_stop_angle) {
+
+    // This beam does not cross the 0 degree angle.  Just add the beam to
+    // the beam list.
+
+
+    // TODO: how to integrate this ....
+    //  _beamController->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
+
+    PpiBeam *b = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    //PpiBeam* b = new PpiBeam(_params, ray, nFields, 
+    //                         n_start_angle, n_stop_angle);
+    b->addClient(); // TODO: register a callback with the beamController 
+    _cullBeams(b);
+    //_ppiBeams.push_back(b);
+    newBeams.push_back(b);
+
+  } else {
+
+    // The beam crosses the 0 degree angle.  First add the portion of the
+    // beam to the left of the 0 degree point.
+
+    PpiBeam *b1 = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    //    PpiBeam* b1 = new PpiBeam(_params, ray, nFields, n_start_angle, 360.0);
+    b1->addClient();
+    _cullBeams(b1);
+    //_ppiBeams.push_back(b1);
+    newBeams.push_back(b1);
+
+    // Now add the portion of the beam to the right of the 0 degree point.
+
+    PpiBeam *b2 = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    //PpiBeam* b2 = new PpiBeam(_params, ray, nFields, 0.0, n_stop_angle);
+    b2->addClient();
+    _cullBeams(b2);
+    //_ppiBeams.push_back(b2);
+    newBeams.push_back(b2);
+
+  }
+  
+  // compute angles and times in archive mode
+
+  if (newBeams.size() > 0) {
+    
+    if (_isArchiveMode) {
+
+      if (_isStartOfSweep) {
+        _plotStartTime = ray->getRadxTime();
+        _meanElev = -9999.0;
+        _sumElev = 0.0;
+        _nRays = 0.0;
+        _isStartOfSweep = false;
+      }
+      _plotEndTime = ray->getRadxTime();
+      _sumElev += ray->getElevationDeg();
+      _nRays++;
+      _meanElev = _sumElev / _nRays;
+      LOG(DEBUG) << "isArchiveMode _nRays = " << _nRays;    
+    } // if (_isArchiveMode) 
+    
+  } // if (newBeams.size() > 0) 
+
+  // newBeams has pointers to all of the newly added beams.  Render the
+  // beam data.
+
+  for (size_t ii = 0; ii < newBeams.size(); ii++) {
+
+    PpiBeam *beam = newBeams[ii];
+    
+    // Set up the brushes for all of the fields in this beam.  This can be
+    // done independently of a Painter object.
+    // TODO: Just send the number of fields
+    beam->fillColors(beam_data, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
     

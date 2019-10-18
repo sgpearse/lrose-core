@@ -117,6 +117,7 @@ void Beam::resetFieldBrush(size_t field, const QBrush *brush)
 
 ////////////////////////////////////////////////////////////////
 
+// beam_data[nFields][nGates]
 void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
 		      //		      const std::vector<DisplayField*>& fields,
 		      DisplayFieldController *displayFieldController,
@@ -124,20 +125,20 @@ void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
 
 {
 
-  for (size_t field = 0; field < _nFields; ++field) {
+  for (size_t fieldIdx = 0; fieldIdx < _nFields; ++fieldIdx) {
 
     //    const ColorMap &map = fields[field]->getColorMap();
     const ColorMap &map = displayFieldController->getColorMap(fieldIdx);
-    const double *field_data = &(beam_data[field][0]);
+    const double *field_data = &(beam_data[fieldIdx][0]);
     
     for (size_t igate = 0; igate < _nGates; ++igate) {
       
       double data = field_data[igate];
       
       if (data < -9990) {
-	_brushes[field][igate] = background_brush;
+	_brushes[fieldIdx][igate] = background_brush;
       } else {
-	_brushes[field][igate] = map.dataBrush(data);
+	_brushes[fieldIdx][igate] = map.dataBrush(data);
       }
 
     } // igate
@@ -189,4 +190,43 @@ void Beam::deleteIfUnused(const Beam *beam)
     delete beam;
   }
 }
+
+
+
+void Beam::addFields(const RadxRay *ray, int n_fields) {
+
+  _ray = ray;
+
+  // Set the "being rendered" flags.  We always render the new beams, so start
+  // out with all of the flags being set to true.
+
+  for (int i = 0; i < n_fields; ++i) {
+    _beingRendered.push_back(true);
+  }
+  
+  _beingRenderedAnywhere = true;
+  
+  // Allocate space for the brushes. There is a brush for each gate of each
+  // field.  The colors for the brushes will be filled in later in the
+  // fillColors() method.
+  
+  _brushes.resize(_nFields + n_fields);
+  for (int field = 0; field < n_fields; ++field) {
+    _brushes[_nFields + field].resize(_nGates);
+  }
+
+  // initialize client counting for this object
+
+  //_nClients = 0;
+  //pthread_mutex_init(&_nClientsMutex, NULL);
+
+  // increment client count on the ray
+
+  _ray->addClient();
+
+  _nFields += n_fields;
+
+
+}
+
 

@@ -266,6 +266,8 @@ public:
   /// delete this ray if no longer used by any client
 
   static void deleteIfUnused(const Beam *beam);
+
+  void addFields(const RadxRay *ray, int n_fields);
   
   //@}
 

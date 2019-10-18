@@ -73,7 +73,8 @@ PolarWidget::PolarWidget(QWidget* parent,
         _manager(manager),
         _params(params),
         _platform(platform),
-        _fields(fields),
+        //_fields(fields),
+	displayFieldController(displayFieldController),
         _haveFilteredFields(haveFilteredFields),
         _selectedField(0),
         _backgroundBrush(QColor(_params.background_color)),
@@ -114,12 +115,14 @@ PolarWidget::PolarWidget(QWidget* parent,
   qRegisterMetaType<size_t>("size_t");
 
   // create the field renderers
-  
-  for (size_t ii = 0; ii < _fields.size(); ii++) {
+  _fieldRendererController = new FieldRendererController();
+  size_t nFields = displayFieldController->getNFields();
+  for (size_t ii = 0; ii < nFields; ii++) {
+    DisplayField *displayField = displayFieldController->getField(ii);
     FieldRenderer *fieldRenderer =
-      new FieldRenderer(_params, ii, *_fields[ii]);
+      new FieldRenderer(_params, ii, *displayField); // *_fields[ii]);
     fieldRenderer->createImage(width(), height());
-    _fieldRenderers.push_back(fieldRenderer);
+    _fieldRendererController->add(fieldRenderer);
   }
 
   // init other values
@@ -146,13 +149,15 @@ PolarWidget::PolarWidget(QWidget* parent,
 PolarWidget::~PolarWidget()
 {
 
+  
   // Delete all of the field renderers
-
+  delete _fieldRendererController;
+  /*
   for (size_t i = 0; i < _fieldRenderers.size(); ++i) {
     delete _fieldRenderers[i];
   }
   _fieldRenderers.clear();
-
+  */
 }
 
 
@@ -216,7 +221,10 @@ void PolarWidget::setAngleLines(const bool enabled)
 }
 
 
-// TODO: sort out new fields in PolarManager 
+// TODO: this should be a slot?
+// TODO: sort out new fields in PolarManager
+// Who needs to know about the new fields?
+// Beams, FieldRenderers, DisplayFieldController 
 void PolarWidget::addNewFields(vector<DisplayField *> &newFields) 
 {
   LOG(DEBUG) << "enter";
@@ -232,24 +240,35 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
   }
   */
   // assume new fields are added AFTER the last _fields name
-  // or just flag a field as being new in RadxVol <======
   //for (size_t ii = 0; ii < _fields.size(); ii++) {
   // 
   // if not in the fieldRenderer list,
   //  _fields[ii]->getName() 
   // add the field
 
-  LOG(DEBUG) << "fieldRenderers ...";
+  //LOG(DEBUG) << "fieldRenderers ...";
   for (size_t ii = 0; ii < newFields.size(); ii++) {
 
-    int lastFieldIdx = _fieldRenderers.size();
-    LOG(DEBUG) << "_fieldRenderers.size() before insert = " << lastFieldIdx;
+    displayFieldController->addField(newField[ii]);
+
+    //int lastFieldIdx = _fieldRenderers.size();
+    //LOG(DEBUG) << "_fieldRenderers.size() before insert = " << lastFieldIdx;
+    // HERE ... 
+    // Q: What is fieldIndex?  
     FieldRenderer *fieldRenderer =
       new FieldRenderer(_params, lastFieldIdx, *newFields[ii]);
     fieldRenderer->createImage(width(), height());
-    _fieldRenderers.push_back(fieldRenderer);
-    LOG(DEBUG) << "_fieldRenderers.size() after insert = " << _fieldRenderers.size(); 
+
+    _fieldRendererController->add(fieldRenderer);
+//    _fieldRenderers.push_back(fieldRenderer);
+
+    //LOG(DEBUG) << "_fieldRenderers.size() after insert = " << _fieldRenderers.size(); 
+
   }
+
+  _ppiBeamController->addFieldsToEachBeam(needRay, newFields);    
+
+
   // activateArchiveRendering();
   LOG(DEBUG) << "exit";
 }
@@ -262,10 +281,13 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
 void PolarWidget::activateArchiveRendering()
 {
   LOG(DEBUG) << "enter";
+  _fieldRendererController->activateArchiveRendering();
+  /*
   LOG(DEBUG) << "_fieldRenderers.size()  = " << _fieldRenderers.size(); 
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {
     _fieldRenderers[ii]->setBackgroundRenderingOn();
   }
+  */
   LOG(DEBUG) << "exit";
 }
 
@@ -276,13 +298,15 @@ void PolarWidget::activateArchiveRendering()
 
 void PolarWidget::activateRealtimeRendering()
 {
-  
+  LOG(DEBUG) << "enter";
+  _fieldRendererController->activateRealtimeRendering();
+  /*
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {
     if (ii != _selectedField) {
       _fieldRenderers[ii]->activateBackgroundRendering();
     }
   }
-
+  */
 }
 
 /*************************************************************************
@@ -555,8 +579,10 @@ void PolarWidget::smartBrush(int xPixel, int yPixel) {
 void PolarWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
+  FieldRenderer *fieldRenderer = FieldRendererController->get(_selectedField);
 
-  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
+  painter.drawImage(0, 0, *(fieldRenderer->getImage()));
+  //  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
 
   _drawOverlays(painter);
 
@@ -635,11 +661,15 @@ void PolarWidget::_setTransform(const QTransform &transform)
 void PolarWidget::_performRendering()
 {
   LOG(DEBUG) << "enter";
+
+  _fieldRendererController->performRendering(_selectedField);
+  /*
   // start the rendering
   LOG(DEBUG) << " _selectedField = " << _selectedField;
   LOG(DEBUG) << "_fieldRenderers.size() = " << _fieldRenderers.size();
   for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {
-    LOG(DEBUG) << "ifield " << ifield << " isBackgroundRendered() = " << _fieldRenderers[ifield]->isBackgroundRendered(); 
+    LOG(DEBUG) << "ifield " << ifield << " isBackgroundRendered() = " 
+	       << _fieldRenderers[ifield]->isBackgroundRendered();
     if (ifield == _selectedField ||
     	_fieldRenderers[ifield]->isBackgroundRendered()) {
       LOG(DEBUG) << "signaling field " << ifield << " to start";
@@ -655,7 +685,7 @@ void PolarWidget::_performRendering()
       _fieldRenderers[ifield]->waitForRunToComplete();
       }
   } // ifield
-
+  */
   update();
   LOG(DEBUG) << "exit";
 }

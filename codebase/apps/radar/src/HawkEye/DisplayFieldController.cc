@@ -20,6 +20,7 @@ DisplayFieldController::~DisplayFieldController() {
 
 
 vector<string>  DisplayFieldController::getFieldNames() {
+  // TODO: this should be in the model ... 
   vector<string> fieldNames;
   for (vector<DisplayField *>::iterator fieldItr = _fields.begin(); fieldItr != _fields.end(); fieldItr++) {
     DisplayField *field = *fieldItr;
@@ -40,6 +41,10 @@ DisplayField *DisplayFieldController::getField(size_t fieldIdx) {
 
 DisplayField *DisplayFieldController::getField(string fieldName) {
   return _current->getField(fieldName);
+}  
+
+size_t DisplayFieldController::getFieldIdx(string fieldName) {
+  return _current->getFieldIdx(fieldName);
 }  
 
 
@@ -73,6 +78,26 @@ bool DisplayFieldController::getChanges() {
 
 }
 */
+
+void DisplayFieldController::setForLocationClicked(double value, const string &text) {
+  _current->setForLocationClicked(value, text);
+  // TODO: move this to the model
+  for (size_t ii = 0; ii < nFields; ii++) {
+    _fields[ii]->setSelectValue(value);
+    _fields[ii]->setDialogText(text);
+  }
+}
+
+void DisplayFieldController::setForLocationClicked(string fieldName, double value, const string &text) {
+  _current->setForLocationClicked(fieldName, value, text);
+  // TODO: move this to the model
+  for (size_t ii = 0; ii < nFields; ii++) {
+    if (fieldName == _fields[ii]->getName()) {
+      _fields[ii]->setSelectValue(value);
+      _fields[ii]->setDialogText(text);
+    }
+  }
+}
 
 ColorMap *DisplayFieldController::_getOriginalColorMap(string fieldName) {
 
@@ -112,6 +137,8 @@ ColorMap *DisplayFieldController::getColorMap(string fieldName) {
   
   LOG(DEBUG) << "entry " << fieldName;
 
+  return _current->getColorMap(fieldName);
+  /*
   ColorMap *workingCopyColorMap = NULL;
 
   // first, look in the working copies
@@ -131,10 +158,11 @@ ColorMap *DisplayFieldController::getColorMap(string fieldName) {
   setSelectedField(fieldName);
 
   workingCopyColorMap->print(cout);
-
+  
   LOG(DEBUG) << "exit";
   
   return workingCopyColorMap;
+  */
 }
 
 // make a working copy of the colorMaps ... 
@@ -188,6 +216,13 @@ ColorMap *DisplayFieldController::colorMapMinChanged(double newValue) {
   LOG(DEBUG) << "exit";
   return workingVersion;
 }
+
+void DisplayFieldController::setColorMapMinMax(string fieldName, double min, double max) {
+  LOG(DEBUG) << "entry " << fieldName << ", min=" << min << ", max=" << max;
+  _current->setColorMapMinMax(fieldName, min, max);
+  LOG(DEBUG) << "exit";
+}
+
 
 void DisplayFieldController::colorMapChanged(string newColorMapName) {
   LOG(DEBUG) << "enter";
