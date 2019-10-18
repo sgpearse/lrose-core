@@ -213,16 +213,16 @@ class BoundaryPointEditor
 {
   public:
 	static BoundaryPointEditor* Instance();
-	void makeCircle(int x, int y, int radius);
-	void addToBrushShape(int x, int y);
-	void addPoint(int x, int y);
-	void insertPoint(int x, int y);
-	void delNearestPoint(int x, int y);
+	void makeCircle(int x, int y, float radius);
+	void addToBrushShape(float x, float y);
+	void addPoint(float x, float y);
+	void insertPoint(float x, float y);
+	void delNearestPoint(float x, float y);
 	void draw(WorldPlot worldPlot, QPainter &painter);
-	bool isOverAnyPoint(int worldX, int worldY);
-	void moveNearestPointTo(int worldX, int worldY);
+	bool isOverAnyPoint(float worldX, float worldY);
+	void moveNearestPointTo(float worldX, float worldY);
 	bool isAClosedPolygon();
-	void checkToAddOrDelPoint(int x, int y);
+	void checkToAddOrDelPoint(float x, float y);
 	void clear();
 	void save(string path);
 	void load(string path);
@@ -232,6 +232,7 @@ class BoundaryPointEditor
 	vector<Point> getWorldPoints();
 	bool setCircleRadius(int value);
 	void setBrushRadius(int value);
+	void setWorldScale(float value);
 	bool getIsCircle();
 	int getCircleRadius();
 	int getBrushRadius();
@@ -253,8 +254,10 @@ class BoundaryPointEditor
 	void removePointsExceedingMaxGap();
 	int getAvgDistBetweenPoints();
 	bool doesLastSegmentIntersectAnyOtherSegment(Point &lastPoint);
+	float getBrushWorldRadius();
 
 	const float TwoPI = 6.283185;
+	float worldScale;
 	float CLOSE_DISTANCE = 10;
 	float pointBoxScale = 1;
 	Point circleOrigin;
@@ -270,7 +273,7 @@ class BoundaryPointEditor
 	vector<Point> points;
 	vector<Point> mergePoints;
 	static BoundaryPointEditor* m_pInstance;
-	BoundaryToolType currentTool = BoundaryToolType::polygon;
+	BoundaryToolType currentTool = BoundaryToolType::brush;
 
 	void ReadFromFile(vector<Point> &x, const string &file_name);
 };

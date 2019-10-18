@@ -2221,6 +2221,9 @@ void PolarManager::_openFile()
     inputPath = temp.absolutePath();
   } 
 
+	BoundaryPointEditor::Instance()->clear();
+  showBoundaryEditor();
+
   QString filename =  QFileDialog::getOpenFileName(
           this,
           "Open Document",
@@ -3075,13 +3078,13 @@ void PolarManager::createBoundaryEditorDialog()
   _brushRadiusSlider->setFixedWidth(100);
   _brushRadiusSlider->setToolTip("Set the smart brush radius");
   _brushRadiusSlider->setMaximumWidth(180);
-  _brushRadiusSlider->setValue(30);
-  _brushRadiusSlider->setMinimum(14);
-  _brushRadiusSlider->setMaximum(100);
+  _brushRadiusSlider->setValue(18);
+  _brushRadiusSlider->setMinimum(12);
+  _brushRadiusSlider->setMaximum(75);
   _boundaryEditorDialogLayout->addWidget(_brushRadiusSlider, row, 1);
   connect(_brushRadiusSlider, SIGNAL(valueChanged(int)), this, SLOT(_brushRadiusSliderValueChanged(int)));
 
-	_boundaryEditorPolygonBtn->setChecked(TRUE);
+  _boundaryEditorBrushBtn->setChecked(TRUE);
 	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
 
 	_boundaryEditorList = new QListWidget(_boundaryEditorDialog);

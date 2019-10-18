@@ -584,10 +584,11 @@ void PolarWidget::_resetWorld(int width, int height)
 
 void PolarWidget::_setTransform(const QTransform &transform)
 {
-  
+	float worldScale = _zoomWorld.getXMaxWindow() - _zoomWorld.getXMinWindow();
+ 	BoundaryPointEditor::Instance()->setWorldScale(worldScale);
+
   _fullTransform = transform;
   _zoomTransform = transform;
-  
 }
   
 /*************************************************************************
