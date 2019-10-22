@@ -90,7 +90,8 @@ class DLL_EXPORT RhiWidget : public PolarWidget
 
   void addBeam(const RadxRay *ray,
                const std::vector< std::vector< double > > &beam_data,
-               const std::vector< DisplayField* > &fields);
+	       DisplayFieldController *displayFieldController);
+               //const std::vector< DisplayField* > &fields);
 
   // get ray locations in RHI
 

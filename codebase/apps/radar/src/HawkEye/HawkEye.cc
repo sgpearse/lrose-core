@@ -38,7 +38,7 @@
 
 #include "HawkEye.hh"
 #include "PolarManager.hh"
-#include "BscanManager.hh"
+//#include "BscanManager.hh"
 #include "DisplayField.hh"
 #include "ColorMap.hh"
 #include "Params.hh"
@@ -205,8 +205,10 @@ int HawkEye::Run(QApplication &app)
                           emphasis_color,
                           annotation_color,
                           _params.background_color);  
-    DisplayFieldController *displayFieldController = new DisplayFieldController(displayFieldModel);
-
+    DisplayFieldController *displayFieldController = 
+      new DisplayFieldController(displayFieldModel);
+    // TODO: the displayFields are in both the Controller and the Model
+    // but the Model can be edited by the parameter/color editor
     _polarManager = new PolarManager(_params, _reader,
                                      displayFieldController,
 				     _haveFilteredFields);
@@ -239,10 +241,12 @@ int HawkEye::Run(QApplication &app)
 
   } else if (_params.display_mode == Params::BSCAN_DISPLAY) {
 
+    cerr << " BScans not available" << endl;
+    /*
     _bscanManager = new BscanManager(_params, _reader, 
                                      _displayFields, _haveFilteredFields);
     return _bscanManager->run(app);
-
+    */
   }
   
   return -1;

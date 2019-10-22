@@ -52,9 +52,10 @@
 #include <Radx/RadxVol.hh>
 
 #include "Params.hh"
+#include "PpiBeamController.hh"
 #include "PpiBeam.hh"
 #include "RhiBeam.hh"
-#include "FieldRenderer.hh"
+#include "FieldRendererController.hh"
 #include "ScaledLabel.hh"
 #include "WorldPlot.hh"
 #include "DisplayField.hh"

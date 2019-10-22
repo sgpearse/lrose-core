@@ -28,6 +28,9 @@ DisplayFieldModel::~DisplayFieldModel() {
   // free  _workingCopies;
 }
 
+void DisplayFieldModel::addField(DisplayField *newField) {
+  _fields.push_back(newField);
+}
 
 vector<string>  DisplayFieldModel::getFieldNames() {
   vector<string> fieldNames;
@@ -40,10 +43,28 @@ vector<string>  DisplayFieldModel::getFieldNames() {
 
 } 
 
+size_t DisplayFieldModel::getNFields() {
+  return _fields.size();
+}
 
-string DisplayFieldModel::getSelectedField() {
+DisplayField *DisplayFieldModel::getField(size_t fieldIdx) {
+  return _fields[fieldIdx];
+}
 
+DisplayField *DisplayFieldModel::getField(string fieldName) {
+  return _findFieldByName(fieldName);
+}
+
+size_t DisplayFieldModel::getFieldIndex(string fieldName) {
+  return _lookupFieldIndex(fieldName);
+}
+
+string DisplayFieldModel::getSelectedFieldName() {
   return _selectedFieldName;
+} 
+
+DisplayField *DisplayFieldModel::getSelectedField() {
+  return _findFieldByName(_selectedFieldName);
 } 
 
 void DisplayFieldModel::setSelectedField(string fieldName) {
@@ -51,6 +72,13 @@ void DisplayFieldModel::setSelectedField(string fieldName) {
   _selectedFieldName = fieldName;
   LOG(DEBUG) << "exit";
 } 
+
+void DisplayFieldModel::setSelectedField(size_t fieldIndex) {
+  if ((fieldIndex >= 0) && (fieldIndex < _fields.size()))
+    _selectedFieldIndex = fieldIndex;
+  else
+    throw std::invalid_argument("field index out of bounds");
+}
 
 /*
 bool DisplayFieldModel::getChanges() {
@@ -61,9 +89,9 @@ bool DisplayFieldModel::getChanges() {
 }
 */
 
-DisplayField *DisplayFieldModel::getFiltered(size_t ifield)
+DisplayField *DisplayFieldModel::getFiltered(size_t ifield, int buttonRow)
 {
-  const DisplayField *filtField = NULL;
+  DisplayField *filtField = NULL;
   if (ifield < _fields.size() - 1) {
     if (_fields[ifield+1]->getButtonRow() == buttonRow &&
         _fields[ifield+1]->getIsFilt()) {
@@ -154,6 +182,12 @@ void DisplayFieldModel::setColorMap(string fieldName, ColorMap *newColorMap) {
 
   LOG(DEBUG) << "exit";
   
+}
+
+void DisplayFieldModel::setColorMapMinMax(string fieldName, double min, double max) {
+  DisplayField *field = _findFieldByName(fieldName);
+  field->setColorMapRange(min, max);
+  field->changeColorMap();
 }
 
 
@@ -252,6 +286,43 @@ string DisplayFieldModel::getBackgroundColor() {
 
 void DisplayFieldModel::setBackgroundColor(string colorName) {
   _backgroundColor = colorName;
+}
+
+void DisplayFieldModel::setForLocationClicked(double value, const string &text) {
+  for (size_t ii = 0; ii < _fields.size(); ii++) {
+    _fields[ii]->setSelectValue(value);
+    _fields[ii]->setDialogText(text);
+  }
+}
+
+void DisplayFieldModel::setForLocationClicked(string fieldName, double value, const string \
+						   &text) {
+  // TODO: use _findFieldByName
+  for (size_t ii = 0; ii < _fields.size(); ii++) {
+    if (fieldName == _fields[ii]->getName()) {
+      _fields[ii]->setSelectValue(value);
+      _fields[ii]->setDialogText(text);
+    }
+  }
+}
+
+DisplayField *DisplayFieldModel::_findFieldByName(string fieldName) {
+  DisplayField *theField = NULL;
+  for (size_t ii = 0; ii < _fields.size(); ii++) {
+    if (fieldName == _fields[ii]->getName()) {
+      theField = _fields[ii];
+    }
+  }
+  return theField;
+}
+
+size_t DisplayFieldModel::_lookupFieldIndex(string fieldName) {
+  for (size_t ii = 0; ii < _fields.size(); ii++) {
+    if (fieldName == _fields[ii]->getName()) {
+      return ii;
+    }
+  }
+  throw std::invalid_argument("field name not found");
 }
 
 

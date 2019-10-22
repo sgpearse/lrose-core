@@ -120,7 +120,7 @@ PolarManager::PolarManager(const Params &params,
                            Reader *reader,
 			   DisplayFieldController *displayFieldController,
                            bool haveFilteredFields) :
-  DisplayManager(params, reader, displayFieldController, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
+  DisplayManager(params, reader, _displayFieldController, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
 {
 
 	m_pInstance = this;
@@ -366,10 +366,10 @@ void PolarManager::keyPressEvent(QKeyEvent * e)
   }
   
   // check for short-cut keys to fields
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   for (size_t ifield = 0; ifield < nFields; ifield++) {
     
-    const DisplayField *field = displayFieldController->getField(ifield);
+    const DisplayField *field = _displayFieldController->getField(ifield);
 
     char shortcut = 0;
     if (field->getShortcut().size() > 0) {
@@ -490,7 +490,7 @@ void PolarManager::_setupWindows()
 
   // configure the PPI
 
-  _ppi = new PpiWidget(_ppiFrame, *this, _params, _platform, displayFieldController, _haveFilteredFields);
+  _ppi = new PpiWidget(_ppiFrame, *this, _params, _platform, _displayFieldController, _haveFilteredFields);
 
   connect(this, SIGNAL(frameResized(const int, const int)),
 	  _ppi, SLOT(resize(const int, const int)));
@@ -498,7 +498,7 @@ void PolarManager::_setupWindows()
   // Create the RHI window
 
   _rhiWindow = new RhiWindow(this, _params, _platform,
-                             displayFieldController, _haveFilteredFields);
+                             _displayFieldController, _haveFilteredFields);
   _rhiWindow->setRadarName(_params.radar_name);
 
   // set pointer to the rhiWidget
@@ -1242,9 +1242,10 @@ void PolarManager::_addNewFields(vector<DisplayField *> newFields)
       field->setNoColorMap();
 
     newFields.push_back(field);
-    _fields.push_back(field);
+    _displayFieldController->addField(field);
 
     // filtered field                                                                                    
+    
     /*
     if (strlen(pfld.filtered_name) > 0) {
       string filtLabel = string(pfld.label) + "-filt";
@@ -1255,7 +1256,7 @@ void PolarManager::_addNewFields(vector<DisplayField *> newFields)
     }
     */
     // -----------
-
+    
   
   if (_ppi) {
     _ppi->addNewFields(newFields);
@@ -1266,13 +1267,16 @@ void PolarManager::_addNewFields(vector<DisplayField *> newFields)
   }
   
 }
-
+   
 
 /////////////////////////////
 // add results of scripts to display; new, edited  data in archive mode
 // the volume has been updated 
 
-void PolarManager::_volumeDataChanged()
+// The new field names have been added to the RadxVol,
+// pull them out and create DisplayFields for them???
+// 
+void PolarManager::_volumeDataChanged(vector<string> newFieldNames)
 {
   LOG(DEBUG) << "enter";
   // the in memory RadxVol has changed; 
@@ -1283,7 +1287,9 @@ void PolarManager::_volumeDataChanged()
     _sweepManager.set(_vol);
   */
 
-  _addNewFields();
+  //TODO: need to get a list of new Fields, somehow ...
+  // could be as a list of DisplayFields? 
+  _addNewFields(newFields);
   _updateFieldPanel();
   _fieldPanel->update();
 
@@ -1291,7 +1297,7 @@ void PolarManager::_volumeDataChanged()
   //_activateArchiveRendering();
   // _plotArchiveData();
   // TODO: create this ... from plotArchiveData()
-  _updateArchiveData() 
+  _updateArchiveData(newFields); 
 
 
   LOG(DEBUG) << "exit"; 
@@ -1388,7 +1394,7 @@ void PolarManager::_updateArchiveData()
   for (size_t ii = gsweep.radx->getStartRayIndex();
        ii <= gsweep.radx->getEndRayIndex(); ii++) {
     RadxRay *ray = rays[ii];
-    _handleRayUpdate(_platform, ray);  // TODO; _handleRay? or a modified version of it?  We just need something to call updateBeam, instead of addBeam ...
+    _handleRayUpdate(_platform, ray, newFieldNames);  // TODO; _handleRay? or a modified version of it?  We just need something to call updateBeam, instead of addBeam ...
     //if (ii == 0) {
     //  _updateStatusPanel(ray);
     //}
@@ -1410,7 +1416,7 @@ void PolarManager::_setupVolRead(RadxFile &file)
     file.setVerbose(true);
   }
 
-  vector<string> fieldNames = displayFieldController->getFieldNames();
+  vector<string> fieldNames = _displayFieldController->getFieldNames();
   vector<string>::iterator it;
   for (it = fieldNames.begin(); it != fieldNames.end(); it++) {
     file.addReadField(*it);
@@ -1441,12 +1447,12 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
   }
 
   // create 2D field data vector
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   vector< vector<double> > fieldData;
   fieldData.resize(nFields);
   
   // fill data vector
-  vector<string> fieldNames = displayFieldController->getFieldNames();
+  vector<string> fieldNames = _displayFieldController->getFieldNames();
   vector<string>::iterator ifieldName;
   size_t ifield = 0;
   for (ifieldName = fieldNames.begin(); ifieldName != fieldNames.end(); ifieldName++) {
@@ -1458,7 +1464,7 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
     //    RadxField *rfld = ray->getField(_fields[ifield]->getName());
 
     // at this point, we know the data values for the field AND the color map                                                                        
-    ColorMap *fieldColorMap = displayFieldController->getColorMap(*ifieldName); 
+    ColorMap *fieldColorMap = _displayFieldController->getColorMap(*ifieldName); 
     bool haveColorMap = fieldColorMap != NULL;
     //    bool haveColorMap = _fields[ifield]->haveColorMap();
     Radx::fl32 min = FLT_MAX;;
@@ -1507,7 +1513,7 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
 
       if (!haveColorMap) {
 	// just change bounds on existing map        
-        displayFieldController->setColorMapMinMax(*ifieldName, min, max);
+        _displayFieldController->setColorMapMinMax(*ifieldName, min, max);
       } // end do not have color map
 
     } // end else vector not NULL
@@ -1535,7 +1541,7 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
 
     // Add the beam to the display
 
-    _rhi->addBeam(ray, fieldData, displayFieldController); // _fields);
+    _rhi->addBeam(ray, fieldData, _displayFieldController); // _fields);
     _rhiWindow->setAzimuth(ray->getAzimuthDeg());
     _rhiWindow->setElevation(ray->getElevationDeg());
     
@@ -1562,21 +1568,25 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
   
 }
 
+// add new fields to existing ray structures
 // NOTE: preconditions ... displayFieldController must contain new Fields
 void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector<string> newFieldNames)
 {
 
+  LOG(DEBUG) << "enter";
   // create 2D field data vector
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = newFieldNames->size();
   vector< vector<double> > fieldData;
   fieldData.resize(nFields);
+  LOG(DEBUG) << " there are " << nFields << " new Fields";
   
   // fill data vector
   //vector<string> fieldNames = displayFieldController->getFieldNames();
   vector<string>::iterator ifieldName;
-  size_t ifield = 0; // TODO: this is off; be are looping over the NEW fields, not ALL fields !!!!
+  size_t ifield = 0; // TODO: this is off; we are looping over the NEW fields, not ALL fields !!!!
   // TODO: Wait! Instead, should we be looping over all the fields? because we need to
   // send new fieldData and it needs to be the entire 2D matrix of data? or just an update???
+  // NO. For update, we can just send a 2D array of the necessary data. 
   for (ifieldName = newFieldNames.begin(); ifieldName != newFieldNames.end(); ifieldName++) {
 
     vector<double> &data = fieldData[ifield];
@@ -1585,7 +1595,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector
     //    RadxField *rfld = ray->getField(_fields[ifield]->getName());
 
     // at this point, we know the data values for the field AND the color map                                                                        
-    ColorMap *fieldColorMap = displayFieldController->getColorMap(*ifieldName); 
+    ColorMap *fieldColorMap = _displayFieldController->getColorMap(*ifieldName); 
     bool haveColorMap = fieldColorMap != NULL;
     //    bool haveColorMap = _fields[ifield]->haveColorMap();
     Radx::fl32 min = FLT_MAX;;
@@ -1632,7 +1642,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector
 
       if (!haveColorMap) {
 	// just change bounds on existing map        
-        displayFieldController->setColorMapMinMax(*ifieldName, min, max);
+        _displayFieldController->setColorMapMinMax(*ifieldName, min, max);
       } // end do not have color map
 
     } // end else vector not NULL
@@ -1659,11 +1669,12 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector
     }
 
     // Add the beam to the display
-
+    LOG(DEBUG) << "RHI not being updated";
+    /* TODO: update the rhi code ...
     _rhi->addBeam(ray, fieldData, displayFieldController); // _fields);
     _rhiWindow->setAzimuth(ray->getAzimuthDeg());
     _rhiWindow->setElevation(ray->getElevationDeg());
-    
+    */
   } else {
 
     _rhiMode = false;
@@ -1672,7 +1683,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector
     // table
 
     double az = ray->getAzimuthDeg();
-    _storeRayLoc(ray, az, platform.getRadarBeamWidthDegH(), _ppiRayLoc);
+    //_storeRayLoc(ray, az, platform.getRadarBeamWidthDegH(), _ppiRayLoc);
 
     // Save the angle information for the next iteration
 
@@ -1680,10 +1691,11 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector
     _prevEl = -9999.0;
 
     // Add the beam to the display
-    
+    // ray contains data for ALL fields; fieldData contains only data for the new beams
     _ppi->updateBeam(ray, _startAz, _endAz, fieldData, nFields);
 
   }
+  LOG(DEBUG) << "exit";
   
 }
 
@@ -1888,7 +1900,7 @@ void PolarManager::_changeField(int fieldId, bool guiMode)
 
 {
 
-  _selectedField = displayFieldController->getField(fieldId);
+  _selectedField = _displayFieldController->getField(fieldId);
   
   if (_params.debug) {
     cerr << "Changing to field id: " << fieldId << endl;
@@ -1942,8 +1954,8 @@ void PolarManager::colorMapRedefineReceived(string fieldName, ColorMap newColorM
   LOG(DEBUG) << "enter";
   // connect the new color map with the field                                                       
   try {
-    displayFieldController->setColorMap(fieldName, newColorMap);
-    size_t fieldId = displayFieldController->getFieldIdx(fieldName);
+    _displayFieldController->setColorMap(fieldName, newColorMap);
+    size_t fieldId = _displayFieldController->getFieldIdx(fieldName);
     _changeField(fieldId, false);
   } catch (std:ArgumentException ex) {
     LOG(ERROR) << fieldName;
@@ -2000,11 +2012,11 @@ void PolarManager::setVolume() { // const RadxVol &radarDataVolume) {
 
 // TODO: make this a SLOT to a SIGNAL form  ScriptEditor 
 
-void PolarManager::updateVolume() {
+void PolarManager::updateVolume(vector<string> newFieldNames) {
 
   LOG(DEBUG) << "enter";
 
-  _volumeDataChanged();
+  _volumeDataChanged(newFieldNames);
 
   LOG(DEBUG) << "exit";
 
@@ -2187,7 +2199,7 @@ void PolarManager::_locationClicked(double xkm, double ykm,
 	//  _fields[ii]->setDialogText(text);
 	//  }
 	//}
-    displayFieldController->setForLocationClicked(fieldName, val, text);
+    _displayFieldController->setForLocationClicked(fieldName, val, text);
 
   } // ifield
 
@@ -3065,7 +3077,7 @@ void PolarManager::_createImageFiles()
   int fieldNum = _fieldNum;
   
   // loop through fields
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   for (size_t ii = 0; ii < nFields; ii++) {
     
     // select field

@@ -24,7 +24,7 @@ void PpiBeamController::addBeam(const RadxRay *ray,
                           DisplayFieldController *displayFieldController)
 {
   // TODO: send the controller or the model?
-  _current->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
+  _beams->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
 
 }
 

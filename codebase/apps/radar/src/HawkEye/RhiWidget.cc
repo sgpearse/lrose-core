@@ -34,10 +34,11 @@ RhiWidget::RhiWidget(QWidget* parent,
                      const RhiWindow &rhiWindow,
                      const Params &params,
                      const RadxPlatform &platform,
-                     const vector<DisplayField *> &fields,
+		     DisplayFieldController displayFieldController,
+		     //                     const vector<DisplayField *> &fields,
                      bool haveFilteredFields) :
         PolarWidget(parent, manager, params, platform,
-                    fields, haveFilteredFields),
+                    displayFieldController, haveFilteredFields),
         _rhiWindow(rhiWindow),
         _beamsProcessed(0)
 
@@ -112,7 +113,8 @@ RhiWidget::~RhiWidget()
 
 void RhiWidget::addBeam(const RadxRay *ray,
                         const std::vector< std::vector< double > > &beam_data,
-                        const std::vector< DisplayField* > &fields)
+			DisplayFieldController *displayFieldController,
+			//              const std::vector< DisplayField* > &fields)
 {
 
   // compute the angle limits, and store the location of this ray
@@ -122,9 +124,10 @@ void RhiWidget::addBeam(const RadxRay *ray,
 
   // Add the beam to the beam list
   
+  size_t nFields = displayFieldController->getNFields();
   RhiBeam* beam = new RhiBeam(_params, ray,
                               _manager.getPlatform().getAltitudeKm(),
-                              _fields.size(), _startElev, _endElev);
+                              nFields, _startElev, _endElev);
   beam->addClient();
 
   if ((int) _rhiBeams.size() == _params.rhi_beam_queue_size) {
@@ -157,7 +160,7 @@ void RhiWidget::addBeam(const RadxRay *ray,
   // Set up the brushes for all of the fields in this beam.  This can be
   // done independently of a Painter object.
     
-  beam->fillColors(beam_data, fields, &_backgroundBrush);
+  beam->fillColors(beam_data, displayFieldController, &_backgroundBrush);
 
   // Add the new beams to the render lists for each of the fields
   

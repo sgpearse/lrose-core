@@ -86,7 +86,6 @@ bool DisplayManager::_firstTimerEvent = true;
 
 DisplayManager::DisplayManager(const Params &params,
                                Reader *reader,
-			       //                               const vector<DisplayField *> &fields,
 			       DisplayFieldController *displayFieldController,
                                bool haveFilteredFields) :
         QMainWindow(NULL),
@@ -111,6 +110,35 @@ DisplayManager::DisplayManager(const Params &params,
   _altitudeInFeet = false;
 
 }
+
+/*
+DisplayManager::DisplayManager(const Params &params,
+                               Reader *reader,
+			       vector<DisplayField *> &fields,
+                               bool haveFilteredFields) :
+        QMainWindow(NULL),
+        _params(params),
+        _reader(reader),
+        _initialRay(true),
+	_fields(fields),
+	_displayFieldController(displayFieldController),
+        _haveFilteredFields(haveFilteredFields)
+        
+{
+
+  _beamTimerId = 0;
+  _frozen = false;
+  _fieldNum = 0;
+  _prevFieldNum = -1;
+
+  _radarLat = -9999.0;
+  _radarLon = -9999.0;
+  _radarAltKm = -9999.0;
+
+  _altitudeInFeet = false;
+
+}
+*/
 
 // destructor
 
@@ -387,8 +415,8 @@ void DisplayManager::_createFieldPanel()
     nCols = 4;
   }
 
-  displayFieldController->setSelectedField(0);
-  _selectedField = displayFieldController->getSelectedField(); //_fields[0];
+  _displayFieldController->setSelectedField(0);
+  _selectedField = _displayFieldController->getSelectedField(); //_fields[0];
   _selectedLabel = _selectedField->getLabel(); //_fields[0]->getLabel();
   _selectedName = _selectedField->getName(); // _fields[0]->getName();
   //  _selectedField = _fields[0];
@@ -437,16 +465,16 @@ void DisplayManager::_createFieldPanel()
   // add fields, one row at a time
   // a row can have 1 or 2 buttons, depending on whether the
   // filtered field is present
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   for (size_t ifield = 0; ifield < nFields; ifield++) {
 
     // get raw field - always present
     
-    const DisplayField *rawField = displayFieldController->getField(ifield); // _fields[ifield];
+    const DisplayField *rawField = _displayFieldController->getField(ifield); // _fields[ifield];
     int buttonRow = rawField->getButtonRow();
     
     // get filt field - may not be present
-    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
+    const DisplayField *filtField = _displayFieldController->getFiltered(ifield, buttonRow);
 
     QLabel *label = new QLabel(_fieldPanel);
     label->setFont(font);
@@ -577,7 +605,7 @@ void DisplayManager::_updateFieldPanel()
   row++;
   */
 
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   row = 4 + nFields;
   // add fields, one row at a time
   // a row can have 1 or 2 buttons, depending on whether the
@@ -587,11 +615,11 @@ void DisplayManager::_updateFieldPanel()
   size_t ifield = 8;
     // get raw field - always present
     
-  const DisplayField *rawField = displayFieldController->getField(ifield); //_fields[ifield];
+  const DisplayField *rawField = _displayFieldController->getField(ifield); //_fields[ifield];
     int buttonRow = rawField->getButtonRow();
     
     // get filt field - may not be present
-    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
+    const DisplayField *filtField = _displayFieldController->getFiltered(ifield, buttonRow);
 
     QLabel *label = new QLabel(_fieldPanel);
     label->setFont(font);
@@ -676,8 +704,9 @@ void DisplayManager::colorMapRedefineReceived(string fieldName, ColorMap newColo
   
   // connect the new color map with the field
   // find the fieldName in the list of FieldDisplays
-  displayFieldController->setColorMap(fieldName, newColorMap);
-  _changeField(fieldName, true); 
+  _displayFieldController->setColorMap(fieldName, &newColorMap);
+  size_t fieldIndex = _displayFieldController->getFieldIndex(fieldName);
+  _changeField(fieldIndex, true); 
 
   /*
   bool found = false;
@@ -773,16 +802,16 @@ void DisplayManager::_createClickReportDialog()
   // add fields, one row at a time
   // a row can have 1 or 2 buttons, depending on whether the
   // filtered field is present
-  size_t nFields = displayFieldController->getNFields();
+  size_t nFields = _displayFieldController->getNFields();
   for (size_t ifield = 0; ifield < nFields; ifield++) {
 
     // get raw field - always present
     
-    DisplayField *rawField = displayFieldController->getField(ifield); // _fields[ifield];
+    DisplayField *rawField = _displayFieldController->getField(ifield); // _fields[ifield];
     int buttonRow = rawField->getButtonRow();
     
     // get filt field - may not be present
-    const DisplayField *filtField = displayFieldController->getFiltered(ifield);
+    DisplayField *filtField = _displayFieldController->getFiltered(ifield, buttonRow);
 
     QLabel *label = new QLabel(_clickReportDialog);
     label->setText(rawField->getLabel().c_str());

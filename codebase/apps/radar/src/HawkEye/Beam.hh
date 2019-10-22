@@ -52,6 +52,7 @@
 
 #include "ScaledLabel.hh"
 #include "DisplayField.hh"
+#include "DisplayFieldController.hh"
 #include "Params.hh"
 
 //#if defined(OSX_LROSE) && !defined(SINCOS_DEFN)
@@ -128,7 +129,9 @@ public:
    */
   
   virtual void fillColors(const std::vector<std::vector<double> >& beamData,
-			  const std::vector<DisplayField*>& fields,
+			  //const std::vector<DisplayField*>& fields,
+			  DisplayFieldController *displayFieldController,
+			  size_t number_new_fields,
 			  const QBrush *background_brush);
 
   /**

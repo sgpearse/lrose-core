@@ -50,19 +50,18 @@ LOC_LDFLAGS = -L$(LROSE_INSTALL_DIR)/lib $(QT_LDFLAGS) $(NETCDF4_LDFLAGS)
 
 LOC_CPPC_CFLAGS = -g  $(QT_CPPC_CFLAGS)
 
+
 HDRS = \
 	$(PARAMS_HH) \
 	Args.hh \
 	Beam.hh \
-	BscanBeam.hh \
-	BscanManager.hh \
-	BscanWidget.hh \
 	BoundaryPointEditor.hh \
 	ColorBar.hh \
 	ColorMap.hh \
 	ColorTableManager.hh \
 	DisplayManager.hh \
 	FieldRenderer.hh \
+	FieldRendererController.hh \
 	FlowLayout.hh \
 	HawkEye.hh \
 	HawkEyeLogger.hh \
@@ -70,6 +69,7 @@ HDRS = \
         ParameterColorView.hh \
         FieldColorController.hh \
         DisplayFieldModel.hh \
+        DisplayFieldController.hh \
 	Params.hh \
 	PpiBeam.hh \
 	PolarManager.hh \
@@ -106,6 +106,7 @@ NORM_SRCS = \
 	ColorTableManager.cc \
 	DisplayField.cc \
 	DisplayFieldModel.cc \
+	DisplayFieldController.cc \
 	FlowLayout.cc \
 	HawkEye.cc \
 	HawkEyeLogger.cc \
@@ -126,10 +127,9 @@ NORM_SRCS = \
 	WorldPlot.cc 
 
 MOC_SRCS = \
-	BscanManager.cc \
-	BscanWidget.cc \
 	DisplayManager.cc \
 	FieldRenderer.cc \
+	FieldRendererController.cc \
 	PolarManager.cc \
 	PolarWidget.cc \
 	PpiWidget.cc \
@@ -151,8 +151,6 @@ MOC_SRCS = \
 	FunctionEditor.cc 
 
 MOC_OUTPUT = \
-	moc_BscanManager.cpp \
-	moc_BscanWidget.cpp \
 	moc_DisplayManager.cpp \
 	moc_FieldRenderer.cpp \
 	moc_PolarManager.cpp \

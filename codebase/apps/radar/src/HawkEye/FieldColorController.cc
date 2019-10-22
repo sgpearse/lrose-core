@@ -27,7 +27,7 @@ FieldColorController::FieldColorController(ParameterColorView *parameterColorVie
   // TODO replot is messed up; try naming more specific
   connect(_view, SIGNAL(replotFieldColorMapChanges()), this, SLOT(modelChanged()));
   vector<string> fieldNames = _model->getFieldNames();
-  string selectedField = _model->getSelectedField();
+  string selectedField = _model->getSelectedFieldName();
   // ColorMap colorMap = _model->getColorMap(selectedField);
   _view->updateEvent(fieldNames, selectedField);
 
@@ -64,7 +64,7 @@ void FieldColorController::modelChanged() // string fieldName) // , ColorMap new
 {
   LOG(DEBUG) << "enter"; 
 
-  string selectedField = _model->getSelectedField();
+  string selectedField = _model->getSelectedFieldName();
 
   // get changes from model
   /*
@@ -190,7 +190,7 @@ void FieldColorController::pickColorPaletteRequest()
 void FieldColorController::newColorPaletteSelected(string newColorMapName) {
 
   _model->colorMapChanged(newColorMapName);
-  getColorMap(_model->getSelectedField());
+  getColorMap(_model->getSelectedFieldName());
   _colorMapTemplates->close();
   //  _view->colorMapProvided("", newColorMap);
 

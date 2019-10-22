@@ -1,5 +1,5 @@
 #include "BoundaryPointEditor.hh"
-#include "PolarManager.hh"
+//#include "PolarManager.hh"
 #include <iostream>
 #include <fstream>
 #include <iterator>

@@ -117,18 +117,32 @@ void Beam::resetFieldBrush(size_t field, const QBrush *brush)
 
 ////////////////////////////////////////////////////////////////
 
-// beam_data[nFields][nGates]
+// beam_data[nFields][nGates]  This data is not kept; only used for reference
+// and it is only sent as a 2D array in order to index into the 2D array 
+// to retrieve the individual field data, so we could send a smaller array of 
+// only the necessary field data
+// TODO: If it is a subset of the data, be sure to offset the _brushes index to
+// accommodate the relative indexing. 
+// beam_data is 2D list of [number_new_fields][_nGates]
+// displayFieldController knows the color map for each field; 
+// ??? send the color map for each field
 void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
 		      //		      const std::vector<DisplayField*>& fields,
 		      DisplayFieldController *displayFieldController,
+		      //   vector<ColorMap *> colorMaps,
+		      size_t number_new_fields, // ???
 		      const QBrush *background_brush)
 
 {
+  size_t new_field_start_index = _nFields;
+  _nFields += number_new_fields;
+  _brushes.resize(_nFields);
 
-  for (size_t fieldIdx = 0; fieldIdx < _nFields; ++fieldIdx) {
+  for (size_t fieldIdx = 0; fieldIdx < number_new_fields; ++fieldIdx) {
 
+    size_t absolute_index = new_field_start_index + fieldIdx;
     //    const ColorMap &map = fields[field]->getColorMap();
-    const ColorMap &map = displayFieldController->getColorMap(fieldIdx);
+    const ColorMap *map = displayFieldController->getColorMap(absolute_index);
     const double *field_data = &(beam_data[fieldIdx][0]);
     
     for (size_t igate = 0; igate < _nGates; ++igate) {
@@ -136,9 +150,9 @@ void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
       double data = field_data[igate];
       
       if (data < -9990) {
-	_brushes[fieldIdx][igate] = background_brush;
+	_brushes[absolute_index][igate] = background_brush;
       } else {
-	_brushes[fieldIdx][igate] = map.dataBrush(data);
+	_brushes[absolute_index][igate] = map->dataBrush(data);
       }
 
     } // igate
@@ -192,9 +206,11 @@ void Beam::deleteIfUnused(const Beam *beam)
 }
 
 
-
+// n_fields  The number of new fields being added
+// ray       Contains all the fields, new and old
 void Beam::addFields(const RadxRay *ray, int n_fields) {
 
+  // TODO: do I need to free the old ray before reassigning?
   _ray = ray;
 
   // Set the "being rendered" flags.  We always render the new beams, so start

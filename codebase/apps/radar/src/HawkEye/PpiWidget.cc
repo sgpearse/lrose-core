@@ -355,7 +355,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
     // Set up the brushes for all of the fields in this beam.  This can be
     // done independently of a Painter object.
     // TODO: Just send the number of fields
-    beam->fillColors(beam_data, nFields, &_backgroundBrush);
+    beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
     
@@ -377,8 +377,14 @@ void PpiWidget::addBeam(const RadxRay *ray,
   LOG(DEBUG) << "exit";
 }
 
-
+// TODO: does this become addFieldsToEachBeam?
+// Update this beam with the new fields
+// UpdateBeam only works on new beams, which are to be added to the end
+// of any existing lists.
+// Precondition: displayFieldController must already be updated with new fields
+// Precondition: fieldRendererController must already be updated with new fields
 // TODO: call from PolarManager::updateVolume ===> PolarManager::updateArchiveData
+// nFields  number of new fields 
 void PpiWidget::updateBeam(const RadxRay *ray,
                         const float start_angle,
                         const float stop_angle,
@@ -433,7 +439,7 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     //                         n_start_angle, n_stop_angle);
     b->addClient(); // TODO: register a callback with the beamController 
     _cullBeams(b);
-    //_ppiBeams.push_back(b);
+    //_ppiBeams.push_back(b); // handled by ppiBeamController?
     newBeams.push_back(b);
 
   } else {
@@ -459,6 +465,8 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 
   }
   
+  /*
+  // TODO: this may not be needed on an update ...
   // compute angles and times in archive mode
 
   if (newBeams.size() > 0) {
@@ -480,9 +488,11 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     } // if (_isArchiveMode) 
     
   } // if (newBeams.size() > 0) 
+  // TODO: end ... this may not be needed on an update
+  */
 
   // newBeams has pointers to all of the newly added beams.  Render the
-  // beam data.
+  // beam data.  (There are at most 2 new beams).
 
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
@@ -491,10 +501,18 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     // Set up the brushes for all of the fields in this beam.  This can be
     // done independently of a Painter object.
     // TODO: Just send the number of fields
-    beam->fillColors(beam_data, nFields, &_backgroundBrush);
+    beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
+    /* I don't think we need this, the fieldRenderers already have the beam
+    // TODO: render the new fields ...
     // Add the new beams to the render lists for each of the fields
-    
+    // TODO: _fieldRendererController->addBeam(...)
+    // for this beam(s) ...
+    // for each fieldRenderer
+    //     if field is selected OR field is backgroundRender
+    //         add beam to the renderer for this field?
+    //     else
+    //         set field in this beam to not being rendered
     for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
       if (field == _selectedField ||
           _fieldRenderers[field]->isBackgroundRendered()) {
@@ -503,7 +521,8 @@ void PpiWidget::updateBeam(const RadxRay *ray,
         beam->setBeingRendered(field, false);
       }
     }
-    
+    // TODO: end ... render the new fields. 
+    */
   } // endfor - beam 
 
   // Start the threads to render the new beams

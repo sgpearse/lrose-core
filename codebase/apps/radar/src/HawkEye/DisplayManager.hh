@@ -54,6 +54,7 @@
 #include <Radx/RadxVol.hh>
 #include <Radx/RadxGeoref.hh>
 #include "SweepManager.hh"
+#include "DisplayFieldController.hh"
 
 class QApplication;
 class QButtonGroup;
@@ -82,10 +83,15 @@ public:
   
   DisplayManager(const Params &params,
                  Reader *reader,
-		 //                 const vector<DisplayField *> &fields,
 		 DisplayFieldController *displayFieldController,
                  bool haveFilteredFields);
-  
+
+  /*
+  DisplayManager(const Params &params,
+                 Reader *reader,
+		 vector<DisplayField *> &fields,
+                 bool haveFilteredFields);
+  */
   // destructor
   
   ~DisplayManager();
@@ -99,7 +105,7 @@ public:
   const string &getSelectedFieldLabel() const { return _selectedLabel; }
   const string &getSelectedFieldName() const { return _selectedName; }
   const string &getSelectedFieldUnits() const { return _selectedUnits; }
-  const DisplayField &getSelectedField() const { return displayFieldController->getField(_fieldNum); }
+  // const DisplayField &getSelectedField() const { return _displayFieldController->getField(_fieldNum); }
   // const vector<DisplayField *> &getDisplayFields() const { return _fields; }
   //  const DisplayField &getSelectedField() const { return *_fields[_fieldNum]; }
   //  const vector<DisplayField *> &getDisplayFields() const { return _fields; }
@@ -158,8 +164,8 @@ protected:
   bool _frozen;
 
   // data fields
-  // TODO: what to do here? return the controller? the model?
-  // vector<DisplayField *> _fields;
+  //  vector <DisplayField *> _fields;
+  DisplayFieldController *_displayFieldController;
   bool _haveFilteredFields;
 
   // windows

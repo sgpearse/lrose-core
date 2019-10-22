@@ -141,7 +141,9 @@ public slots:
 				QColor annotationColor,
 				QColor backgroundColor);
   void setVolume(); // const RadxVol &radarDataVolume);
-  void updateVolume();
+  // TODO:
+  // Good. Now go and read about Q_DECLARE_METATYPE(). Or better yet, use QStringList instead of std::vector<std::string>.
+  void updateVolume(vector<string> newFieldNames);
   void _volumeDataChanged();
   void _addNewFields();
 
@@ -300,13 +302,17 @@ private:
   void _handleArchiveData(QTimerEvent * event);
   int _getArchiveData();
   void _plotArchiveData();
+  void _updateArchiveData();
   void _setupVolRead(RadxFile &file);
   //  int _applyDataEdits(RadxVol _editedVol);  // & or * ??
   void _applyDataEdits(); // const RadxVol &editedVol);
+  void _addNewFields(vector<DisplayField *> newFields);
 
   // draw beam
 
   void _handleRay(RadxPlatform &platform, RadxRay *ray);
+  void _handleRayUpdate(RadxPlatform &platform, RadxRay *ray,
+			vector<string> newFieldNames);
 
   // ray handling for display
 

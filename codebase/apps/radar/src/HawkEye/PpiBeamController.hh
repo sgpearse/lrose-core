@@ -1,6 +1,7 @@
 #ifndef PPIBEAMCONTROLLER_H
 #define PPIBEAMCONTROLLER_H
 
+#include "PpiBeam.hh"
 
 class PpiBeamController
 {
@@ -15,8 +16,8 @@ public:
 
 private:
  
-  vector<PpiBeam *> _current;
-  vector<PpiBeam *> _working;
+  vector<PpiBeam *> _beams;
+  //  vector<PpiBeam *> _working;
  
   
 
