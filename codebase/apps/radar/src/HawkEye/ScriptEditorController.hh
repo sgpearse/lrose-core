@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QJSEngine>
+#include <QStringList>
 #include "ScriptEditorView.hh"
 #include "ScriptEditorModel.hh"
 #include "SoloFunctionsModel.hh"
@@ -41,7 +42,7 @@ public:
   void addVariableToScriptEditor(QString name, QJSValue value);
 
 signals:
-  void volumeChanged(); // const RadxVol &radarDataVolume);
+  void volumeChanged(QStringList newFieldNames); // const RadxVol &radarDataVolume);
 
 public slots:
   void needFieldNames();

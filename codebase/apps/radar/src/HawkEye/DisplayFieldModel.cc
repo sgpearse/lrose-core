@@ -70,12 +70,16 @@ DisplayField *DisplayFieldModel::getSelectedField() {
 void DisplayFieldModel::setSelectedField(string fieldName) {
   LOG(DEBUG) << "enter " << fieldName;
   _selectedFieldName = fieldName;
+  _selectedFieldIndex = _lookupFieldIndex(fieldName);
   LOG(DEBUG) << "exit";
 } 
 
 void DisplayFieldModel::setSelectedField(size_t fieldIndex) {
-  if ((fieldIndex >= 0) && (fieldIndex < _fields.size()))
+  if ((fieldIndex >= 0) && (fieldIndex < _fields.size())) {
     _selectedFieldIndex = fieldIndex;
+    DisplayField *displayField = getField(fieldIndex);
+    _selectedFieldName = displayField->getName();
+  }
   else
     throw std::invalid_argument("field index out of bounds");
 }

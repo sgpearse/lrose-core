@@ -34,7 +34,7 @@ RhiWidget::RhiWidget(QWidget* parent,
                      const RhiWindow &rhiWindow,
                      const Params &params,
                      const RadxPlatform &platform,
-		     DisplayFieldController displayFieldController,
+		     DisplayFieldController *displayFieldController,
 		     //                     const vector<DisplayField *> &fields,
                      bool haveFilteredFields) :
         PolarWidget(parent, manager, params, platform,
@@ -113,7 +113,8 @@ RhiWidget::~RhiWidget()
 
 void RhiWidget::addBeam(const RadxRay *ray,
                         const std::vector< std::vector< double > > &beam_data,
-			DisplayFieldController *displayFieldController,
+			size_t nFields)
+			//			DisplayFieldController *displayFieldController,
 			//              const std::vector< DisplayField* > &fields)
 {
 
@@ -124,7 +125,7 @@ void RhiWidget::addBeam(const RadxRay *ray,
 
   // Add the beam to the beam list
   
-  size_t nFields = displayFieldController->getNFields();
+  // size_t nFields = displayFieldController->getNFields();
   RhiBeam* beam = new RhiBeam(_params, ray,
                               _manager.getPlatform().getAltitudeKm(),
                               nFields, _startElev, _endElev);
@@ -160,10 +161,14 @@ void RhiWidget::addBeam(const RadxRay *ray,
   // Set up the brushes for all of the fields in this beam.  This can be
   // done independently of a Painter object.
     
-  beam->fillColors(beam_data, displayFieldController, &_backgroundBrush);
+  beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
   // Add the new beams to the render lists for each of the fields
-  
+  _fieldRendererController->addBeam(_selectedField, beam);
+  _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+
+
+  /*
   for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
     if (field == _selectedField ||
         _fieldRenderers[field]->isBackgroundRendered()) {
@@ -172,7 +177,7 @@ void RhiWidget::addBeam(const RadxRay *ray,
       beam->setBeingRendered(field, false);
     }
   }
-  
+  */
   // Start the threads to render the new beams
   
   _performRendering();
@@ -526,8 +531,8 @@ void RhiWidget::_drawOverlays(QPainter &painter)
 
   // draw the color scale
 
-  const DisplayField &field = _manager.getSelectedField();
-  _zoomWorld.drawColorScale(field.getColorMap(), painter,
+  DisplayField *field = displayFieldController->getSelectedField();
+  _zoomWorld.drawColorScale(field->getColorMap(), painter,
                             _params.label_font_size);
   
   // add legends with time, field name and elevation angle
@@ -560,8 +565,10 @@ void RhiWidget::_drawOverlays(QPainter &painter)
     legends.push_back(radarSiteLabel);
 
     // field name legend
+    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(_selectedField);
+    string fieldName = selectedFieldRenderer->getField().getLabel();
 
-    string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
+    //string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
     sprintf(text, "Field: %s", fieldName.c_str());
     legends.push_back(text);
     
@@ -800,7 +807,7 @@ void RhiWidget::_clearRayOverlap(const int startIndex,
 
 void RhiWidget::_refreshImages()
 {
-
+  /*
   for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {
     
     FieldRenderer *field = _fieldRenderers[ifield];
@@ -836,6 +843,14 @@ void RhiWidget::_refreshImages()
   // do the rendering
 
   _performRendering();
+  */
+  bool isDeque = true;
+  _fieldRendererController->refreshImagesAsDeque(width(), height(), size(),
+                                          _backgroundBrush.color().rgb(),
+                                          _zoomTransform,
+                                          _selectedField,
+                                          _rhiBeams);
+
 
   update();
 }
@@ -912,7 +927,11 @@ void RhiWidget::paintEvent(QPaintEvent *event)
   painter.save();
   painter.eraseRect(0, 0, width(), height());
   _zoomWorld.setClippingOn(painter);
-  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
+
+  //  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
+  FieldRenderer *selectedRenderer = _fieldRendererController->get(_selectedField);
+  painter.drawImage(0, 0, *(selectedRenderer->getImage()));
+
   painter.restore();
   _drawOverlays(painter);
 
@@ -939,6 +958,7 @@ void RhiWidget::selectVar(const size_t index)
   // If this field isn't being rendered in the background, render all of
   // the beams for it
 
+  // TODO: HERE ... 
   if (!_fieldRenderers[index]->isBackgroundRendered()) {
     std::deque<RhiBeam*>::iterator beam;
     for (beam = _rhiBeams.begin(); beam != _rhiBeams.end(); ++beam) {
@@ -950,8 +970,11 @@ void RhiWidget::selectVar(const size_t index)
 
   // Do any needed housekeeping when the field selection is changed
 
-  _fieldRenderers[_selectedField]->unselectField();
-  _fieldRenderers[index]->selectField();
+  _fieldRendererController->unselectField(_selectedField);
+  _fieldRendererController->selectField(index);
+
+  //  _fieldRenderers[_selectedField]->unselectField();
+  //  _fieldRenderers[index]->selectField();
   
   // Change the selected field index
 

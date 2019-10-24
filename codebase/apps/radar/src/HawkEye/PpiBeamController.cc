@@ -6,14 +6,26 @@
 #include "ColorBar.hh"
 
 
-PpiBeamController::PpiBeamController(PpiBeamModel *ppiBeamModel)
+PpiBeamController::PpiBeamController()
 {
   LOG(DEBUG) << "enter";
-  _current = ppiBeamModel;
+  // _ppiBeams;
   LOG(DEBUG) << "exit";
 }
 
 PpiBeamController::~PpiBeamController() {
+  clear();
+}
+
+void PpiBeamController::clear() {
+  // delete all of the dynamically created beams                                           
+  LOG(DEBUG) << "enter";
+
+  for (size_t i = 0; i < _ppiBeams.size(); ++i) {
+    Beam::deleteIfUnused(_ppiBeams[i]);
+  }
+  _ppiBeams.clear();
+  LOG(DEBUG) << "exit";
 
 }
 

@@ -22,6 +22,8 @@ public:
   vector<string> getFieldNames();
   string getSelectedFieldName();
   DisplayField *getSelectedField();
+  size_t getSelectedFieldNum();
+
   void setSelectedField(string fieldName);
   void setSelectedField(size_t fieldIndex);
 
@@ -32,7 +34,6 @@ public:
 
   void setForLocationClicked(double value, const string &text);
   void setForLocationClicked(string fieldName, double value, const string &text);
-  // DisplayField &getSelectedDisplayField();
   //  bool getChanges();
   ColorMap *getColorMap(string fieldName);
   ColorMap *getColorMap(size_t fieldIndex);
@@ -56,6 +57,8 @@ public:
   
     string getBackgroundColor();
     void setBackgroundColor(string colorName);
+
+  DisplayFieldModel *getModel() {return _model;};
 
 private:
  

@@ -96,7 +96,8 @@ PpiWidget::~PpiWidget()
   }
   LOG(DEBUG) << "_ppiBeams.clear()";
   _ppiBeams.clear();
-
+  
+  //  delete _ppiBeamController;
 }
 
 /*************************************************************************
@@ -114,6 +115,8 @@ void PpiWidget::clear()
   LOG(DEBUG) << "_ppiBeams.clear()";
   _ppiBeams.clear();
   
+  //_ppiBeamController->clear();
+
   // Now rerender the images
   
   _refreshImages();
@@ -142,16 +145,24 @@ void PpiWidget::selectVar(const size_t index)
   // If this field isn't being rendered in the background, render all of
   // the beams for it
   
-  if (!_fieldRenderers[index]->isBackgroundRendered()) {
+  if (!_fieldRendererController->isBackgroundRendered(index)) {
     LOG(DEBUG) << "isBackgroundRendered is FALSE";
     LOG(DEBUG) << "number of beams in _ppiBeams = " << _ppiBeams.size();
-    LOG(DEBUG) << "number of _fieldRenderers = " << _fieldRenderers.size();
-    LOG(DEBUG) << " and here is the 1st beam ...";
-    _ppiBeams[0]->print(cout);
+    //     LOG(DEBUG) << "number of _fieldRenderers = " << _fieldRenderers.size();
+    //LOG(DEBUG) << " and here is the 1st beam ...";
+    //_ppiBeams[0]->print(cout);
+    // 
+    // go through each beam, set render flag to true, add it to the
+    //    list of beam for this field
+
+    // move this to 
+    // give the list of beams to the fieldRendererController, along with
+    // the field index, let the fieldRendererController set the status
     std::vector< PpiBeam* >::iterator beam;
     for (beam = _ppiBeams.begin(); beam != _ppiBeams.end(); ++beam) {
       (*beam)->setBeingRendered(index, true);
-      _fieldRenderers[index]->addBeam(*beam);
+      _fieldRendererController->addBeam(index, (*beam));
+      //      _fieldRenderers[index]->addBeam(*beam);
     }
   }
   
@@ -164,9 +175,10 @@ void PpiWidget::selectVar(const size_t index)
 
 
   // Do any needed housekeeping when the field selection is changed
-
-  _fieldRenderers[_selectedField]->unselectField();
-  _fieldRenderers[index]->selectField();
+  _fieldRendererController->unselectField(_selectedField);
+  _fieldRendererController->selectField(index);
+  //  _fieldRenderers[_selectedField]->unselectField();
+  //  _fieldRenderers[index]->selectField();
   
 
   // Update the display
@@ -217,7 +229,7 @@ void PpiWidget::updateVars()
 void PpiWidget::clearVar(const size_t index)
 {
 
-  if (index >= _fields.size()) {
+  if (index >= displayFieldController->getNFields()) { // _fields.size()) {
     return;
   }
 
@@ -358,7 +370,10 @@ void PpiWidget::addBeam(const RadxRay *ray,
     beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
-    
+    _fieldRendererController->addBeam(_selectedField, beam);
+    _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+
+    /*
     for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
       if (field == _selectedField ||
           _fieldRenderers[field]->isBackgroundRendered()) {
@@ -367,7 +382,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
         beam->setBeingRendered(field, false);
       }
     }
-    
+    */
   } // endfor - beam 
 
   // Start the threads to render the new beams
@@ -377,7 +392,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
   LOG(DEBUG) << "exit";
 }
 
-// TODO: does this become addFieldsToEachBeam?
+// TODO: does this become addFieldsToEachBeam? YES
 // Update this beam with the new fields
 // UpdateBeam only works on new beams, which are to be added to the end
 // of any existing lists.
@@ -389,22 +404,25 @@ void PpiWidget::updateBeam(const RadxRay *ray,
                         const float start_angle,
                         const float stop_angle,
                         const std::vector< std::vector< double > > &beam_data,
-			size_t nFields)
+			   //		   vector<string> &newFieldNames)
+			   size_t nFields)
 			//                        const std::vector< DisplayField* > &fields)
 			//displayFieldController)
 {
 
   LOG(DEBUG) << "enter";
 
+  // find the associated beam
+  // update it 
    
-  // add new fields to an existing beam in the display. 
+  // add new fields to an existing beam.
   // The steps are:
   // 1. preallocate mode: find the beam to be drawn, or dynamic mode:
   //    create the beam(s) to be drawn.
-  // 2. fill the colors for all variables in the beams to be drawn
-  // 3. make the display list for the selected variables in the beams
+  // 2. fill the colors for all fields in the beam 
+  // ?3. make the display list for the selected variables in the beams
   //    to be drawn.
-  // 4. call the new display list(s)
+  // ?4. call the new display list(s)
 
   std::vector< PpiBeam* > newBeams;
 
@@ -433,11 +451,13 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 
     // TODO: how to integrate this ....
     //  _beamController->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
-
-    PpiBeam *b = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    // find an existing beam
+    size_t index = _beamIndex(n_start_angle, n_stop_angle);
+    PpiBeam *b = _ppiBeams.at(index);
+    b->addFields(ray, nFields); // newFieldNames.size());
     //PpiBeam* b = new PpiBeam(_params, ray, nFields, 
     //                         n_start_angle, n_stop_angle);
-    b->addClient(); // TODO: register a callback with the beamController 
+    //b->addClient();  
     _cullBeams(b);
     //_ppiBeams.push_back(b); // handled by ppiBeamController?
     newBeams.push_back(b);
@@ -447,52 +467,30 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     // The beam crosses the 0 degree angle.  First add the portion of the
     // beam to the left of the 0 degree point.
 
-    PpiBeam *b1 = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    size_t index = _beamIndex(n_start_angle, n_stop_angle);
+    PpiBeam *b1 = _ppiBeams.at(index);
+    b1->addFields(ray, nFields); // newFieldNames.size()); // nFields);
     //    PpiBeam* b1 = new PpiBeam(_params, ray, nFields, n_start_angle, 360.0);
-    b1->addClient();
+    //b1->addClient();
     _cullBeams(b1);
     //_ppiBeams.push_back(b1);
     newBeams.push_back(b1);
 
     // Now add the portion of the beam to the right of the 0 degree point.
 
-    PpiBeam *b2 = _ppiBeamController->updateBeam(n_start_angle, n_stop_angle, ray, nFields);
+    index = _beamIndex(n_start_angle, n_stop_angle);
+    PpiBeam *b2 = _ppiBeams.at(index);
+    b2->addFields(ray, nFields); // newFieldNames.size());
     //PpiBeam* b2 = new PpiBeam(_params, ray, nFields, 0.0, n_stop_angle);
-    b2->addClient();
+    //b2->addClient();
     _cullBeams(b2);
     //_ppiBeams.push_back(b2);
     newBeams.push_back(b2);
 
   }
   
-  /*
-  // TODO: this may not be needed on an update ...
-  // compute angles and times in archive mode
-
-  if (newBeams.size() > 0) {
-    
-    if (_isArchiveMode) {
-
-      if (_isStartOfSweep) {
-        _plotStartTime = ray->getRadxTime();
-        _meanElev = -9999.0;
-        _sumElev = 0.0;
-        _nRays = 0.0;
-        _isStartOfSweep = false;
-      }
-      _plotEndTime = ray->getRadxTime();
-      _sumElev += ray->getElevationDeg();
-      _nRays++;
-      _meanElev = _sumElev / _nRays;
-      LOG(DEBUG) << "isArchiveMode _nRays = " << _nRays;    
-    } // if (_isArchiveMode) 
-    
-  } // if (newBeams.size() > 0) 
-  // TODO: end ... this may not be needed on an update
-  */
-
-  // newBeams has pointers to all of the newly added beams.  Render the
-  // beam data.  (There are at most 2 new beams).
+  // newBeams has pointers to the updated beams.  Mark the beams to be rendered.
+  //   (There are at most 2 new beams).
 
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
@@ -513,6 +511,14 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     //         add beam to the renderer for this field?
     //     else
     //         set field in this beam to not being rendered
+    */
+    // for each newFieldName
+    // queue beam for rendering this field
+
+    _fieldRendererController->addBeam(_selectedField, beam);
+    _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+
+    /*
     for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
       if (field == _selectedField ||
           _fieldRenderers[field]->isBackgroundRendered()) {
@@ -974,8 +980,8 @@ void PpiWidget::_drawOverlays(QPainter &painter)
 
   // draw the color scale
 
-  const DisplayField &field = _manager.getSelectedField();
-  _zoomWorld.drawColorScale(field.getColorMap(), painter,
+  DisplayField *field = displayFieldController->getSelectedField();
+  _zoomWorld.drawColorScale(field->getColorMap(), painter,
                             _params.label_font_size);
 
   if (_archiveMode) {
@@ -1008,8 +1014,9 @@ void PpiWidget::_drawOverlays(QPainter &painter)
     legends.push_back(radarSiteLabel);
 
     // field name legend
-
-    string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
+    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(_selectedField);
+    string fieldName = selectedFieldRenderer->getField().getLabel();
+    //string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
     sprintf(text, "Field: %s", fieldName.c_str());
     legends.push_back(text);
 
@@ -1327,7 +1334,7 @@ void PpiWidget::_cullBeams(const PpiBeam *beamAB)
 
 void PpiWidget::_refreshImages()
 {
-
+  /*
   for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {
     
     FieldRenderer *field = _fieldRenderers[ifield];
@@ -1359,10 +1366,14 @@ void PpiWidget::_refreshImages()
     }
     
   } // ifield
-  
+  */  
   // do the rendering
-
-  _performRendering();
+  _fieldRendererController->refreshImages(width(), height(), size(),
+					  _backgroundBrush.color().rgb(),
+					  _zoomTransform, 
+					  _selectedField, 
+					  _ppiBeams);
+  // _performRendering();
 
   update();
 }
@@ -1377,16 +1388,21 @@ void PpiWidget::contextMenuParameterColors()
   // const DisplayField &field = _manager.getSelectedField();
   // const ColorMap &colorMapForSelectedField = field.getColorMap();
   ParameterColorView *parameterColorView = new ParameterColorView(this);
-  vector<DisplayField *> displayFields = _manager.getDisplayFields(); // TODO: I guess, implement this as a signal and a slot? // getDisplayFields();
-  DisplayField selectedField = _manager.getSelectedField();
+  // vector<DisplayField *> displayFields = displayFieldController->getDisplayFields(); // TODO: I guess, implement this as a signal and a slot? // getDisplayFields();
+  DisplayField *selectedField = displayFieldController->getSelectedField();
   string emphasis_color = "white";
   string annotation_color = "white";
+  // This is already created ...
+  /*
   DisplayFieldModel *displayFieldModel = 
-    new DisplayFieldModel(displayFields, selectedField.getName(),
+    new DisplayFieldModel(displayFields, selectedField->getName(),
 			  _params.grid_and_range_ring_color,
 			  emphasis_color,
 			  annotation_color,
 			  _params.background_color);
+  */
+  DisplayFieldModel *displayFieldModel = displayFieldController->getModel();
+
   FieldColorController *fieldColorController = new FieldColorController(parameterColorView, displayFieldModel);
   // connect some signals and slots in order to retrieve information
   // and send changes back to display
@@ -1563,8 +1579,8 @@ void PpiWidget::EditRunScript() {
   // connect some signals and slots in order to retrieve information
   // and send changes back to display
                                                                          
-  connect(scriptEditorControl, SIGNAL(volumeChanged()),
-  	  &_manager, SLOT(updateVolume()));
+  connect(scriptEditorControl, SIGNAL(volumeChanged(QStringList)),
+  	  &_manager, SLOT(updateVolume(QStringList)));
   
   scriptEditorView->init();
   scriptEditorView->show();

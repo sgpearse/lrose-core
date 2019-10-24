@@ -122,7 +122,7 @@ PolarWidget::PolarWidget(QWidget* parent,
     FieldRenderer *fieldRenderer =
       new FieldRenderer(_params, ii, *displayField); // *_fields[ii]);
     fieldRenderer->createImage(width(), height());
-    _fieldRendererController->add(fieldRenderer);
+    _fieldRendererController->addFieldRenderer(fieldRenderer);
   }
 
   // init other values
@@ -249,24 +249,25 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
   //LOG(DEBUG) << "fieldRenderers ...";
   for (size_t ii = 0; ii < newFields.size(); ii++) {
 
-    displayFieldController->addField(newField[ii]);
+    displayFieldController->addField(newFields[ii]);
 
-    //int lastFieldIdx = _fieldRenderers.size();
+    int fieldIdx = newFields[ii]->getButtonRow();
     //LOG(DEBUG) << "_fieldRenderers.size() before insert = " << lastFieldIdx;
     // HERE ... 
     // Q: What is fieldIndex?  
     FieldRenderer *fieldRenderer =
-      new FieldRenderer(_params, lastFieldIdx, *newFields[ii]);
+      new FieldRenderer(_params, fieldIdx, *newFields[ii]);
     fieldRenderer->createImage(width(), height());
 
-    _fieldRendererController->add(fieldRenderer);
+    _fieldRendererController->addFieldRenderer(fieldRenderer);
 //    _fieldRenderers.push_back(fieldRenderer);
 
     //LOG(DEBUG) << "_fieldRenderers.size() after insert = " << _fieldRenderers.size(); 
 
   }
 
-  _ppiBeamController->addFieldsToEachBeam(needRay, newFields);    
+  // TODO: this may be handled by addBeam, or fillColor?
+  //_ppiBeamController->addFieldsToEachBeam(needRay, newFields);    
 
 
   // activateArchiveRendering();
@@ -299,7 +300,7 @@ void PolarWidget::activateArchiveRendering()
 void PolarWidget::activateRealtimeRendering()
 {
   LOG(DEBUG) << "enter";
-  _fieldRendererController->activateRealtimeRendering();
+  _fieldRendererController->activateRealtimeRendering(_selectedField);
   /*
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {
     if (ii != _selectedField) {
@@ -579,7 +580,7 @@ void PolarWidget::smartBrush(int xPixel, int yPixel) {
 void PolarWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
-  FieldRenderer *fieldRenderer = FieldRendererController->get(_selectedField);
+  FieldRenderer *fieldRenderer = _fieldRendererController->get(_selectedField);
 
   painter.drawImage(0, 0, *(fieldRenderer->getImage()));
   //  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));

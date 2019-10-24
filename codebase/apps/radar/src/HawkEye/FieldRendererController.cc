@@ -47,15 +47,109 @@ void FieldRendererController::addFieldRenderer(FieldRenderer *fieldRenderer)
   LOG(DEBUG) << "exit";
 }
 
-/*
+
 // add a Beam to each FieldRenderer
-void FieldRendererController::addBeam(FieldRenderer *fieldRenderer)
+void FieldRendererController::addBeam(Beam *beam)
 {
   LOG(DEBUG) << "enter";
-  _fieldRenderers.push_back(fieldRenderer);
+
+  // for each field,
+  //   add beam
+  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+      _fieldRenderers[field]->addBeam(beam);
+      beam->setBeingRendered(field, true);
+  }
+
+  /* original code ...
+  // Add the new beams to the render lists for each of the fields                        
+
+  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+    if (field == _selectedField ||
+	_fieldRenderers[field]->isBackgroundRendered()) {
+      _fieldRenderers[field]->addBeam(beam);
+    } else {
+      beam->setBeingRendered(field, false);
+    }
+  }
+  */
+
+  //  _fieldRenderers.push_back(fieldRenderer);
   LOG(DEBUG) << "exit";
 }
-*/
+
+
+// addBeam = queueforRendering
+// add a Beam to a single FieldRenderer
+void FieldRendererController::addBeam(size_t fieldIndex, Beam *beam)
+{
+  LOG(DEBUG) << "enter";
+  _fieldRenderers[fieldIndex]->addBeam(beam);
+  beam->setBeingRendered(fieldIndex, true);
+  LOG(DEBUG) << "exit";
+}
+
+
+void FieldRendererController::addBeam(string newFieldName, Beam *beam)
+{
+  
+  LOG(DEBUG) << "enter";
+  size_t fieldIndex = _findFieldIndex(newFieldName);
+  addBeam(fieldIndex, beam);
+  LOG(DEBUG) << "exit";
+}
+
+void FieldRendererController::addBeamToBackgroundRenderedFields(Beam *beam)
+{
+  LOG(DEBUG) << "enter";
+
+  // for each field,
+  //   add beam
+  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+    if (_fieldRenderers[field]->isBackgroundRendered()) {
+      _fieldRenderers[field]->addBeam(beam);
+      beam->setBeingRendered(field, true);
+    } else {
+      beam->setBeingRendered(field, false);
+    }
+  }
+  LOG(DEBUG) << "exit";
+}
+
+size_t FieldRendererController::_findFieldIndex(string fieldName)
+{
+  LOG(DEBUG) << "enter";
+
+  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+    DisplayField displayField = _fieldRenderers[field]->getField();
+    if (displayField.getName().compare(fieldName) == 0)
+	return field;
+  }
+  throw std::invalid_argument(fieldName);
+  //  LOG(DEBUG) << "exit";
+}
+
+void FieldRendererController::unselectField(size_t fieldIndex)
+{
+  LOG(DEBUG) << "enter";
+  _fieldRenderers[fieldIndex]->unselectField();
+  LOG(DEBUG) << "exit";
+}
+
+void FieldRendererController::selectField(size_t fieldIndex)
+{
+  LOG(DEBUG) << "enter";
+  _fieldRenderers[fieldIndex]->selectField();
+  LOG(DEBUG) << "exit";
+}
+
+
+// get the FieldRenderer at index ...
+FieldRenderer *FieldRendererController::get(size_t fieldIndex) 
+{
+  LOG(DEBUG) << "enter";
+  return _fieldRenderers.at(fieldIndex);
+  LOG(DEBUG) << "exit";
+}
 
 
 void FieldRendererController::activateArchiveRendering()
@@ -103,4 +197,106 @@ void FieldRendererController::performRendering(size_t selectedField) {
       }                                                                                    
   } // ifield                                                                              
   
+}
+
+bool FieldRendererController::isBackgroundRendered(size_t index) {
+
+  FieldRenderer *fieldRenderer = _fieldRenderers.at(index);
+  return fieldRenderer->isBackgroundRendered();
+}
+
+void FieldRendererController::refreshImages(int width, int height, QSize image_size,
+					    QRgb background_brush_color_rgb,
+					    QTransform zoomTransform,
+					    size_t selectedField,
+					    vector< PpiBeam* > &Beams)
+{
+  // 
+  // for each field
+  //    for each beam
+  //       add beam to field
+  //
+  for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {
+
+    FieldRenderer *field = _fieldRenderers[ifield];
+
+    // If needed, create new image for this field                                          
+
+    if (image_size != field->getImage()->size()) {
+      field->createImage(width, height);
+    }
+
+    // clear image                                                                         
+
+    field->getImage()->fill(background_brush_color_rgb);
+
+    // set up rendering details                                                            
+
+    field->setTransform(zoomTransform);
+
+    // Add pointers to the beams to be rendered                                            
+
+    if (ifield == selectedField || field->isBackgroundRendered()) {
+      std::vector< PpiBeam* >::iterator beam;
+      for (beam = Beams.begin(); beam != Beams.end(); ++beam) {
+	(*beam)->setBeingRendered(ifield, true);
+	field->addBeam(*beam);
+      }
+    }
+
+  } // ifield                                                                              
+
+  // do the rendering                                                                      
+
+  performRendering(selectedField);
+
+}
+
+
+
+void FieldRendererController::refreshImagesAsDeque(int width, int height, QSize image_size,
+					    QRgb background_brush_color_rgb,
+					    QTransform zoomTransform,
+					    size_t selectedField,
+					    deque< RhiBeam* > &Beams)
+{
+  // 
+  // for each field
+  //    for each beam
+  //       add beam to field
+  //
+  for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {
+
+    FieldRenderer *field = _fieldRenderers[ifield];
+
+    // If needed, create new image for this field                                          
+
+    if (image_size != field->getImage()->size()) {
+      field->createImage(width, height);
+    }
+
+    // clear image                                                                         
+
+    field->getImage()->fill(background_brush_color_rgb);
+
+    // set up rendering details                                                            
+
+    field->setTransform(zoomTransform);
+
+    // Add pointers to the beams to be rendered                                            
+
+    if (ifield == selectedField || field->isBackgroundRendered()) {
+      std::deque< RhiBeam* >::iterator beam;
+      for (beam = Beams.begin(); beam != Beams.end(); ++beam) {
+	(*beam)->setBeingRendered(ifield, true);
+	field->addBeam(*beam);
+      }
+    }
+
+  } // ifield                                                                              
+
+  // do the rendering                                                                      
+
+  performRendering(selectedField);
+
 }

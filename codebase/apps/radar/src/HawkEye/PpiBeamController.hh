@@ -15,8 +15,12 @@ public:
   
 
 private:
+
+  // pointers to active beams                                                                                    
+
+  std::vector<PpiBeam*> _ppiBeams;
  
-  vector<PpiBeam *> _beams;
+  //  vector<PpiBeam *> _beams;
   //  vector<PpiBeam *> _working;
  
   

@@ -29,7 +29,12 @@
 #define FIELDRENDERERCONTROLLER_H
 
 
+#include <deque>
+
 #include "FieldRenderer.hh"
+#include "Beam.hh"
+#include "PpiBeam.hh"
+#include "RhiBeam.hh"
 
 class FieldRendererController
 {
@@ -40,18 +45,35 @@ public:
   ~FieldRendererController();
 
   void addFieldRenderer(FieldRenderer *);
-  //   void addBeam();
+  void addBeam(Beam *beam);
+  void addBeam(size_t fieldIndex, Beam *beam);
+  void addBeam(string newFieldName, Beam *beam);
+  void addBeamToBackgroundRenderedFields(Beam *beam);
+  void selectField(size_t fieldIndex);
+  void unselectField(size_t fieldIndex);
+  FieldRenderer *get(size_t fieldIndex);
   void activateArchiveRendering();
   void activateRealtimeRendering(size_t selectedField);
   void performRendering(size_t selectedField);
-  
+  bool isBackgroundRendered(size_t index);
+  void refreshImages(int width, int height, QSize image_size,
+					      QRgb background_brush_color_rgb,
+					      QTransform zoomTransform,
+					      size_t selectedField,
+		     vector< PpiBeam* > &Beams);
+
+  void refreshImagesAsDeque(int width, int height, QSize image_size,
+					      QRgb background_brush_color_rgb,
+					      QTransform zoomTransform,
+					      size_t selectedField,
+			    std::deque< RhiBeam* > &Beams);
 
 private:
  
   vector<FieldRenderer *> _fieldRenderers;
   //  vector<FieldRenderer *> _working;
  
-  
+  size_t _findFieldIndex(string fieldName);
 
 };
 

@@ -155,7 +155,8 @@ void ScriptEditorController::getVolumeChanges() {
 }
 
 void ScriptEditorController::volumeUpdated() {
-  emit volumeChanged(); // _currentModel->getVolume());
+  QStringList newFieldNames = {"ABC", "123", "CDE"};
+  emit volumeChanged(newFieldNames); // _currentModel->getVolume());
 }
 
 

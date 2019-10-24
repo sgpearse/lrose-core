@@ -255,7 +255,7 @@ protected:
   string _selectedLabel;
   string _selectedUnits;
   QLabel *_valueLabel;
-  int _fieldNum;
+  //int _fieldNum;
   int _prevFieldNum;
 
   // click location report dialog

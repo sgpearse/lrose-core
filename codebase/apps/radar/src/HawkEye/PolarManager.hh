@@ -52,6 +52,7 @@
 #include "ContextEditingView.hh"
 #include <QMainWindow>
 #include <QListWidgetItem>
+#include <QStringList>
 #include <euclid/SunPosn.hh>
 #include <Radx/RadxRay.hh>
 
@@ -143,9 +144,9 @@ public slots:
   void setVolume(); // const RadxVol &radarDataVolume);
   // TODO:
   // Good. Now go and read about Q_DECLARE_METATYPE(). Or better yet, use QStringList instead of std::vector<std::string>.
-  void updateVolume(vector<string> newFieldNames);
-  void _volumeDataChanged();
-  void _addNewFields();
+  void updateVolume(QStringList newFieldNames);
+  void _volumeDataChanged(QStringList newFieldNames);
+  void _addNewFields(QStringList newFieldNames);
 
 signals:
 
@@ -302,7 +303,7 @@ private:
   void _handleArchiveData(QTimerEvent * event);
   int _getArchiveData();
   void _plotArchiveData();
-  void _updateArchiveData();
+  void _updateArchiveData(QStringList newFieldNames);
   void _setupVolRead(RadxFile &file);
   //  int _applyDataEdits(RadxVol _editedVol);  // & or * ??
   void _applyDataEdits(); // const RadxVol &editedVol);
@@ -312,7 +313,7 @@ private:
 
   void _handleRay(RadxPlatform &platform, RadxRay *ray);
   void _handleRayUpdate(RadxPlatform &platform, RadxRay *ray,
-			vector<string> newFieldNames);
+			QStringList newFieldNames);
 
   // ray handling for display
 

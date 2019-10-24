@@ -27,6 +27,8 @@ public:
 
   string getSelectedFieldName();
   DisplayField *getSelectedField();
+  size_t getSelectedFieldNum() { return _selectedFieldIndex;};
+
   void setSelectedField(string fieldName);
   void setSelectedField(size_t fieldIndex);
 

@@ -88,6 +88,12 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 	       size_t nFields); 
 	       //               const std::vector< DisplayField* > &fields);
 
+  void updateBeam(const RadxRay *ray,
+               const float start_angle, const float stop_angle,
+               const std::vector< std::vector< double > > &beam_data,
+	       size_t nFields); 
+
+
   // are we in archive mode? and if so are we at the start of a sweep?
 
   void setArchiveMode(bool state) { _isArchiveMode = state; }
@@ -146,7 +152,7 @@ class DLL_EXPORT PpiWidget : public PolarWidget
   // pointers to active beams
 
   std::vector<PpiBeam*> _ppiBeams;
-  //BeamController *beamController;
+  //PpiBeamController *_ppiBeamController;
 
   // are we in archive mode? and if so are we at the start of a sweep?
 

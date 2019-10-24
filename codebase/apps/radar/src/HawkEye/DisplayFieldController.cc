@@ -51,11 +51,17 @@ DisplayField *DisplayFieldController::getSelectedField() {
   return _model->getSelectedField();
 } 
 
+size_t DisplayFieldController::getSelectedFieldNum() {
+  return _model->getSelectedFieldNum();
+} 
+
+
 void DisplayFieldController::setSelectedField(string fieldName) {
   LOG(DEBUG) << "enter " << fieldName;
   _model->setSelectedField(fieldName);
   LOG(DEBUG) << "exit";
 } 
+
 
 void DisplayFieldController::setSelectedField(size_t fieldIndex) {
   _model->setSelectedField(fieldIndex);

@@ -339,7 +339,7 @@ class DLL_EXPORT PolarWidget : public QWidget
    */
 
   //vector<FieldRenderer*> _fieldRenderers;
-  FieldRendererController *fieldRendererController;
+  FieldRendererController *_fieldRendererController;
 
   // overide refresh images
 
