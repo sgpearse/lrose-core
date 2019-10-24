@@ -2215,38 +2215,49 @@ void PolarManager::_openFile()
   finalPattern.append("*)");
 
   QString inputPath = QDir::currentPath();
-  // get the path of the current file, if available 
+  // get the path of the current file, if available
   if (_archiveFileList.size() > 0) {
     QDir temp(_archiveFileList[0].c_str());
     inputPath = temp.absolutePath();
-  } 
+  }
 
 	BoundaryPointEditor::Instance()->clear();
-  showBoundaryEditor();
+	if (_boundaryEditorDialog)
+	{
+		clearBoundaryEditorClick();
+		_boundaryEditorDialog->setVisible(false);
+	}
 
-  QString filename =  QFileDialog::getOpenFileName(
+  QString filePath =  QFileDialog::getOpenFileName(
           this,
           "Open Document",
           inputPath, finalPattern);  //QDir::currentPath(),
   //"All files (*.*)");
- 
-  if( !filename.isNull() )
+
+  if( !filePath.isNull() )
   {
-    QByteArray qb = filename.toUtf8();
-    const char *name = qb.constData();
-    if (_params.debug >= Params::DEBUG_VERBOSE) {
-      cerr << "selected file path : " << name << endl;
-    }
+    QByteArray qb = filePath.toUtf8();
+    const char *openFilePath = qb.constData();
+
+    //save this so the boundary editor can save boundaries to a unique directory
+    cout << "openFilePath=" << openFilePath << endl;
+
+		hash<string> str_hash;
+		long hash = str_hash(openFilePath);
+		stringstream ss;
+		ss << hash;
+		_boundaryEditorSubPath = ss.str();
+//cout << "_boundaryEditorSubPath=" << _boundaryEditorSubPath << endl;
 
     // trying this ... to get the data from the file selected
     _setArchiveRetrievalPending();
     vector<string> list;
-    list.push_back(name);
+    list.push_back(openFilePath);
     setArchiveFileList(list, false);
 
     try {
       _getArchiveData();
-    } catch (FileIException ex) { 
+    } catch (FileIException ex) {
       this->setCursor(Qt::ArrowCursor);
       // _timeControl->setCursor(Qt::ArrowCursor);
       return;
@@ -2258,10 +2269,10 @@ void PolarManager::_openFile()
   _setArchiveStartTimeFromGui(epoch);
   QDateTime now = QDateTime::currentDateTime();
   _setArchiveEndTimeFromGui(now);
-  
+
   _archiveStartTime = _guiStartTime;
   _archiveEndTime = _guiEndTime;
-  QFileInfo fileInfo(filename);
+  QFileInfo fileInfo(filePath);
   string absolutePath = fileInfo.absolutePath().toStdString();
   if (_params.debug >= Params::DEBUG_VERBOSE) {
     cerr << "changing to path " << absolutePath << endl;
@@ -2289,7 +2300,7 @@ void PolarManager::_openFile()
       }
       cerr << endl;
     }
-  
+
     setArchiveFileList(pathList, false);
 
     // now fetch the first time and last time from the directory
@@ -2302,13 +2313,15 @@ void PolarManager::_openFile()
       cerr << "first time " << firstTime << endl;
       cerr << "last time " << lastTime << endl;
     }
-    // convert RadxTime to QDateTime 
+    // convert RadxTime to QDateTime
     _archiveStartTime = firstTime;
     _archiveEndTime = lastTime;
     _setGuiFromArchiveStartTime();
     _setGuiFromArchiveEndTime();
   } // end else pathList is not empty
 }
+
+
 
 ////////////////////////////////////////////////////
 // create the file chooser dialog
@@ -2823,17 +2836,21 @@ string PolarManager::_getOutputPath(bool interactive, bool useImagesOutputDir, s
 
 	  // compute output dir
 	  if (useImagesOutputDir)
+	  {
 	  	outputDir = _params.images_output_dir;
+		  char dayStr[1024];
+		  if (_params.images_write_to_day_dir)
+		  {
+		    sprintf(dayStr, "%.4d%.2d%.2d", _plotStartTime.getYear(), _plotStartTime.getMonth(), _plotStartTime.getDay());
+		    outputDir += PATH_DELIM;
+		    outputDir += dayStr;
+		  }
+	  }
 	  else
+	  {
 	  	outputDir = string(getenv("HOME")) + PATH_DELIM + "HawkEyeBoundaries";
-	  char dayStr[1024];
-	  if (_params.images_write_to_day_dir) {
-	    sprintf(dayStr, "%.4d%.2d%.2d",
-	            _plotStartTime.getYear(),
-	            _plotStartTime.getMonth(),
-	            _plotStartTime.getDay());
-	    outputDir += PATH_DELIM;
-	    outputDir += dayStr;
+	  	if (!_boundaryEditorSubPath.empty())
+	  		outputDir += PATH_DELIM + _boundaryEditorSubPath;
 	  }
 
 	  // make sure output dir exists
@@ -3021,8 +3038,8 @@ void PolarManager::createBoundaryEditorDialog()
 	_boundaryEditorDialogLayout->setVerticalSpacing(4);
 
 	int row = 0;
-	QLabel *mainHeader = new QLabel("Click points in main window to draw\na polygon boundary and click near the first\npoint to close the polygon. Once closed,\nhold Shift key to insert/delete points.", _boundaryEditorDialog);
-	_boundaryEditorDialogLayout->addWidget(mainHeader, row, 0, 1, 2, alignCenter);
+	_boundaryEditorInfoLabel = new QLabel("Boundary Editor allows you to select\nan area of your radar image", _boundaryEditorDialog);
+	_boundaryEditorDialogLayout->addWidget(_boundaryEditorInfoLabel, row, 0, 1, 2, alignCenter);
 
 	_boundaryEditorDialogLayout->addWidget(new QLabel(" ", _boundaryEditorDialog), ++row, 0, 1, 2, alignCenter);
 
@@ -3126,11 +3143,20 @@ void PolarManager::selectBoundaryTool(BoundaryToolType tool)
 	_boundaryEditorBrushBtn->setChecked(false);
 
 	if (tool == BoundaryToolType::polygon)
+	{
 		_boundaryEditorPolygonBtn->setChecked(true);
+		_boundaryEditorInfoLabel->setText("Polygon: click points over desired area to\ndraw a polygon. Click near the first point\nto close it. Once closed, hold the Shift\nkey to insert/delete points.");
+	}
 	else if (tool == BoundaryToolType::circle)
+	{
 		_boundaryEditorCircleBtn->setChecked(true);
+		_boundaryEditorInfoLabel->setText("Circle: click on the main window to\ncreate your circle. You can then adjust\nthe radius slider to rescale it to the\ndesired size.");
+	}
 	else
+	{
 		_boundaryEditorBrushBtn->setChecked(true);
+		_boundaryEditorInfoLabel->setText("Brush: adjust slider to set brush size.\nClick/drag the mouse to 'paint' boundary.\nClick inside your shape and drag outwards\nto enlarge a desired region.");
+	}
 }
 
 void PolarManager::polygonBtnBoundaryEditorClick()
@@ -3237,6 +3263,11 @@ void PolarManager::showBoundaryEditor()
 				ifstream infile(path);
 				if (infile.good())
 					_boundaryEditorList->item(i)->setText(fileExt.c_str());
+				else if (i > 0)
+				{
+					string blankCaption = fileExt + " <none>";
+					_boundaryEditorList->item(i)->setText(blankCaption.c_str());  //e.g "Boundary2 <none>", "Boundary3 <none>", ...
+				}
       }
 
       //load the first boundary in list (if exists)

@@ -147,7 +147,7 @@ signals:
 private:
 
   static PolarManager* m_pInstance;
-
+  string _boundaryEditorSubPath;
 
   bool _firstTime;
   bool _urlOK;
@@ -242,6 +242,8 @@ private:
   QPushButton *_boundaryEditorCircleBtn;
   QPushButton *_boundaryEditorBrushBtn;
   QListWidget *_boundaryEditorList;
+  QLabel *_boundaryEditorInfoLabel;
+  bool forceHide = true;
 
   // time controller settings dialog
   
