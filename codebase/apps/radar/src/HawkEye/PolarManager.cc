@@ -841,16 +841,18 @@ void PolarManager::_changeSweep(bool value) {
     return;
   }
 
-  for (size_t ii = 0; ii < _sweepRButtons->size(); ii++) {
-    if (_sweepRButtons->at(ii)->isChecked()) {
+  for (int sweepIndex = 0; sweepIndex < _sweepRButtons->size(); sweepIndex++) {
+    if (_sweepRButtons->at(sweepIndex)->isChecked()) {
       if (_params.debug) {
-        cerr << "sweepRButton " << ii << " is checked" << endl;
-        cerr << "  moving to sweep index " << ii << endl;
+        cerr << "sweepRButton " << sweepIndex << " is checked" << endl;
+        cerr << "  moving to sweep index " << sweepIndex << endl;
       }
-      _sweepManager.setGuiIndex(ii);
+      _sweepManager.setGuiIndex(sweepIndex);
       _ppi->setStartOfSweep(true);
       _rhi->setStartOfSweep(true);
       _moveUpDown();
+
+      refreshBoundaries();
       return;
     }
   } // ii
@@ -1619,7 +1621,6 @@ void PolarManager::_refresh()
 void PolarManager::_changeField(int fieldId, bool guiMode)
 
 {
-
   _selectedField = _fields[fieldId];
   
   if (_params.debug) {
@@ -1661,6 +1662,7 @@ void PolarManager::_changeField(int fieldId, bool guiMode)
   }
   _valueLabel->setText(text);
 
+  refreshBoundaries();
 }
 
 // PolarManager::colorMapRedefineReceived(string, ColorMap)
@@ -2200,6 +2202,15 @@ void PolarManager::_timeSliderPressed()
   }
 }
 
+void PolarManager::setBoundaryDir()
+{
+	hash<string> str_hash;
+	long hash = str_hash(_openFilePath);
+	stringstream ss;
+	ss << hash;
+	_boundaryDir = _rootBoundaryDir + PATH_DELIM + ss.str();
+}
+
 ////////////////////////////////////////////////////
 // create the file chooser dialog
 //
@@ -2207,8 +2218,7 @@ void PolarManager::_timeSliderPressed()
 
 void PolarManager::_openFile()
 {
-  // seed with files for the day currently in view
-  // generate like this: *yyyymmdd*
+  // seed with files for the day currently in view, generate like this: *yyyymmdd*
   string pattern = _archiveStartTime.getDateStrPlain();
   QString finalPattern = "Cfradial (*.nc);; All Files (*.*);; All files (*";
   finalPattern.append(pattern.c_str());
@@ -2238,16 +2248,11 @@ void PolarManager::_openFile()
   {
     QByteArray qb = filePath.toUtf8();
     const char *openFilePath = qb.constData();
+    _openFilePath = openFilePath;
 
     //save this so the boundary editor can save boundaries to a unique directory
-    cout << "openFilePath=" << openFilePath << endl;
-
-		hash<string> str_hash;
-		long hash = str_hash(openFilePath);
-		stringstream ss;
-		ss << hash;
-		_boundaryEditorSubPath = ss.str();
-//cout << "_boundaryEditorSubPath=" << _boundaryEditorSubPath << endl;
+    cout << "_openFilePath=" << _openFilePath << endl;
+    setBoundaryDir();
 
     // trying this ... to get the data from the file selected
     _setArchiveRetrievalPending();
@@ -2823,7 +2828,7 @@ void PolarManager::_createImageFiles()
 
 }
 
-string PolarManager::_getOutputPath(bool interactive, bool useImagesOutputDir, string &outputDir, string fileExt)
+string PolarManager::_getOutputPath(bool interactive, string &outputDir, string fileExt)
 {
 	  // set times from plots
 	  if (_rhiMode) {
@@ -2835,23 +2840,14 @@ string PolarManager::_getOutputPath(bool interactive, bool useImagesOutputDir, s
 	  }
 
 	  // compute output dir
-	  if (useImagesOutputDir)
-	  {
-	  	outputDir = _params.images_output_dir;
-		  char dayStr[1024];
-		  if (_params.images_write_to_day_dir)
-		  {
-		    sprintf(dayStr, "%.4d%.2d%.2d", _plotStartTime.getYear(), _plotStartTime.getMonth(), _plotStartTime.getDay());
-		    outputDir += PATH_DELIM;
-		    outputDir += dayStr;
-		  }
-	  }
-	  else
-	  {
-	  	outputDir = string(getenv("HOME")) + PATH_DELIM + "HawkEyeBoundaries";
-	  	if (!_boundaryEditorSubPath.empty())
-	  		outputDir += PATH_DELIM + _boundaryEditorSubPath;
-	  }
+		outputDir = _params.images_output_dir;
+		char dayStr[1024];
+		if (_params.images_write_to_day_dir)
+		{
+			sprintf(dayStr, "%.4d%.2d%.2d", _plotStartTime.getYear(), _plotStartTime.getMonth(), _plotStartTime.getDay());
+			outputDir += PATH_DELIM;
+			outputDir += dayStr;
+		}
 
 	  // make sure output dir exists
 
@@ -2943,7 +2939,7 @@ void PolarManager::_saveImageToFile(bool interactive)
   QImage image = pixmap.toImage();
 
   string outputDir;
-  string outputPath = _getOutputPath(interactive, true, outputDir, _params.images_file_name_extension);
+  string outputPath = _getOutputPath(interactive, outputDir, _params.images_file_name_extension);
 
   // write the file
   if (!image.save(outputPath.c_str())) {
@@ -3027,6 +3023,7 @@ void PolarManager::_howto()
 
 void PolarManager::createBoundaryEditorDialog()
 {
+cout << "inside createBoundaryEditorDialog()..." << endl;
 	_boundaryEditorDialog = new QDialog(this);
 	_boundaryEditorDialog->setMaximumHeight(368);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
@@ -3134,6 +3131,7 @@ void PolarManager::createBoundaryEditorDialog()
   connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(saveBoundaryEditorClick()));
 
   connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
+cout << "leaving createBoundaryEditorDialog()..." << endl;
 }
 
 void PolarManager::selectBoundaryTool(BoundaryToolType tool)
@@ -3182,14 +3180,15 @@ void PolarManager::brushBtnBoundaryEditorClick()
 
 void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 {
-	string fileExt = item->text().toUtf8().constData();
-	bool found = (fileExt.find("<none>") != string::npos);
+	string fileName = item->text().toUtf8().constData();
+	bool found = (fileName.find("<none>") != string::npos);
 	if (!found)
 	{
-		cout << "clicked on item " << fileExt << endl;
-		string outputDir;
-		string path = _getOutputPath(false, false, outputDir, fileExt);
-		BoundaryPointEditor::Instance()->load(path);
+		cout << "clicked on item " << fileName << endl;
+
+		if (_boundaryDir.empty())
+			_boundaryDir = _rootBoundaryDir;
+		BoundaryPointEditor::Instance()->load(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + fileName);
 
 		if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle)
 		{
@@ -3220,13 +3219,14 @@ void PolarManager::saveBoundaryEditorClick()
 {
 	cout << "PolarManager, _saveBoundaryEditorClick" << endl;
 
-	string text = "Boundary" + to_string(_boundaryEditorList->currentRow()+1);
-	_boundaryEditorList->currentItem()->setText(text.c_str());
+	if (_boundaryDir.empty())
+		_boundaryDir = _rootBoundaryDir;
+	ta_makedir_recurse(_boundaryDir.c_str());
 
-	string outputDir;
-	string fileExt = _boundaryEditorList->currentItem()->text().toUtf8().constData();
-	string path = _getOutputPath(false, false, outputDir, fileExt);
-	BoundaryPointEditor::Instance()->save(path);
+	string fileName = "Boundary" + to_string(_boundaryEditorList->currentRow()+1);
+	_boundaryEditorList->currentItem()->setText(fileName.c_str());
+
+	BoundaryPointEditor::Instance()->save(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + fileName);
 }
 
 /////////////////////////////
@@ -3250,30 +3250,36 @@ void PolarManager::showBoundaryEditor()
         _boundaryEditorDialog->move(pos);
       }
       _boundaryEditorDialog->setVisible(true);
-      BoundaryPointEditor::Instance()->clear();
-
       _boundaryEditorDialog->raise();
 
-      //rename any items that have corresponding file on disk
-      for (int i=4; i > 0; i--)
-      {
-				string outputDir;
-				string fileExt = "Boundary" + to_string(i+1);
-				string path = _getOutputPath(false, false, outputDir, fileExt);
-				ifstream infile(path);
-				if (infile.good())
-					_boundaryEditorList->item(i)->setText(fileExt.c_str());
-				else if (i > 0)
-				{
-					string blankCaption = fileExt + " <none>";
-					_boundaryEditorList->item(i)->setText(blankCaption.c_str());  //e.g "Boundary2 <none>", "Boundary3 <none>", ...
-				}
-      }
-
-      //load the first boundary in list (if exists)
-	  	_boundaryEditorList->setCurrentRow(0);
-	  	onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
+      refreshBoundaries();
     }
   }
 }
 
+void PolarManager::refreshBoundaries()
+{
+  BoundaryPointEditor::Instance()->clear();
+
+  //rename any items that have corresponding file on disk
+  for (int i=4; i > 0; i--)
+  {
+		string outputDir;
+		string fileName = "Boundary" + to_string(i+1);
+		setBoundaryDir();
+		string path = _boundaryDir + PATH_DELIM + fileName;
+
+		ifstream infile(path);
+		if (infile.good())
+			_boundaryEditorList->item(i)->setText(fileName.c_str());
+		else if (i > 0)
+		{
+			string blankCaption = fileName + " <none>";
+			_boundaryEditorList->item(i)->setText(blankCaption.c_str());  //e.g "Boundary2 <none>", "Boundary3 <none>", ...
+		}
+  }
+
+  //load the first boundary in list (if exists)
+	_boundaryEditorList->setCurrentRow(0);
+	onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
+}

@@ -147,7 +147,10 @@ signals:
 private:
 
   static PolarManager* m_pInstance;
-  string _boundaryEditorSubPath;
+  string _openFilePath;
+  string _boundaryDir;
+  string _rootBoundaryDir = string(getenv("HOME")) + "/" + "HawkEyeBoundaries";
+  void setBoundaryDir();
 
   bool _firstTime;
   bool _urlOK;
@@ -285,7 +288,7 @@ private:
   void _openFile();
   void _saveFile();
   void _moveUpDown();
-  string _getOutputPath(bool interactive, bool useImagesOutputDir, string &outputDir, string fileExt);
+  string _getOutputPath(bool interactive, string &outputDir, string fileExt);
 
   // set top bar
 
@@ -426,6 +429,7 @@ private slots:
   // boundary editor
   void createBoundaryEditorDialog();
   void showBoundaryEditor();
+  void refreshBoundaries();
   void clearBoundaryEditorClick();
   void polygonBtnBoundaryEditorClick();
   void circleBtnBoundaryEditorClick();

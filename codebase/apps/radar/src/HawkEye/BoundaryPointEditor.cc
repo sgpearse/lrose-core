@@ -264,8 +264,6 @@ void BoundaryPointEditor::setBrushRadius(int value)
 void BoundaryPointEditor::addToBrushShape(float x, float y)
 {
 	float brushWorldRadius = getBrushWorldRadius();
-//brushWorldRadius = brushRadius;
-
 
 	float distToPrevPt = points.size() == 0 ? 0 : brushLastOrigin.distanceTo(x, y);
 	if (brushRadius <= 12)
