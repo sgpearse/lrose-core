@@ -136,6 +136,76 @@ void SweepManager::set(const RadxVol &vol)
 
 }
 
+/*
+void SweepManager::reset(const RadxVol &vol)
+  
+{
+
+  // first time?
+
+  bool init = false;
+  if (_sweeps.size() == 0) {
+    init = true;
+  }
+
+  // init
+
+  _sweeps.clear();
+  _reversedInGui = false;
+
+  const vector<RadxSweep *> sweepsInVol = vol.getSweeps();
+
+  // zero length case
+  
+  if (sweepsInVol.size() == 0) {
+    setGuiIndex(0);
+    return;
+  }
+
+  // check if angles are in ascending or descending order
+  // if ascending, reverse so that they are descending in this object
+  // that matches a top-down rendering of the angles in the widget
+
+  if (sweepsInVol[0]->getFixedAngleDeg() < 
+      sweepsInVol[sweepsInVol.size()-1]->getFixedAngleDeg()) {
+    _reversedInGui = true;
+  }
+
+  for (ssize_t ii = 0; ii < (ssize_t) sweepsInVol.size(); ii++) {
+    ssize_t jj = ii;
+    if (_reversedInGui) {
+      jj = sweepsInVol.size() - 1 - ii;
+    }
+    GuiSweep gsweep;
+    gsweep.radx = sweepsInVol[jj];
+    gsweep.indexInFile = jj;
+    gsweep.indexInGui = ii;
+    _sweeps.push_back(gsweep);
+  }
+
+  // initialize sweep index if needed
+
+  if (init || _guiIndex > ((int) _sweeps.size()-1)) {
+    setGuiIndex(_sweeps.size() - 1);
+  } else if (_guiIndex < 0) {
+    _guiIndex = 0;
+  }
+
+  // set selected angle
+
+  _selectedAngle = _sweeps[_guiIndex].radx->getFixedAngleDeg();
+
+  if (_params.debug >= Params::DEBUG_VERBOSE) {
+    if (_reversedInGui) {
+      cerr << "INFO - SweepManager: sweep list is reversed in GUI" << endl;
+    }
+  }
+
+}
+*/
+
+
+
 /////////////////////////////////////////////////////////////
 // set angle
 // size effect: sets the selected index

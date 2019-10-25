@@ -100,7 +100,7 @@ DisplayManager::DisplayManager(const Params &params,
 
   _beamTimerId = 0;
   _frozen = false;
-  _displayFieldController->setSelectedField(0);
+  //  _displayFieldController->setSelectedField(0);
   _prevFieldNum = -1;
 
   _radarLat = -9999.0;

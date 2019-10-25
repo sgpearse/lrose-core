@@ -131,8 +131,15 @@ public:
   virtual void fillColors(const std::vector<std::vector<double> >& beamData,
 			  //const std::vector<DisplayField*>& fields,
 			  DisplayFieldController *displayFieldController,
+			  size_t nFields,
+			  const QBrush *background_brush);
+
+  virtual void updateFillColors(const std::vector<std::vector<double> >& beamData,
+			  //const std::vector<DisplayField*>& fields,
+			  DisplayFieldController *displayFieldController,
 			  size_t number_new_fields,
 			  const QBrush *background_brush);
+
 
   /**
    * @brief Paint the given field in the given painter.

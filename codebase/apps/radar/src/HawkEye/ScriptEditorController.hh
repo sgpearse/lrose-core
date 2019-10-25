@@ -36,7 +36,7 @@ public:
   void open(string fileName);
 
   ScriptEditorModel *getDataModel() {return _currentModel;};
-  void volumeUpdated();
+  void volumeUpdated(QStringList newFieldNames);
 
   void printQJSEngineContext();
   void addVariableToScriptEditor(QString name, QJSValue value);

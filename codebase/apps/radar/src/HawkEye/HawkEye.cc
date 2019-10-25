@@ -200,7 +200,7 @@ int HawkEye::Run(QApplication &app)
     string emphasis_color = "white";
     string annotation_color = "white";
     DisplayFieldModel *displayFieldModel =
-      new DisplayFieldModel(_displayFields, "NONE", // selectedField.getName(),
+      new DisplayFieldModel(_displayFields, _displayFields[0]->getName(), // selectedField.getName(),
                           _params.grid_and_range_ring_color,
                           emphasis_color,
                           annotation_color,

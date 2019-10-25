@@ -120,7 +120,7 @@ PolarManager::PolarManager(const Params &params,
                            Reader *reader,
 			   DisplayFieldController *displayFieldController,
                            bool haveFilteredFields) :
-  DisplayManager(params, reader, _displayFieldController, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
+  DisplayManager(params, reader, displayFieldController, haveFilteredFields), _sweepManager(params), _rhiWindowDisplayed(false)
 {
 
 	m_pInstance = this;
@@ -1226,32 +1226,32 @@ void PolarManager::_addNewFields(QStringList  newFieldNames)
     LOG(DEBUG) << radxField->getName();
   }
 
-  LOG(DEBUG) << "newFieldNames ...";
-  //  newFieldNames.split(',');
-  for (int i=0; i < newFieldNames.size(); ++i) {
-    LOG(DEBUG) << newFieldNames.at(i).toLocal8Bit().constData();
-  }
-
-  // make new DisplayFields for PpiWidget
-  // -----
 
   // TODO: 
   // inheret the color map, units, etc. from the similar field
   // Do this in the ScriptEditor, when the new field is added to RadxVol
 
+  // make new DisplayFields for PpiWidget
+  // -----
+
   vector<DisplayField *> newFields;
 
+  LOG(DEBUG) << "newFieldNames ...";
+  //  newFieldNames.split(',');
+  for (int i=0; i < newFieldNames.size(); ++i) {
+    string name = newFieldNames.at(i).toLocal8Bit().constData();
 
+    LOG(DEBUG) << name;
+ 
+    ColorMap map(-20.0, 20.0, "default");
 
-  ColorMap map(-20.0, 20.0, "default");
-
-    DisplayField *field =
-      // new DisplayField(pfld.label, pfld.raw_name, pfld.units,
+     // new DisplayField(pfld.label, pfld.raw_name, pfld.units,
       //		       pfld.shortcut, map, ifield, false);
-      new DisplayField("VEL_xyz", "VEL_xyz", "m/x",
+    DisplayField *field =
+      new DisplayField(name, name, "m/x",
 		       "9", map, 9, false);
     //if (noColorMap)
-      field->setNoColorMap();
+    field->setNoColorMap();
 
     newFields.push_back(field);
     _displayFieldController->addField(field);
@@ -1259,16 +1259,16 @@ void PolarManager::_addNewFields(QStringList  newFieldNames)
     // filtered field                                                                                    
     
     /*
-    if (strlen(pfld.filtered_name) > 0) {
+      if (strlen(pfld.filtered_name) > 0) {
       string filtLabel = string(pfld.label) + "-filt";
       DisplayField *filt =
-        new DisplayField(filtLabel, pfld.filtered_name, pfld.units, pfld.shortcut,
-                         map, ifield, true);
+      new DisplayField(filtLabel, pfld.filtered_name, pfld.units, pfld.shortcut,
+      map, ifield, true);
       newFields.push_back(filt);
-    }
+      }
     */
     // -----------
-    
+  }   
   
   if (_ppi) {
     _ppi->addNewFields(newFields);
@@ -1302,10 +1302,10 @@ void PolarManager::_volumeDataChanged(QStringList newFieldNames)
   //TODO: need to get a list of new Fields, somehow ...
   // could be as a list of DisplayFields? 
 
-  vector<DisplayField *> newFields;
+  //vector<DisplayField *> newFields;
   
 
-  _addNewFields(newFields);
+  _addNewFields(newFieldNames);
   _updateFieldPanel();
   _fieldPanel->update();
 
@@ -1394,6 +1394,10 @@ void PolarManager::_updateArchiveData(QStringList newFieldNames)
     return;
   }
   
+  // TODO: reload the sweeps into the sweepManager?
+  //  I added this ...
+  _sweepManager.set(_vol);
+
   //const vector<RadxSweep *> &sweeps = _vol.getSweeps();
   //if (sweeps.size() < 1) {
   //  cerr << "ERROR - _plotArchiveData" << endl;
@@ -1471,12 +1475,15 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
   vector<string> fieldNames = _displayFieldController->getFieldNames();
   vector<string>::iterator ifieldName;
   size_t ifield = 0;
-  for (ifieldName = fieldNames.begin(); ifieldName != fieldNames.end(); ifieldName++) {
+  for (ifieldName = fieldNames.begin(); ifieldName != fieldNames.end(); ++ifieldName) {
     //for (size_t ifield = 0; ifield < fieldNames.size(); ifield++) {
-
+    LOG(DEBUG) << "filling data for field " << *ifieldName;
     vector<double> &data = fieldData[ifield];
     data.resize(_nGates);
-    RadxField *rfld = ray->getField(*ifieldName);
+    string alias = _displayFieldController->getFieldAlias(*ifieldName);
+    RadxField *rfld = ray->getField(alias); // *ifieldName);
+    if (rfld == NULL) LOG(DEBUG) <<  "No field found for DisplayField name";
+
     //    RadxField *rfld = ray->getField(_fields[ifield]->getName());
 
     // at this point, we know the data values for the field AND the color map                                                                        

@@ -15,6 +15,14 @@ DisplayFieldModel::DisplayFieldModel(vector<DisplayField *> displayFields,
 {
   LOG(DEBUG) << "enter";
   _fields = displayFields;
+
+  LOG(DEBUG) << "Field names ... ";
+  for (vector<DisplayField *>::iterator fieldItr = _fields.begin(); fieldItr != _fields.end(); fieldItr++) {
+    DisplayField *field = *fieldItr;
+    LOG(DEBUG) << field->getName();
+  }
+  
+  LOG(DEBUG) << "selected field is " << selectedFieldName;
   _selectedFieldName = selectedFieldName;
   _gridColor = gridColor;
   _emphasisColor = emphasisColor;
@@ -57,6 +65,22 @@ DisplayField *DisplayFieldModel::getField(string fieldName) {
 
 size_t DisplayFieldModel::getFieldIndex(string fieldName) {
   return _lookupFieldIndex(fieldName);
+}
+
+string DisplayFieldModel::getFieldName(size_t fieldIndex) {
+  DisplayField *displayField = getField(fieldIndex);
+  if (displayField == NULL) {
+    LOG(DEBUG) << "field name not found for index " << fieldIndex;
+    throw std::invalid_argument("field index not found");
+  }
+  return displayField->getName();
+}
+
+string DisplayFieldModel::getFieldAlias(string fieldName) {
+  DisplayField *displayField = getField(fieldName);
+  if (displayField == NULL) 
+    throw std::invalid_argument(fieldName);
+  return displayField->getLabel();
 }
 
 string DisplayFieldModel::getSelectedFieldName() {
@@ -107,8 +131,7 @@ DisplayField *DisplayFieldModel::getFiltered(size_t ifield, int buttonRow)
 
 ColorMap *DisplayFieldModel::_getOriginalColorMap(string fieldName) {
 
-  LOG(DEBUG) << "looking for field ...";
-  LOG(DEBUG) << fieldName;
+  LOG(DEBUG) << "looking for field ..." <<  fieldName;
 
   // find the field or return NULL if not found
   ColorMap *colorMap = NULL;
@@ -120,8 +143,7 @@ ColorMap *DisplayFieldModel::_getOriginalColorMap(string fieldName) {
     DisplayField *field = *it;
 
     string name = field->getName();
-    LOG(DEBUG) << "comparing to ...";
-    LOG(DEBUG) << name;
+    LOG(DEBUG) << "comparing to ..." << name;
     if (name.compare(fieldName) == 0) {
       LOG(DEBUG) << "found color map";
       found = true;
@@ -131,8 +153,7 @@ ColorMap *DisplayFieldModel::_getOriginalColorMap(string fieldName) {
     it++;
   }
   if (!found) {
-    LOG(ERROR) << fieldName;
-    LOG(ERROR) << "ERROR - field not found";                                                           
+    LOG(ERROR) << "ERROR - field not found" << fieldName;
   } 
   return colorMap;
 }

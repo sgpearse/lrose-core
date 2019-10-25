@@ -366,7 +366,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
     
     // Set up the brushes for all of the fields in this beam.  This can be
     // done independently of a Painter object.
-    // TODO: Just send the number of fields
+    // Just send the number of new fields
     beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
@@ -499,7 +499,7 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     // Set up the brushes for all of the fields in this beam.  This can be
     // done independently of a Painter object.
     // TODO: Just send the number of fields
-    beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
+    beam->updateFillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     /* I don't think we need this, the fieldRenderers already have the beam
     // TODO: render the new fields ...

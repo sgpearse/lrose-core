@@ -958,12 +958,13 @@ void RhiWidget::selectVar(const size_t index)
   // If this field isn't being rendered in the background, render all of
   // the beams for it
 
-  // TODO: HERE ... 
-  if (!_fieldRenderers[index]->isBackgroundRendered()) {
+ 
+  //  if (!_fieldRenderers[index]->isBackgroundRendered()) {
+  if (!_fieldRendererController->isBackgroundRendered(index)) {
     std::deque<RhiBeam*>::iterator beam;
     for (beam = _rhiBeams.begin(); beam != _rhiBeams.end(); ++beam) {
       (*beam)->setBeingRendered(index, true);
-      _fieldRenderers[index]->addBeam(*beam);
+      _fieldRendererController->addBeam(index, *beam);
     }
   }
   _performRendering();

@@ -24,6 +24,9 @@ public:
   DisplayField *getField(size_t fieldIdx);
   DisplayField *getField(string fieldName);
   size_t getFieldIndex(string fieldName);
+  string getFieldName(size_t fieldIndex);
+
+  string getFieldAlias(string fieldName);
 
   string getSelectedFieldName();
   DisplayField *getSelectedField();

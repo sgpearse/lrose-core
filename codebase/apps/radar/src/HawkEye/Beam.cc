@@ -127,39 +127,58 @@ void Beam::resetFieldBrush(size_t field, const QBrush *brush)
 // displayFieldController knows the color map for each field; 
 // ??? send the color map for each field
 void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
-		      //		      const std::vector<DisplayField*>& fields,
 		      DisplayFieldController *displayFieldController,
-		      //   vector<ColorMap *> colorMaps,
-		      size_t number_new_fields, // ???
+		      size_t nFields,
 		      const QBrush *background_brush)
 
 {
-  size_t new_field_start_index = _nFields;
-  _nFields += number_new_fields;
-  _brushes.resize(_nFields);
+  //  size_t new_field_start_index = _nFields;
+  //_nFields += number_new_fields;
+  //_brushes.resize(_nFields);
 
-  for (size_t fieldIdx = 0; fieldIdx < number_new_fields; ++fieldIdx) {
-
-    size_t absolute_index = new_field_start_index + fieldIdx;
+  for (size_t fieldIdx = 0; fieldIdx < _nFields; fieldIdx++) {
     //    const ColorMap &map = fields[field]->getColorMap();
-    const ColorMap *map = displayFieldController->getColorMap(absolute_index);
+    const ColorMap *map = displayFieldController->getColorMap(fieldIdx);
     const double *field_data = &(beam_data[fieldIdx][0]);
-    
     for (size_t igate = 0; igate < _nGates; ++igate) {
-      
       double data = field_data[igate];
       
       if (data < -9990) {
-	_brushes[absolute_index][igate] = background_brush;
+	_brushes[fieldIdx][igate] = background_brush;
       } else {
-	_brushes[absolute_index][igate] = map->dataBrush(data);
+	_brushes[fieldIdx][igate] = map->dataBrush(data);
       }
 
     } // igate
-
   }
-
 }
+
+void Beam::updateFillColors(const std::vector<std::vector<double> >& beam_data,
+		      DisplayFieldController *displayFieldController,
+		      size_t number_new_fields,
+		      const QBrush *background_brush)
+{
+  size_t start_index = _nFields;
+  _nFields += number_new_fields;
+  _brushes.resize(_nFields);
+
+  // TODO: just call fillColors instead of repeating code?
+  for (size_t fieldIdx = start_index; fieldIdx < _nFields; fieldIdx++) {
+    //size_t absolute_index = new_field_start_index + fieldIdx;
+    //    const ColorMap &map = fields[field]->getColorMap();
+    const ColorMap *map = displayFieldController->getColorMap(fieldIdx);
+    const double *field_data = &(beam_data[fieldIdx][0]);
+    for (size_t igate = 0; igate < _nGates; ++igate) {
+      double data = field_data[igate];
+      if (data < -9990) {
+	_brushes[fieldIdx][igate] = background_brush;
+      } else {
+	_brushes[fieldIdx][igate] = map->dataBrush(data);
+      }
+    } // igate
+  }
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // Memory management.

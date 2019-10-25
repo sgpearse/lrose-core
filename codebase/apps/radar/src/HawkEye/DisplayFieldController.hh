@@ -26,7 +26,8 @@ public:
 
   void setSelectedField(string fieldName);
   void setSelectedField(size_t fieldIndex);
-
+ 
+  string getFieldAlias(string fieldName);
 
   DisplayField *getFiltered(size_t fieldIndex, int buttonRow);
   size_t getFieldIndex(string fieldName);

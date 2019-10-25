@@ -41,6 +41,11 @@ size_t DisplayFieldController::getFieldIndex(string fieldName) {
   return _model->getFieldIndex(fieldName);
 }  
 
+string DisplayFieldController::getFieldAlias(string fieldName) {
+  return _model->getFieldAlias(fieldName);
+} 
+
+
 string DisplayFieldController::getSelectedFieldName() {
   //  DisplayField *selectedField = model->getSelectedField();
   //  return selectedField->getName();
@@ -90,12 +95,12 @@ void DisplayFieldController::setForLocationClicked(string fieldName, double valu
 }
 
 ColorMap *DisplayFieldController::getColorMap(size_t fieldIndex) {
-    return _model->getColorMap(fieldIndex);
+  string fieldName = _model->getFieldName(fieldIndex);
+  return _model->getColorMap(fieldName);
 }
 
 ColorMap *DisplayFieldController::getColorMap(string fieldName) {
-  size_t fieldIndex = _model->getFieldIndex(fieldName);
-  return _model->getColorMap(fieldIndex);
+  return _model->getColorMap(fieldName);
 }
 
 void DisplayFieldController::setColorMap(string fieldName, ColorMap *newColorMap) {

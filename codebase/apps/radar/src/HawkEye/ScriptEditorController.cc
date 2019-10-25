@@ -143,19 +143,19 @@ void  ScriptEditorController::needDataForField(string fieldName, int r, int c) {
 void ScriptEditorController::getVolumeChanges() {
 
   LOG(DEBUG) << "enter";
-  vector<string> *fields = _currentView->getVariablesFromScriptEditor();
-  int column = 0;
-  for(vector<string>::iterator s = fields->begin(); s != fields->end(); s++) {
+  //  QStringList *fieldNames = _currentView->getVariablesFromScriptEditor();
+  //int column = 0;
+  //for(vector<string>::iterator s = fields->begin(); s != fields->end(); s++) {
     //vector<float> *data = _currentView->getDataForVariableFromScriptEditor(column, *s);
     //setData(*s, data);
     //column++;
-  }
-  volumeUpdated();
+  //}
+  //volumeUpdated(fieldNames);
   LOG(DEBUG) << "exit";
 }
 
-void ScriptEditorController::volumeUpdated() {
-  QStringList newFieldNames = {"ABC", "123", "CDE"};
+void ScriptEditorController::volumeUpdated(QStringList newFieldNames) {
+  // QStringList newFieldNames = {"ABC", "123", "CDE"};
   emit volumeChanged(newFieldNames); // _currentModel->getVolume());
 }
 
@@ -652,7 +652,9 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
-    emit volumeUpdated();
+    QStringList newFieldNames = {"ABC"}; // , "123", "CDE"};
+
+    volumeUpdated(newFieldNames);
     LOG(DEBUG) << "exit";
 }
 

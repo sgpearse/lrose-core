@@ -33,7 +33,7 @@
 #include "DisplayField.hh"
 #include "SoloDefaultColorWrapper.hh"
 #include "ColorMap.hh"
-
+#include <toolsa/LogStream.hh>
 // constructor
 
 DisplayField::DisplayField(const string &label,
@@ -53,6 +53,11 @@ DisplayField::DisplayField(const string &label,
         _selectValue(0),
         _dialog(NULL)
 {
+  LOG(DEBUG) << "creating field with ... ";
+  LOG(DEBUG) << "label = " << _label;
+  LOG(DEBUG) << "name = " << _name;
+  LOG(DEBUG) << "units = " << _units;
+  LOG(DEBUG) << "buttonRow = " << _buttonRow;
   _haveColorMap = true;
 }
 
