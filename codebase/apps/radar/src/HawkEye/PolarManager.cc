@@ -2204,11 +2204,16 @@ void PolarManager::_timeSliderPressed()
 
 void PolarManager::setBoundaryDir()
 {
-	hash<string> str_hash;
-	long hash = str_hash(_openFilePath);
-	stringstream ss;
-	ss << hash;
-	_boundaryDir = _rootBoundaryDir + PATH_DELIM + ss.str();
+	if (!_openFilePath.empty())
+	{
+		hash<string> str_hash;
+		long hash = str_hash(_openFilePath);
+		stringstream ss;
+		ss << hash;
+		_boundaryDir = _rootBoundaryDir + PATH_DELIM + ss.str();
+	}
+	else
+		_boundaryDir = _rootBoundaryDir;
 }
 
 ////////////////////////////////////////////////////
@@ -3178,6 +3183,11 @@ void PolarManager::brushBtnBoundaryEditorClick()
 	_ppi->update();
 }
 
+string PolarManager::getBoundaryFilePath(string boundaryFileName)
+{
+	return(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + boundaryFileName);
+}
+
 void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 {
 	string fileName = item->text().toUtf8().constData();
@@ -3188,7 +3198,7 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 
 		if (_boundaryDir.empty())
 			_boundaryDir = _rootBoundaryDir;
-		BoundaryPointEditor::Instance()->load(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + fileName);
+		BoundaryPointEditor::Instance()->load(getBoundaryFilePath(fileName));
 
 		if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::circle)
 		{
@@ -3226,7 +3236,7 @@ void PolarManager::saveBoundaryEditorClick()
 	string fileName = "Boundary" + to_string(_boundaryEditorList->currentRow()+1);
 	_boundaryEditorList->currentItem()->setText(fileName.c_str());
 
-	BoundaryPointEditor::Instance()->save(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + fileName);
+	BoundaryPointEditor::Instance()->save(getBoundaryFilePath(fileName));
 }
 
 /////////////////////////////
@@ -3260,26 +3270,27 @@ void PolarManager::showBoundaryEditor()
 void PolarManager::refreshBoundaries()
 {
   BoundaryPointEditor::Instance()->clear();
+	setBoundaryDir();
 
   //rename any items that have corresponding file on disk
-  for (int i=4; i > 0; i--)
+  for (int i=1; i <= 5; i++)
   {
 		string outputDir;
-		string fileName = "Boundary" + to_string(i+1);
-		setBoundaryDir();
-		string path = _boundaryDir + PATH_DELIM + fileName;
+		string fileName = "Boundary" + to_string(i);
+		string path = getBoundaryFilePath(fileName);
 
 		ifstream infile(path);
 		if (infile.good())
-			_boundaryEditorList->item(i)->setText(fileName.c_str());
-		else if (i > 0)
+			_boundaryEditorList->item(i-1)->setText(fileName.c_str());
+		else
 		{
 			string blankCaption = fileName + " <none>";
-			_boundaryEditorList->item(i)->setText(blankCaption.c_str());  //e.g "Boundary2 <none>", "Boundary3 <none>", ...
+			_boundaryEditorList->item(i-1)->setText(blankCaption.c_str());  //e.g "Boundary2 <none>", "Boundary3 <none>", ...
 		}
   }
 
-  //load the first boundary in list (if exists)
 	_boundaryEditorList->setCurrentRow(0);
-	onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
+
+  if (_boundaryEditorDialog->isVisible())
+		onBoundaryEditorListItemClicked(_boundaryEditorList->currentItem());
 }
