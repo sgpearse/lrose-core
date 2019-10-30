@@ -44,10 +44,12 @@ public:
   FieldRendererController();
   ~FieldRendererController();
 
+  // NOTE: only index by fieldIndex which must match the button row in the field Panel
+
   void addFieldRenderer(FieldRenderer *);
   void addBeam(Beam *beam);
   void addBeam(size_t fieldIndex, Beam *beam);
-  void addBeam(string newFieldName, Beam *beam);
+  //  void addBeam(string newFieldName, Beam *beam);
   void addBeamToBackgroundRenderedFields(Beam *beam);
   void selectField(size_t fieldIndex);
   void unselectField(size_t fieldIndex);
@@ -56,6 +58,7 @@ public:
   void activateRealtimeRendering(size_t selectedField);
   void performRendering(size_t selectedField);
   bool isBackgroundRendered(size_t index);
+  void setBackgroundRenderingOn(size_t index) {_fieldRenderers[index]->setBackgroundRenderingOn();;};
   void refreshImages(int width, int height, QSize image_size,
 					      QRgb background_brush_color_rgb,
 					      QTransform zoomTransform,
@@ -73,7 +76,7 @@ private:
   vector<FieldRenderer *> _fieldRenderers;
   //  vector<FieldRenderer *> _working;
  
-  size_t _findFieldIndex(string fieldName);
+  // size_t _findFieldIndex(string fieldName);
 
 };
 

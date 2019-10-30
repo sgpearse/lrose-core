@@ -130,24 +130,24 @@ void PpiWidget::clear()
 
 void PpiWidget::selectVar(const size_t index)
 {
+  LOG(DEBUG) << "enter, index = " << index;
 
   // If the field index isn't actually changing, we don't need to do anything
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+  //  if (selectedField == index) {
+  //  return;
+  //}
   
-  if (_selectedField == index) {
-    return;
-  }
-  
-  if (_params.debug >= Params::DEBUG_VERBOSE) {
-    cerr << "=========>> PpiWidget::selectVar() for field index: " 
-         << index << endl;
-  }
+    string fieldName = displayFieldController->getField(index)->getName();
+    LOG(DEBUG) << "=========>> PpiWidget::selectVar() for field index: " 
+         << index << " for field " << fieldName;
 
   // If this field isn't being rendered in the background, render all of
   // the beams for it
   
-  if (!_fieldRendererController->isBackgroundRendered(index)) {
-    LOG(DEBUG) << "isBackgroundRendered is FALSE";
-    LOG(DEBUG) << "number of beams in _ppiBeams = " << _ppiBeams.size();
+  //if (!_fieldRendererController->isBackgroundRendered(index)) {
+  //  LOG(DEBUG) << "isBackgroundRendered is FALSE";
+    //LOG(DEBUG) << "number of beams in _ppiBeams = " << _ppiBeams.size();
     //     LOG(DEBUG) << "number of _fieldRenderers = " << _fieldRenderers.size();
     //LOG(DEBUG) << " and here is the 1st beam ...";
     //_ppiBeams[0]->print(cout);
@@ -158,32 +158,37 @@ void PpiWidget::selectVar(const size_t index)
     // move this to 
     // give the list of beams to the fieldRendererController, along with
     // the field index, let the fieldRendererController set the status
+    /*
     std::vector< PpiBeam* >::iterator beam;
     for (beam = _ppiBeams.begin(); beam != _ppiBeams.end(); ++beam) {
       (*beam)->setBeingRendered(index, true);
       _fieldRendererController->addBeam(index, (*beam));
       //      _fieldRenderers[index]->addBeam(*beam);
     }
-  }
+    */
+    //_fieldRendererController->setBackgroundRenderingOn(index);
+    //}
   
-  // Change the selected field index
-
-  _selectedField = index;
-
+  //HERE does performRendering interact with select and unselect 
   //  LOG(DEBUG) << "performRendering is next ...";
-  //_performRendering();
 
 
   // Do any needed housekeeping when the field selection is changed
-  _fieldRendererController->unselectField(_selectedField);
+  _fieldRendererController->unselectField(selectedField);
   _fieldRendererController->selectField(index);
   //  _fieldRenderers[_selectedField]->unselectField();
   //  _fieldRenderers[index]->selectField();
   
+  // Change the selected field index
+  // _selectedField = index;
+  displayFieldController->setSelectedField(index);
+
+  _fieldRendererController->performRendering(index);
 
   // Update the display
 
   update();
+  LOG(DEBUG) << "exit";
 }
 
 
@@ -241,7 +246,8 @@ void PpiWidget::clearVar(const size_t index)
     (*beam)->resetFieldBrush(index, &_backgroundBrush);
   }
   
-  if (index == _selectedField) {
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+  if (index == selectedField) {
     update();
   }
 
@@ -360,6 +366,8 @@ void PpiWidget::addBeam(const RadxRay *ray,
   // newBeams has pointers to all of the newly added beams.  Render the
   // beam data.
 
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
     PpiBeam *beam = newBeams[ii];
@@ -370,7 +378,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
     beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
-    _fieldRendererController->addBeam(_selectedField, beam);
+    _fieldRendererController->addBeam(selectedField, beam);
     _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
     /*
@@ -387,7 +395,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
 
   // Start the threads to render the new beams
 
-  _performRendering();
+  // _performRendering();
 
   LOG(DEBUG) << "exit";
 }
@@ -411,6 +419,10 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 {
 
   LOG(DEBUG) << "enter";
+
+  LOG(DEBUG) << "beam_data size = " << beam_data.size() << " by " << beam_data[0].size();
+  LOG(DEBUG) << "start_angle = " << start_angle;
+  LOG(DEBUG) << "stop_angle = " << stop_angle;
 
   // find the associated beam
   // update it 
@@ -441,8 +453,9 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 
   double n_start_angle = start_angle - ((int)(start_angle/360.0))*360.0;
   double n_stop_angle = stop_angle - ((int)(stop_angle/360.0))*360.0;
-
   
+  size_t nFields_expected = _ppiBeams.at(0)->getNFields();
+
   if (n_start_angle <= n_stop_angle) {
 
     // This beam does not cross the 0 degree angle.  Just add the beam to
@@ -453,14 +466,21 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     //  _beamController->addBeam(ray, start_angle, stop_angle, beam_data, displayFieldController);
     // find an existing beam
     size_t index = _beamIndex(n_start_angle, n_stop_angle);
+    LOG(DEBUG) << "found closest beam at index " << index;
     PpiBeam *b = _ppiBeams.at(index);
-    b->addFields(ray, nFields); // newFieldNames.size());
+    try {
+    b->addFields(ray, nFields, nFields_expected); // newFieldNames.size());
     //PpiBeam* b = new PpiBeam(_params, ray, nFields, 
     //                         n_start_angle, n_stop_angle);
-    //b->addClient();  
-    _cullBeams(b);
+    b->addClient();  
+    //_cullBeams(b);
     //_ppiBeams.push_back(b); // handled by ppiBeamController?
     newBeams.push_back(b);
+    } catch (const char *ex) {
+      LOG(DEBUG) << "Exception: beam index=" << index << "start_angle, stop_angle = "
+		 << start_angle << "," << stop_angle;
+      //throw ex;
+    }
 
   } else {
 
@@ -469,29 +489,44 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 
     size_t index = _beamIndex(n_start_angle, n_stop_angle);
     PpiBeam *b1 = _ppiBeams.at(index);
-    b1->addFields(ray, nFields); // newFieldNames.size()); // nFields);
+    try {
+    b1->addFields(ray, nFields, nFields_expected); // newFieldNames.size()); // nFields);
     //    PpiBeam* b1 = new PpiBeam(_params, ray, nFields, n_start_angle, 360.0);
-    //b1->addClient();
-    _cullBeams(b1);
+
+    b1->addClient();
+    //_cullBeams(b1);
     //_ppiBeams.push_back(b1);
     newBeams.push_back(b1);
+    } catch (const char *ex) {
+      LOG(DEBUG) << "Exception: b1: beam index=" << index << "start_angle, stop_angle = "
+		 << start_angle << "," << stop_angle;
+      //throw ex;
+    }
 
     // Now add the portion of the beam to the right of the 0 degree point.
 
     index = _beamIndex(n_start_angle, n_stop_angle);
     PpiBeam *b2 = _ppiBeams.at(index);
-    b2->addFields(ray, nFields); // newFieldNames.size());
+    try {
+    b2->addFields(ray, nFields, nFields_expected); // newFieldNames.size());
     //PpiBeam* b2 = new PpiBeam(_params, ray, nFields, 0.0, n_stop_angle);
-    //b2->addClient();
-    _cullBeams(b2);
+
+    b2->addClient();
+    //_cullBeams(b2);
     //_ppiBeams.push_back(b2);
     newBeams.push_back(b2);
+    } catch (const char *ex) {
+      LOG(DEBUG) << "Exception: b2: beam index=" << index << "start_angle, stop_angle = "
+		 << start_angle << "," << stop_angle;
+      //throw ex;
+    }
 
   }
   
   // newBeams has pointers to the updated beams.  Mark the beams to be rendered.
   //   (There are at most 2 new beams).
 
+  size_t selectedFieldIndex = displayFieldController->getSelectedFieldNum();
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
     PpiBeam *beam = newBeams[ii];
@@ -515,7 +550,10 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     // for each newFieldName
     // queue beam for rendering this field
 
-    _fieldRendererController->addBeam(_selectedField, beam);
+    // TODO: ask Mike about this ...
+    // add the new beam to the selected field, and to all the
+    // fields that are background rendered?  
+    _fieldRendererController->addBeam(selectedFieldIndex, beam);
     _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
     /*
@@ -533,7 +571,7 @@ void PpiWidget::updateBeam(const RadxRay *ray,
 
   // Start the threads to render the new beams
 
-  _performRendering();
+  // _performRendering();
 
   LOG(DEBUG) << "exit";
 }
@@ -1014,7 +1052,8 @@ void PpiWidget::_drawOverlays(QPainter &painter)
     legends.push_back(radarSiteLabel);
 
     // field name legend
-    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(_selectedField);
+    size_t selectedField = displayFieldController->getSelectedFieldNum();
+    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(selectedField);
     string fieldName = selectedFieldRenderer->getField().getLabel();
     //string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
     sprintf(text, "Field: %s", fieldName.c_str());
@@ -1368,10 +1407,12 @@ void PpiWidget::_refreshImages()
   } // ifield
   */  
   // do the rendering
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
   _fieldRendererController->refreshImages(width(), height(), size(),
 					  _backgroundBrush.color().rgb(),
 					  _zoomTransform, 
-					  _selectedField, 
+					  selectedField, 
 					  _ppiBeams);
   // _performRendering();
 
@@ -1579,7 +1620,7 @@ void PpiWidget::EditRunScript() {
   // connect some signals and slots in order to retrieve information
   // and send changes back to display
                                                                          
-  connect(scriptEditorControl, SIGNAL(volumeChanged(QStringList)),
+  connect(scriptEditorControl, SIGNAL(scriptChangedVolume(QStringList)),
   	  &_manager, SLOT(updateVolume(QStringList)));
   
   scriptEditorView->init();

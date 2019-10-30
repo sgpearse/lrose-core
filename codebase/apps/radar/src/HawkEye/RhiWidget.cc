@@ -164,7 +164,8 @@ void RhiWidget::addBeam(const RadxRay *ray,
   beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
   // Add the new beams to the render lists for each of the fields
-  _fieldRendererController->addBeam(_selectedField, beam);
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+  _fieldRendererController->addBeam(selectedField, beam);
   _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
 
@@ -565,7 +566,8 @@ void RhiWidget::_drawOverlays(QPainter &painter)
     legends.push_back(radarSiteLabel);
 
     // field name legend
-    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(_selectedField);
+    size_t selectedField = displayFieldController->getSelectedFieldNum();
+    FieldRenderer *selectedFieldRenderer = _fieldRendererController->get(selectedField);
     string fieldName = selectedFieldRenderer->getField().getLabel();
 
     //string fieldName = _fieldRenderers[_selectedField]->getField().getLabel();
@@ -845,10 +847,12 @@ void RhiWidget::_refreshImages()
   _performRendering();
   */
   bool isDeque = true;
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
   _fieldRendererController->refreshImagesAsDeque(width(), height(), size(),
                                           _backgroundBrush.color().rgb(),
                                           _zoomTransform,
-                                          _selectedField,
+                                          selectedField,
                                           _rhiBeams);
 
 
@@ -928,8 +932,10 @@ void RhiWidget::paintEvent(QPaintEvent *event)
   painter.eraseRect(0, 0, width(), height());
   _zoomWorld.setClippingOn(painter);
 
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
   //  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
-  FieldRenderer *selectedRenderer = _fieldRendererController->get(_selectedField);
+  FieldRenderer *selectedRenderer = _fieldRendererController->get(selectedField);
   painter.drawImage(0, 0, *(selectedRenderer->getImage()));
 
   painter.restore();
@@ -945,8 +951,9 @@ void RhiWidget::selectVar(const size_t index)
 {
 
   // If the field index isn't actually changing, we don't need to do anything
-  
-  if (_selectedField == index) {
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
+  if (selectedField == index) {
     return;
   }
   
@@ -970,16 +977,16 @@ void RhiWidget::selectVar(const size_t index)
   _performRendering();
 
   // Do any needed housekeeping when the field selection is changed
-
-  _fieldRendererController->unselectField(_selectedField);
+  _fieldRendererController->unselectField(selectedField);
   _fieldRendererController->selectField(index);
 
   //  _fieldRenderers[_selectedField]->unselectField();
   //  _fieldRenderers[index]->selectField();
   
   // Change the selected field index
+  displayFieldController->setSelectedField(index);
 
-  _selectedField = index;
+  //  _selectedField = index;
 
   // Update the display
 

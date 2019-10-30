@@ -130,7 +130,7 @@ HawkEye::HawkEye(int argc, char **argv) :
   }
 
   // print color scales if debugging
-  if (_params.debug) {
+  if (0) { // _params.debug) {
     SoloDefaultColorWrapper sd = SoloDefaultColorWrapper::getInstance();
     sd.PrintColorScales();
   } 

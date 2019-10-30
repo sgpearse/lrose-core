@@ -690,7 +690,9 @@ void DisplayManager::_changeFieldVariable(bool value) {
   if (value) {
     for (size_t i = 0; i < _fieldButtons.size(); i++) {
       if (_fieldButtons.at(i)->isChecked()) {
-        if (_params.debug) cout << "_fieldButton " << i << " is checked" << endl;
+        if (_params.debug) cout << "_fieldButton " << i
+				<< "out of " << _fieldButtons.size() 
+				<< " is checked" << endl;
  	_changeField(i, true);
       }
     }

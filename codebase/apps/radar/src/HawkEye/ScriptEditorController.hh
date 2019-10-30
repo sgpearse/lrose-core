@@ -42,7 +42,7 @@ public:
   void addVariableToScriptEditor(QString name, QJSValue value);
 
 signals:
-  void volumeChanged(QStringList newFieldNames); // const RadxVol &radarDataVolume);
+  void scriptChangedVolume(QStringList newFieldNames); // const RadxVol &radarDataVolume);
 
 public slots:
   void needFieldNames();

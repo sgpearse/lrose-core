@@ -14,7 +14,7 @@ DisplayFieldController::DisplayFieldController(DisplayFieldModel *model)
 }
 
 DisplayFieldController::~DisplayFieldController() {
-  delete _model;
+  //  delete _model;
 }
 
 void DisplayFieldController::addField(DisplayField *newField) {

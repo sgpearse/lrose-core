@@ -26,6 +26,7 @@
 #include <iostream>
 #include <fstream>
 #include <toolsa/toolsa_macros.h>
+#include <toolsa/LogStream.hh>
 
 #include <QTimer>
 #include <QBrush>
@@ -153,23 +154,49 @@ void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
   }
 }
 
+// dimensions of beam_data:
+// [number_new_fields][nGates]
 void Beam::updateFillColors(const std::vector<std::vector<double> >& beam_data,
 		      DisplayFieldController *displayFieldController,
 		      size_t number_new_fields,
 		      const QBrush *background_brush)
 {
-  size_t start_index = _nFields;
-  _nFields += number_new_fields;
-  _brushes.resize(_nFields);
+  LOG(DEBUG) << "enter";
+  if ((number_new_fields < 0) || (number_new_fields > beam_data.size())) {
+      LOG(DEBUG) << "number_new_fields is out of bounds" << number_new_fields << "; beam_data.size() "
+		 << beam_data.size();
+      //      throw std::invalid_argument("beam_data"); 
+  }
+   
+  // the number of fields has been updated already
+  size_t start_of_new_fields = _nFields - number_new_fields;
 
+  /* already done by addFields
+  _brushes.resize(_nFields);
+  for (int field = start_of_new_fields; field < _nFields; ++field) {
+    _brushes[field].resize(_nGates);
+  }
+  */
+
+  // we are managing two separate indexes;
+  // 1) for the new fields that starts at 0 ... number_new_fields
+  // 2) one for the index into the updated fields; starts at start_index
+  //     and goes to _nFields 
   // TODO: just call fillColors instead of repeating code?
-  for (size_t fieldIdx = start_index; fieldIdx < _nFields; fieldIdx++) {
+  //  for (size_t fieldIdx = start_index; fieldIdx < _nFields; fieldIdx++) {
+  size_t fieldIdx;
+  for (size_t newFieldIdx = 0; newFieldIdx < number_new_fields; newFieldIdx++) {
     //size_t absolute_index = new_field_start_index + fieldIdx;
     //    const ColorMap &map = fields[field]->getColorMap();
+    fieldIdx = start_of_new_fields + newFieldIdx;
     const ColorMap *map = displayFieldController->getColorMap(fieldIdx);
-    const double *field_data = &(beam_data[fieldIdx][0]);
+
+    const double *field_data = &(beam_data[newFieldIdx][0]);
     for (size_t igate = 0; igate < _nGates; ++igate) {
       double data = field_data[igate];
+      //if (igate < 20) { 
+      //LOG(DEBUG) << "data[" << igate << "]="<< data;
+      //}
       if (data < -9990) {
 	_brushes[fieldIdx][igate] = background_brush;
       } else {
@@ -227,10 +254,21 @@ void Beam::deleteIfUnused(const Beam *beam)
 
 // n_fields  The number of new fields being added
 // ray       Contains all the fields, new and old
-void Beam::addFields(const RadxRay *ray, int n_fields) {
+void Beam::addFields(const RadxRay *ray, size_t n_fields, size_t nFields_expected) {
+
+  LOG(DEBUG) << "enter";
+  LOG(DEBUG) << "  There are " << _nFields << " fields;  n_fields to add " << n_fields;
+  if (_nFields != nFields_expected) {
+    // abort
+    LOG(DEBUG) << " aborting";
+    throw "unexpected number of fields";
+    // return;
+  }
+  // TODO: fix this ...
+  // assert(_nFields == nFields_expected);
 
   // TODO: do I need to free the old ray before reassigning?
-  _ray = ray;
+  //_ray = ray;
 
   // Set the "being rendered" flags.  We always render the new beams, so start
   // out with all of the flags being set to true.
@@ -246,8 +284,8 @@ void Beam::addFields(const RadxRay *ray, int n_fields) {
   // fillColors() method.
   
   _brushes.resize(_nFields + n_fields);
-  for (int field = 0; field < n_fields; ++field) {
-    _brushes[_nFields + field].resize(_nGates);
+  for (int field = _nFields; field < _nFields + n_fields; ++field) {
+    _brushes[field].resize(_nGates);
   }
 
   // initialize client counting for this object
@@ -257,10 +295,11 @@ void Beam::addFields(const RadxRay *ray, int n_fields) {
 
   // increment client count on the ray
 
-  _ray->addClient();
+  //_ray->addClient();
 
   _nFields += n_fields;
-
+  LOG(DEBUG) << "  increasing _nFields " << _nFields;
+  LOG(DEBUG) << "exit";
 
 }
 

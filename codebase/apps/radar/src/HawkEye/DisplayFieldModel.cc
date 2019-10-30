@@ -24,6 +24,7 @@ DisplayFieldModel::DisplayFieldModel(vector<DisplayField *> displayFields,
   
   LOG(DEBUG) << "selected field is " << selectedFieldName;
   _selectedFieldName = selectedFieldName;
+  _selectedFieldIndex = _lookupFieldIndex(selectedFieldName); 
   _gridColor = gridColor;
   _emphasisColor = emphasisColor;
   _annotationColor = annotationColor;
@@ -182,7 +183,7 @@ ColorMap *DisplayFieldModel::getColorMap(string fieldName) {
   }
   setSelectedField(fieldName);
 
-  workingCopyColorMap->print(cout);
+  if (0) workingCopyColorMap->print(cout);
 
   LOG(DEBUG) << "exit";
   

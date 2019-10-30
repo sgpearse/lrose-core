@@ -22,6 +22,8 @@
 // ** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.    
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=* 
 #include "FieldRenderer.hh"
+#include <toolsa/LogStream.hh>
+
 using namespace std;
 
 
@@ -36,12 +38,13 @@ FieldRenderer::FieldRenderer(const Params &params,
         _fieldIndex(field_index),
         _field(field),
         _image(NULL),
-        _backgroundRender(false),
+        _backgroundRender(true), // false),
         _backgroundRenderTimer(NULL),
         _useHeight(false),
         _drawInstHt(false)
 {
 
+  LOG(DEBUG) << " enter " << " field_index = " << field_index;
   // set up background rendering timer
   
   _backgroundRenderTimer = new QTimer(this);
@@ -51,7 +54,7 @@ FieldRenderer::FieldRenderer(const Params &params,
   
   connect(_backgroundRenderTimer, SIGNAL(timeout()),
 	  this, SLOT(setBackgroundRenderOff()));
-
+  LOG(DEBUG) << "exit";
 }
 
 /*************************************************************************
@@ -92,7 +95,7 @@ void FieldRenderer::addBeam(Beam *beam)
 void FieldRenderer::selectField() 
 
 {
-  activateBackgroundRendering();
+  //  activateBackgroundRendering();
 }
   
 ////////////////////////////////////////////////////////////////////
@@ -104,12 +107,12 @@ void FieldRenderer::unselectField()
 
   // Turn on background rendering
   
-  _backgroundRender = true;
+  // _backgroundRender =  true; // false; //  true;
   
   // Start the timer for turning off the background rendering after the
   // specified period of time.
   
-  _backgroundRenderTimer->start();
+  //_backgroundRenderTimer->start();
   
 }
   
@@ -150,12 +153,6 @@ void FieldRenderer::setBackgroundRenderingOn()
 
 void FieldRenderer::run()
 {
-
-  if (_params.debug >= Params::DEBUG_EXTRA) {
-    cerr << "Start of rendering for field: " 
-         << _field.getLabel() << endl;
-  }
-
   if (_beams.size() == 0) {
     return;
   }
@@ -164,6 +161,10 @@ void FieldRenderer::run()
   }
   
   TaThread::LockForScope locker;
+
+  LOG(DEBUG) << "Start of rendering for field: " 
+         << _field.getLabel();
+  LOG(DEBUG) << " there are " << _beams.size() << " beams to render";
 
   vector< Beam* >::iterator beam;
   for (beam = _beams.begin(); beam != _beams.end(); ++beam)

@@ -1314,7 +1314,7 @@ void PolarManager::_volumeDataChanged(QStringList newFieldNames)
   // _plotArchiveData();
   // TODO: create this ... from plotArchiveData()
   _updateArchiveData(newFieldNames); 
-
+  _activateArchiveRendering();
 
   LOG(DEBUG) << "exit"; 
 }
@@ -1707,7 +1707,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStrin
     // table
 
     double az = ray->getAzimuthDeg();
-    //_storeRayLoc(ray, az, platform.getRadarBeamWidthDegH(), _ppiRayLoc);
+    _storeRayLoc(ray, az, platform.getRadarBeamWidthDegH(), _ppiRayLoc);
 
     // Save the angle information for the next iteration
 
@@ -1946,7 +1946,7 @@ void PolarManager::_changeField(int fieldId, bool guiMode)
   fieldNum = fieldId;
 
   _ppi->selectVar(fieldNum);
-  _rhi->selectVar(fieldNum);
+  //_rhi->selectVar(fieldNum);  TODO: reinstate this 
 
   // _colorBar->setColorMap(&_fields[_fieldNum]->getColorMap());
   _selectedField = _displayFieldController->getField(fieldNum);

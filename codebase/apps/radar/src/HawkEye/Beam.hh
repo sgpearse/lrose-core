@@ -277,9 +277,12 @@ public:
 
   static void deleteIfUnused(const Beam *beam);
 
-  void addFields(const RadxRay *ray, int n_fields);
-  
+  void addFields(const RadxRay *ray, size_t n_fields, size_t nFields_expected);
+
+  size_t getNFields() {return _nFields;};  
   //@}
+
+
 
 protected:
 

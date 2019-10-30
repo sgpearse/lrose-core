@@ -155,8 +155,9 @@ void ScriptEditorController::getVolumeChanges() {
 }
 
 void ScriptEditorController::volumeUpdated(QStringList newFieldNames) {
-  // QStringList newFieldNames = {"ABC", "123", "CDE"};
-  emit volumeChanged(newFieldNames); // _currentModel->getVolume());
+  QStringList newFieldNamesFAKE = {"VEL_xyz"};
+  //  QStringList newFieldNamesFAKE = {"DBZ", "WIDTH", "ZDR"};
+  emit scriptChangedVolume(newFieldNamesFAKE); // _currentModel->getVolume());
 }
 
 
@@ -652,7 +653,7 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
-    QStringList newFieldNames = {"ABC"}; // , "123", "CDE"};
+    QStringList newFieldNames = {"VEL_xyz"}; // , "123", "CDE"};
 
     volumeUpdated(newFieldNames);
     LOG(DEBUG) << "exit";

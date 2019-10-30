@@ -76,7 +76,7 @@ PolarWidget::PolarWidget(QWidget* parent,
         //_fields(fields),
 	displayFieldController(displayFieldController),
         _haveFilteredFields(haveFilteredFields),
-        _selectedField(0),
+        // _selectedField(0),
         _backgroundBrush(QColor(_params.background_color)),
         _gridRingsColor(_params.grid_and_range_ring_color),
         _ringsEnabled(false),
@@ -251,7 +251,7 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
 
     displayFieldController->addField(newFields[ii]);
 
-    int fieldIdx = newFields[ii]->getButtonRow();
+    int fieldIdx = newFields[ii]->getButtonRow() - 1; // TODO: fix HACK!
     //LOG(DEBUG) << "_fieldRenderers.size() before insert = " << lastFieldIdx;
     // HERE ... 
     // Q: What is fieldIndex?  
@@ -300,7 +300,8 @@ void PolarWidget::activateArchiveRendering()
 void PolarWidget::activateRealtimeRendering()
 {
   LOG(DEBUG) << "enter";
-  _fieldRendererController->activateRealtimeRendering(_selectedField);
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+  _fieldRendererController->activateRealtimeRendering(selectedField);
   /*
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {
     if (ii != _selectedField) {
@@ -316,8 +317,10 @@ void PolarWidget::activateRealtimeRendering()
 
 void PolarWidget::displayImage(const size_t field_num)
 {
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
   // If we weren't rendering the current field, do nothing
-  if (field_num != _selectedField) {
+  if (field_num != selectedField) {
     return;
   }
   update();
@@ -580,7 +583,9 @@ void PolarWidget::smartBrush(int xPixel, int yPixel) {
 void PolarWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
-  FieldRenderer *fieldRenderer = _fieldRendererController->get(_selectedField);
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
+
+  FieldRenderer *fieldRenderer = _fieldRendererController->get(selectedField);
 
   painter.drawImage(0, 0, *(fieldRenderer->getImage()));
   //  painter.drawImage(0, 0, *(_fieldRenderers[_selectedField]->getImage()));
@@ -662,8 +667,9 @@ void PolarWidget::_setTransform(const QTransform &transform)
 void PolarWidget::_performRendering()
 {
   LOG(DEBUG) << "enter";
+  size_t selectedField = displayFieldController->getSelectedFieldNum();
 
-  _fieldRendererController->performRendering(_selectedField);
+  _fieldRendererController->performRendering(selectedField);
   /*
   // start the rendering
   LOG(DEBUG) << " _selectedField = " << _selectedField;

@@ -88,7 +88,7 @@ void FieldRendererController::addBeam(size_t fieldIndex, Beam *beam)
   LOG(DEBUG) << "exit";
 }
 
-
+/*
 void FieldRendererController::addBeam(string newFieldName, Beam *beam)
 {
   
@@ -97,6 +97,7 @@ void FieldRendererController::addBeam(string newFieldName, Beam *beam)
   addBeam(fieldIndex, beam);
   LOG(DEBUG) << "exit";
 }
+*/
 
 void FieldRendererController::addBeamToBackgroundRenderedFields(Beam *beam)
 {
@@ -114,19 +115,31 @@ void FieldRendererController::addBeamToBackgroundRenderedFields(Beam *beam)
   }
   LOG(DEBUG) << "exit";
 }
-
+/*
 size_t FieldRendererController::_findFieldIndex(string fieldName)
 {
   LOG(DEBUG) << "enter";
-
-  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
-    DisplayField displayField = _fieldRenderers[field]->getField();
-    if (displayField.getName().compare(fieldName) == 0)
-	return field;
-  }
-  throw std::invalid_argument(fieldName);
-  //  LOG(DEBUG) << "exit";
+  size_t idx = 0;
+  size_t theIdx = -1;
+  bool found = false;
+  vector<FieldRenderer *>::iterator it;
+  for (it=_fieldRenderers.begin(); it != _fieldRenderers.end(); ++it) {
+    FieldRenderer *fr = *it;
+    DisplayField displayField = fr->getField();
+    LOG(DEBUG) << "comparing to " << displayField.getName();
+    if (displayField.getName().compare(fieldName) == 0) {
+      found = true;
+      theIdx = idx;
+    }
+    idx += 1;
+  }  // TODO: CRAZY! The displayField is destroyed here! Why?
+  if (found) {
+    LOG(DEBUG) << "exit; found " << fieldName << " at idx " << theIdx;
+    return theIdx;
+  } else
+    throw std::invalid_argument(fieldName);
 }
+*/
 
 void FieldRendererController::unselectField(size_t fieldIndex)
 {
@@ -179,10 +192,9 @@ void FieldRendererController::performRendering(size_t selectedField) {
   LOG(DEBUG) << " selectedField = " << selectedField;                                    
   LOG(DEBUG) << "_fieldRenderers.size() = " << _fieldRenderers.size();                     
   for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {                     
-    LOG(DEBUG) << "ifield " << ifield << " isBackgroundRendered() = "                      
-       << _fieldRenderers[ifield]->isBackgroundRendered();                         
-    if (ifield == selectedField ||                                                        
-        _fieldRenderers[ifield]->isBackgroundRendered()) {                                 
+    //LOG(DEBUG) << "ifield " << ifield << " isBackgroundRendered() = "                      
+    //   << _fieldRenderers[ifield]->isBackgroundRendered();                         
+    if (ifield == selectedField || _fieldRenderers[ifield]->isBackgroundRendered()) {
 	LOG(DEBUG) << "signaling field " << ifield << " to start";                           
       _fieldRenderers[ifield]->signalRunToStart();                                         
       }                                                                                    
@@ -191,8 +203,7 @@ void FieldRendererController::performRendering(size_t selectedField) {
   // wait for rendering to complete                                                        
                                                                                            
   for (size_t ifield = 0; ifield < _fieldRenderers.size(); ++ifield) {                     
-    if (ifield == selectedField ||                                                        
-        _fieldRenderers[ifield]->isBackgroundRendered()) {                                 
+    if (ifield == selectedField ||  _fieldRenderers[ifield]->isBackgroundRendered()) {
       _fieldRenderers[ifield]->waitForRunToComplete();                                     
       }                                                                                    
   } // ifield                                                                              

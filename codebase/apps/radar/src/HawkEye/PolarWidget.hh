@@ -348,8 +348,8 @@ class DLL_EXPORT PolarWidget : public QWidget
   /**
    * @brief The index of the field selected for display.
    */
-
-  size_t _selectedField;
+  // this is now kept by the displayFieldModel
+  //  size_t _selectedField;
 
   /**
    * @brief The brush for the background.
