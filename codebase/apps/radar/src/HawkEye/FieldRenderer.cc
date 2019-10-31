@@ -47,6 +47,8 @@ FieldRenderer::FieldRenderer(const Params &params,
   LOG(DEBUG) << " enter " << " field_index = " << field_index;
   // set up background rendering timer
   
+  //  _beams.resize(0);
+
   _backgroundRenderTimer = new QTimer(this);
   _backgroundRenderTimer->setSingleShot(true);
   _backgroundRenderTimer->setInterval
@@ -83,7 +85,7 @@ void FieldRenderer::addBeam(Beam *beam)
 {
 
   TaThread::LockForScope locker;
-
+  
   _beams.push_back(beam);
   beam->addClient();
 
@@ -153,6 +155,11 @@ void FieldRenderer::setBackgroundRenderingOn()
 
 void FieldRenderer::run()
 {
+  LOG(DEBUG) << "Start of run() for field: " 
+         << _field.getLabel();
+  LOG(DEBUG) << " there are " << _beams.size() << " beams to render";
+
+
   if (_beams.size() == 0) {
     return;
   }
@@ -162,9 +169,6 @@ void FieldRenderer::run()
   
   TaThread::LockForScope locker;
 
-  LOG(DEBUG) << "Start of rendering for field: " 
-         << _field.getLabel();
-  LOG(DEBUG) << " there are " << _beams.size() << " beams to render";
 
   vector< Beam* >::iterator beam;
   for (beam = _beams.begin(); beam != _beams.end(); ++beam)
@@ -172,19 +176,21 @@ void FieldRenderer::run()
     if (*beam == NULL) {
       continue;
     }
+    /*
     if (_params.debug >= Params::DEBUG_EXTRA) {
       cerr << "Rendering beam field:" 
            << _field.getLabel() << endl;
       (*beam)->print(cerr);
     }
+    */
     (*beam)->paint(_image, _transform, _fieldIndex, _useHeight, _drawInstHt);
     (*beam)->setBeingRendered(_fieldIndex, false);
   }
   
-  for (beam = _beams.begin(); beam != _beams.end(); ++beam)
-  {
-    Beam::deleteIfUnused(*beam);
-  }
-  _beams.clear();
+  //for (beam = _beams.begin(); beam != _beams.end(); ++beam)
+  //{
+  //  Beam::deleteIfUnused(*beam);
+  //}
+  //_beams.clear();
   
 }

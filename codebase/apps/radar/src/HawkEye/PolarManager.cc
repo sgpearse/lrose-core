@@ -1086,7 +1086,6 @@ void PolarManager::_handleArchiveData(QTimerEvent * event)
     _timeControl->setCursor(Qt::ArrowCursor);
     return;
   }
-  _activateArchiveRendering();
 
   // set up sweep GUI
 
@@ -1104,6 +1103,8 @@ void PolarManager::_handleArchiveData(QTimerEvent * event)
   _plotArchiveData();
   this->setCursor(Qt::ArrowCursor);
   _timeControl->setCursor(Qt::ArrowCursor);
+
+  _activateArchiveRendering();
 
   if (_firstTime) {
     _firstTime = false;
@@ -1371,6 +1372,7 @@ void PolarManager::_plotArchiveData()
       _updateStatusPanel(ray);
     }
   }
+
   
 }
 
@@ -1386,7 +1388,8 @@ void PolarManager::_updateArchiveData(QStringList newFieldNames)
   //_initialRay = true;
 
   // handle the rays
-  
+  _vol.loadRaysFromFields();  // this line makes the select field update properly  
+
   const vector<RadxRay *> &rays = _vol.getRays();
   if (rays.size() < 1) {
     cerr << "ERROR - _updateArchiveData" << endl;
@@ -1602,7 +1605,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStrin
   vector< vector<double> > fieldData;
   fieldData.resize(nFields);
   LOG(DEBUG) << " there are " << nFields << " new Fields";
-  
+  LOG(DEBUG) << " ray azimuth = " << ray->getAzimuthDeg();
   // fill data vector
   //vector<string> fieldNames = displayFieldController->getFieldNames();
   //vector<string>::iterator ifieldName;
@@ -1633,6 +1636,12 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStrin
     } else {
       rfld->convertToFl32();
       const Radx::fl32 *fdata = rfld->getDataFl32();
+      // print first 15 data values
+      LOG(DEBUG) << "ray->nGates = " << ray->getNGates();
+      LOG(DEBUG) << "first 30 gates ...";
+      for (int ii = 0; ii< 15; ii++)
+	LOG(DEBUG) << fdata[ii];
+      // end print first 15 data values
       const Radx::fl32 missingVal = rfld->getMissingFl32();
       // we can only look at the data available, so only go to nGates
       for (int igate = 0; igate < _nGates; igate++, fdata++) {  // was _nGates
@@ -2941,10 +2950,12 @@ void PolarManager::_activateArchiveRendering()
 {
   _clear();
   if (_ppi) {
+    //_fieldRendererController->performRendering(0);
     _ppi->activateArchiveRendering();
   }
   if (_rhi) {
     _rhi->activateArchiveRendering();
+    //_fieldRendererController->performRendering(0); // activateArchiveRendering();
   }
 }
 

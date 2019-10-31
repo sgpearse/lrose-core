@@ -174,14 +174,14 @@ void PpiWidget::selectVar(const size_t index)
 
 
   // Do any needed housekeeping when the field selection is changed
-  _fieldRendererController->unselectField(selectedField);
-  _fieldRendererController->selectField(index);
+  //_fieldRendererController->unselectField(selectedField);
+  //_fieldRendererController->selectField(index);
   //  _fieldRenderers[_selectedField]->unselectField();
   //  _fieldRenderers[index]->selectField();
   
   // Change the selected field index
   // _selectedField = index;
-  displayFieldController->setSelectedField(index);
+  //displayFieldController->setSelectedField(index);
 
   _fieldRendererController->performRendering(index);
 
@@ -366,7 +366,7 @@ void PpiWidget::addBeam(const RadxRay *ray,
   // newBeams has pointers to all of the newly added beams.  Render the
   // beam data.
 
-  size_t selectedField = displayFieldController->getSelectedFieldNum();
+  //size_t selectedField = displayFieldController->getSelectedFieldNum();
 
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
@@ -378,8 +378,8 @@ void PpiWidget::addBeam(const RadxRay *ray,
     beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
     // Add the new beams to the render lists for each of the fields
-    _fieldRendererController->addBeam(selectedField, beam);
-    _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+    _fieldRendererController->addBeam(beam); // selectedField, beam);
+    //_fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
     /*
     for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
@@ -454,7 +454,10 @@ void PpiWidget::updateBeam(const RadxRay *ray,
   double n_start_angle = start_angle - ((int)(start_angle/360.0))*360.0;
   double n_stop_angle = stop_angle - ((int)(stop_angle/360.0))*360.0;
   
-  size_t nFields_expected = _ppiBeams.at(0)->getNFields();
+
+  size_t nFields_expected = 0;
+  if (_ppiBeams.size() > 0)
+    _ppiBeams.at(0)->getNFields();
 
   if (n_start_angle <= n_stop_angle) {
 
@@ -526,7 +529,7 @@ void PpiWidget::updateBeam(const RadxRay *ray,
   // newBeams has pointers to the updated beams.  Mark the beams to be rendered.
   //   (There are at most 2 new beams).
 
-  size_t selectedFieldIndex = displayFieldController->getSelectedFieldNum();
+  //size_t selectedFieldIndex = displayFieldController->getSelectedFieldNum();
   for (size_t ii = 0; ii < newBeams.size(); ii++) {
 
     PpiBeam *beam = newBeams[ii];
@@ -553,8 +556,9 @@ void PpiWidget::updateBeam(const RadxRay *ray,
     // TODO: ask Mike about this ...
     // add the new beam to the selected field, and to all the
     // fields that are background rendered?  
-    _fieldRendererController->addBeam(selectedFieldIndex, beam);
-    _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+    // TODO: just add beam to the new fields 
+    _fieldRendererController->addBeam(beam); // selectedFieldIndex, beam);
+    //_fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
     /*
     for (size_t field = 0; field < _fieldRenderers.size(); ++field) {

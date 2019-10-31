@@ -124,7 +124,7 @@ void SweepManager::set(const RadxVol &vol)
     _guiIndex = 0;
   }
 
-  // set selected angle
+   // set selected angle
 
   _selectedAngle = _sweeps[_guiIndex].radx->getFixedAngleDeg();
 

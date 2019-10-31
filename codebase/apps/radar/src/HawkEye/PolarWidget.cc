@@ -258,7 +258,6 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
     FieldRenderer *fieldRenderer =
       new FieldRenderer(_params, fieldIdx, *newFields[ii]);
     fieldRenderer->createImage(width(), height());
-
     _fieldRendererController->addFieldRenderer(fieldRenderer);
 //    _fieldRenderers.push_back(fieldRenderer);
 
@@ -283,6 +282,7 @@ void PolarWidget::activateArchiveRendering()
 {
   LOG(DEBUG) << "enter";
   _fieldRendererController->activateArchiveRendering();
+  _fieldRendererController->performRendering(0); 
   /*
   LOG(DEBUG) << "_fieldRenderers.size()  = " << _fieldRenderers.size(); 
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {

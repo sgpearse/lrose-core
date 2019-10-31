@@ -112,7 +112,7 @@ void PpiBeam::paint(QImage *image,
                     bool useHeight,
                     bool drawInstHt)
 {
-  LOG(DEBUG) << "enter field = " << field;
+  // LOG(DEBUG) << "enter field = " << field;
 
   // TODO: fix HACK
   if ((field >= _nFields) || (field >= _brushes.size())) {
@@ -145,12 +145,15 @@ void PpiBeam::paint(QImage *image,
     }
 
     curr_brush = _brushes[field][igate];
+    /*
     if ((field == 8) && (igate < 10)) {
       QColor qcolor = curr_brush->color();
       int r,g,b,a;
       qcolor.getRgb(&r, &g, &b, &a);
       LOG(DEBUG) << "rgb = " << r << "," << g << "," << b;
     }
+    */
+
     if (curr_brush != prev_brush) {
 
       polygon[2] = QPointF(_polygons[igate].pts[1].x, _polygons[igate].pts[1].y);

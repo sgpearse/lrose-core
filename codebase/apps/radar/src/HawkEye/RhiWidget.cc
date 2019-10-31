@@ -164,9 +164,9 @@ void RhiWidget::addBeam(const RadxRay *ray,
   beam->fillColors(beam_data, displayFieldController, nFields, &_backgroundBrush);
 
   // Add the new beams to the render lists for each of the fields
-  size_t selectedField = displayFieldController->getSelectedFieldNum();
-  _fieldRendererController->addBeam(selectedField, beam);
-  _fieldRendererController->addBeamToBackgroundRenderedFields(beam);
+  //size_t selectedField = displayFieldController->getSelectedFieldNum();
+  //_fieldRendererController->addBeam(selectedField, beam);
+  //_fieldRendererController->addBeamToBackgroundRenderedFields(beam);
 
 
   /*
@@ -971,14 +971,14 @@ void RhiWidget::selectVar(const size_t index)
     std::deque<RhiBeam*>::iterator beam;
     for (beam = _rhiBeams.begin(); beam != _rhiBeams.end(); ++beam) {
       (*beam)->setBeingRendered(index, true);
-      _fieldRendererController->addBeam(index, *beam);
+      //_fieldRendererController->addBeam(index, *beam);
     }
   }
   _performRendering();
 
   // Do any needed housekeeping when the field selection is changed
-  _fieldRendererController->unselectField(selectedField);
-  _fieldRendererController->selectField(index);
+  //_fieldRendererController->unselectField(selectedField);
+  //_fieldRendererController->selectField(index);
 
   //  _fieldRenderers[_selectedField]->unselectField();
   //  _fieldRenderers[index]->selectField();

@@ -47,7 +47,22 @@ void FieldRendererController::addFieldRenderer(FieldRenderer *fieldRenderer)
   LOG(DEBUG) << "exit";
 }
 
+/*
+void FieldRendererController::setBeams(const vector<Beam *> &beams)
+{
+  LOG(DEBUG) << "enter";
+  // for each field,
+  //   add a pointer to the beams
+  for (size_t field = 0; field < _fieldRenderers.size(); ++field) {
+      _fieldRenderers[field]->setBeams(beams);
+      // beam->setBeingRendered(field, true);
+  }
+  LOG(DEBUG) << "exit";
+}
+*/
 
+ 
+// Queue the beams to be rendered for each field
 // add a Beam to each FieldRenderer
 void FieldRendererController::addBeam(Beam *beam)
 {
@@ -72,12 +87,12 @@ void FieldRendererController::addBeam(Beam *beam)
     }
   }
   */
-
-  //  _fieldRenderers.push_back(fieldRenderer);
+  
   LOG(DEBUG) << "exit";
 }
+ 
 
-
+  
 // addBeam = queueforRendering
 // add a Beam to a single FieldRenderer
 void FieldRendererController::addBeam(size_t fieldIndex, Beam *beam)
@@ -87,6 +102,7 @@ void FieldRendererController::addBeam(size_t fieldIndex, Beam *beam)
   beam->setBeingRendered(fieldIndex, true);
   LOG(DEBUG) << "exit";
 }
+ 
 
 /*
 void FieldRendererController::addBeam(string newFieldName, Beam *beam)
@@ -98,7 +114,7 @@ void FieldRendererController::addBeam(string newFieldName, Beam *beam)
   LOG(DEBUG) << "exit";
 }
 */
-
+ /*
 void FieldRendererController::addBeamToBackgroundRenderedFields(Beam *beam)
 {
   LOG(DEBUG) << "enter";
@@ -115,6 +131,8 @@ void FieldRendererController::addBeamToBackgroundRenderedFields(Beam *beam)
   }
   LOG(DEBUG) << "exit";
 }
+ */
+
 /*
 size_t FieldRendererController::_findFieldIndex(string fieldName)
 {
@@ -164,13 +182,12 @@ FieldRenderer *FieldRendererController::get(size_t fieldIndex)
   LOG(DEBUG) << "exit";
 }
 
-
 void FieldRendererController::activateArchiveRendering()
 {
   LOG(DEBUG) << "enter";
   LOG(DEBUG) << "_fieldRenderers.size()  = " << _fieldRenderers.size();
   for (size_t ii = 0; ii < _fieldRenderers.size(); ii++) {
-    _fieldRenderers[ii]->setBackgroundRenderingOn();
+    _fieldRenderers[ii]->activateBackgroundRendering();
   }
   LOG(DEBUG) << "exit";
 }
@@ -186,6 +203,7 @@ void FieldRendererController::activateRealtimeRendering(size_t selectedField)
   }
 }
 
+// HERE is where the action happens
 void FieldRendererController::performRendering(size_t selectedField) {
                                                                                          
   // start the rendering                                                                   
@@ -196,7 +214,7 @@ void FieldRendererController::performRendering(size_t selectedField) {
     //   << _fieldRenderers[ifield]->isBackgroundRendered();                         
     if (ifield == selectedField || _fieldRenderers[ifield]->isBackgroundRendered()) {
 	LOG(DEBUG) << "signaling field " << ifield << " to start";                           
-      _fieldRenderers[ifield]->signalRunToStart();                                         
+	_fieldRenderers[ifield]->signalRunToStart();                                         
       }                                                                                    
   } // ifield                                                                              
                                                                                            

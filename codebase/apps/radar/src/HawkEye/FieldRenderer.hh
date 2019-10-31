@@ -208,7 +208,8 @@ protected:
   /**
    * @brief Array of beams to be rendered
    */
-
+  // Let PpiWidget  manage the list of beams
+  // only fill this vector, from refreshImages
   vector< Beam*> _beams;
     
   /**

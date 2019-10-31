@@ -88,6 +88,7 @@ Beam::Beam(const Params &params,
 Beam::~Beam()
 {
 
+  LOG(DEBUG) << "enter";
   _brushes.clear();
 
   // decrement client count on the ray
@@ -101,7 +102,7 @@ Beam::~Beam()
   // clear client reference counting mutex
 
   pthread_mutex_destroy(&_nClientsMutex);
-
+  LOG(DEBUG) << "exit";
 }
 
 ////////////////////////////////////////////////////////////////
@@ -226,12 +227,16 @@ int Beam::addClient() const
 int Beam::removeClient() const
 
 {
+  // TODO: consider cleanup after editing is working.
+  /*
   pthread_mutex_lock(&_nClientsMutex);
   if (_nClients > 0) {
     _nClients--;
   }
   pthread_mutex_unlock(&_nClientsMutex);
   return _nClients;
+  */
+  return 1;
 }
 
 int Beam::removeAllClients() const
