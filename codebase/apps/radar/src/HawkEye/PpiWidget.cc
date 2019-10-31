@@ -38,6 +38,7 @@
 #include <QLayout>
 #include <QMessageBox>
 #include <QErrorMessage>
+#include <QRect>
 
 using namespace std;
 
@@ -74,6 +75,10 @@ PpiWidget::PpiWidget(QWidget* parent,
   _sumElev = 0.0;
   _nRays = 0.0;
 
+	_openingFileInfoLabel = new QLabel("Opening file, please wait...", parent);
+	_openingFileInfoLabel->setStyleSheet("QLabel { background-color : darkBlue; color : yellow; qproperty-alignment: AlignCenter; }");
+	_openingFileInfoLabel->setVisible(false);
+
   startTimer(50);  //used for boundary editor to detect shift key down (changes cursor)
 }
 
@@ -109,7 +114,7 @@ void PpiWidget::clear()
   // Now rerender the images
   
   _refreshImages();
-
+  showOpeningFileMsg(false);
 }
 
 /*************************************************************************
@@ -870,6 +875,13 @@ void PpiWidget::_drawOverlays(QPainter &painter)
 
   } // if (_archiveMode) {
 
+}
+
+void PpiWidget::showOpeningFileMsg(bool isVisible)
+{
+	_openingFileInfoLabel->setGeometry(width()/2 - 120, height()/2 -15, 200, 30);
+	_openingFileInfoLabel->setVisible(isVisible);
+  update();
 }
 
 ///////////////////////////////////////////////////////////////////////////

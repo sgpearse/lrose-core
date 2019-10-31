@@ -34,7 +34,7 @@ void BoundaryPointEditor::setTool(BoundaryToolType tool)
 void BoundaryPointEditor::setWorldScale(float value)
 {
 	worldScale = value;
-	cout << "BoundaryEditor.worldScale=" << worldScale << endl;
+//	cout << "BoundaryEditor, setting worldScale=" << worldScale << endl;
 }
 
 BoundaryToolType BoundaryPointEditor::getCurrentTool()
@@ -243,7 +243,6 @@ bool BoundaryPointEditor::updateScale(double xRange)
 
 void BoundaryPointEditor::clear()
 {
-	cout << "clear points" << endl;
 	points.clear();
 }
 

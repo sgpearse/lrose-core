@@ -1022,7 +1022,7 @@ int PolarManager::loadArchiveFileList()
   _urlOK = true;
 
   if (timeList.getPathList().size() < 1) {
-    cerr << "ERROR - PolarManager::loadArchiveFileList()" << endl;
+    cerr << "ERROR - PolarManager::loadArchiveFileList() for dir:" << _params.archive_data_url << endl;
     cerr << "  Cannot load file list for url: " 
          << _params.archive_data_url << endl;
     cerr << "  Start time: " << _archiveStartTime.getStr() << endl;
@@ -2243,6 +2243,9 @@ void PolarManager::_openFile()
 		_boundaryEditorDialog->setVisible(false);
 	}
 
+	if (_ppi)
+  	_ppi->showOpeningFileMsg(true);
+
   QString filePath =  QFileDialog::getOpenFileName(
           this,
           "Open Document",
@@ -2265,9 +2268,11 @@ void PolarManager::_openFile()
     list.push_back(openFilePath);
     setArchiveFileList(list, false);
 
+
     try {
       _getArchiveData();
     } catch (FileIException ex) {
+      _ppi->showOpeningFileMsg(false);
       this->setCursor(Qt::ArrowCursor);
       // _timeControl->setCursor(Qt::ArrowCursor);
       return;
@@ -2329,6 +2334,8 @@ void PolarManager::_openFile()
     _setGuiFromArchiveStartTime();
     _setGuiFromArchiveEndTime();
   } // end else pathList is not empty
+
+  _ppi->showOpeningFileMsg(false);
 }
 
 
@@ -3028,7 +3035,6 @@ void PolarManager::_howto()
 
 void PolarManager::createBoundaryEditorDialog()
 {
-cout << "inside createBoundaryEditorDialog()..." << endl;
 	_boundaryEditorDialog = new QDialog(this);
 	_boundaryEditorDialog->setMaximumHeight(368);
 	_boundaryEditorDialog->setWindowTitle("Boundary Editor");
@@ -3136,7 +3142,6 @@ cout << "inside createBoundaryEditorDialog()..." << endl;
   connect(_boundaryEditorSaveBtn, SIGNAL(clicked()), this, SLOT(saveBoundaryEditorClick()));
 
   connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
-cout << "leaving createBoundaryEditorDialog()..." << endl;
 }
 
 void PolarManager::selectBoundaryTool(BoundaryToolType tool)

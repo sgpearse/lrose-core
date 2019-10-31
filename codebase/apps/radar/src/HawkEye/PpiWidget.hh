@@ -27,6 +27,8 @@
 #include "Radx/RadxVol.hh"
 #include "PolarWidget.hh"
 
+class QLabel;
+
 // Widget representing a PPI scan.  Beams are added to the scan as they
 // are received.
 
@@ -120,6 +122,9 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 
   void ShowContextMenu(const QPoint &pos, RadxVol *vol);
   void ExamineEdit(const RadxRay *closestRay);
+
+  QLabel *_openingFileInfoLabel;
+  void showOpeningFileMsg(bool isVisible);
 
   //////////////
   // Qt slots //
