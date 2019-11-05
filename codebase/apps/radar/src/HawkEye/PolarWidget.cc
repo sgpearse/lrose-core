@@ -239,17 +239,11 @@ void PolarWidget::addNewFields(vector<DisplayField *> &newFields)
     LOG(DEBUG) << *it;
   }
   */
-  // assume new fields are added AFTER the last _fields name
-  //for (size_t ii = 0; ii < _fields.size(); ii++) {
-  // 
-  // if not in the fieldRenderer list,
-  //  _fields[ii]->getName() 
-  // add the field
 
   //LOG(DEBUG) << "fieldRenderers ...";
   for (size_t ii = 0; ii < newFields.size(); ii++) {
 
-    displayFieldController->addField(newFields[ii]);
+    //    displayFieldController->addField(newFields[ii]);
 
     int fieldIdx = newFields[ii]->getButtonRow() - 1; // TODO: fix HACK!
     //LOG(DEBUG) << "_fieldRenderers.size() before insert = " << lastFieldIdx;
