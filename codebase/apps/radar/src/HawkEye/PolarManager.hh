@@ -313,7 +313,7 @@ private:
 
   void _handleRay(RadxPlatform &platform, RadxRay *ray);
   void _handleRayUpdate(RadxPlatform &platform, RadxRay *ray,
-			QStringList newFieldNames);
+			vector<string> &newFieldNames);
 
   // ray handling for display
 

@@ -157,6 +157,44 @@ void Beam::fillColors(const std::vector<std::vector<double> >& beam_data,
 
 // dimensions of beam_data:
 // [number_new_fields][nGates]
+// brushes is a sparse 2D array
+// only fill brushes for the specified fieldIdx
+void Beam::updateFillColorsSparse(const std::vector<double>& field_data,
+				  DisplayFieldController *displayFieldController,
+				  size_t nFields_expected,
+				  const QBrush *background_brush,
+				  size_t fieldIdx)
+{
+  LOG(DEBUG) << "enter";
+  if (nFields_expected != _brushes.size())
+    throw "error; unexpected number of fields (updateFillColorsSparse";
+ 
+  if (fieldIdx > _brushes.size()) {
+    LOG(DEBUG) << "fieldIdx is out of bounds " << fieldIdx << "; _brushes.size() "
+	       << _brushes.size();
+    throw std::invalid_argument("fieldIdx"); 
+  }
+  if (fieldIdx > field_data.size()) {
+    LOG(DEBUG) << "fieldIdx is out of bounds " << fieldIdx << "; field_data.size() "
+	       << field_data.size();
+    throw std::invalid_argument("fieldIdx"); 
+  }
+  
+  const ColorMap *map = displayFieldController->getColorMap(fieldIdx);
+
+  //  const double *field_data = &(beam_data[fieldIdx][0]);
+  for (size_t igate = 0; igate < _nGates; ++igate) {
+    double data = field_data[igate];
+    if (data < -9990) {
+      _brushes[fieldIdx][igate] = background_brush;
+    } else {
+      _brushes[fieldIdx][igate] = map->dataBrush(data);
+    }
+  } // igate
+}
+
+// dimensions of beam_data:
+// [number_new_fields][nGates]
 void Beam::updateFillColors(const std::vector<std::vector<double> >& beam_data,
 		      DisplayFieldController *displayFieldController,
 		      size_t number_new_fields,

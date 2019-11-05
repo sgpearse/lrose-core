@@ -92,6 +92,7 @@
 #include <Radx/RadxFile.hh>
 #include <Radx/NcfRadxFile.hh>
 #include <Radx/RadxSweep.hh>
+#include <Radx/RadxField.hh>
 #include <Radx/RadxTime.hh>
 #include <Radx/RadxPath.hh>
 
@@ -1396,6 +1397,15 @@ void PolarManager::_updateArchiveData(QStringList newFieldNames)
     cerr << "  No rays found" << endl;
     return;
   }
+
+  // TODO: make sure we are getting the newFields from the _vol
+  // remember, the reader only reads in the fields specified in the params <======
+  LOG(DEBUG) << "===========  HERE are the fields ";
+  vector<RadxField *> _vol_fields = rays[0]->getFields();
+  vector<RadxField *>::iterator it;
+  for (it=_vol_fields.begin(); it!=_vol_fields.end(); ++it) {
+    LOG(DEBUG) << (*it)->getName();
+  }
   
   // TODO: reload the sweeps into the sweepManager?
   //  I added this ...
@@ -1411,13 +1421,19 @@ void PolarManager::_updateArchiveData(QStringList newFieldNames)
   // clear the canvas
   //_clear();
 
+  vector<string> newFieldNamesConverted;
+  for (int i=0; i < newFieldNames.size(); ++i) {
+    string name = newFieldNames.at(i).toLocal8Bit().constData();
+    newFieldNamesConverted.push_back(name);
+  }
+
   // handle the rays
 
   const SweepManager::GuiSweep &gsweep = _sweepManager.getSelectedSweep();
   for (size_t ii = gsweep.radx->getStartRayIndex();
        ii <= gsweep.radx->getEndRayIndex(); ii++) {
     RadxRay *ray = rays[ii];
-    _handleRayUpdate(_platform, ray, newFieldNames);  // TODO; _handleRay? or a modified version of it?  We just need something to call updateBeam, instead of addBeam ...
+    _handleRayUpdate(_platform, ray, newFieldNamesConverted);  // TODO; _handleRay? or a modified version of it?  We just need something to call updateBeam, instead of addBeam ...
     //if (ii == 0) {
     //  _updateStatusPanel(ray);
     //}
@@ -1588,23 +1604,28 @@ void PolarManager::_handleRay(RadxPlatform &platform, RadxRay *ray)
 
     // Add the beam to the display
     
-    _ppi->addBeam(ray, _startAz, _endAz, fieldData, nFields);
+    _ppi->addCullTrackBeam(ray, _startAz, _endAz, fieldData, nFields);
+    //    _ppi->addBeam(ray, _startAz, _endAz, fieldData, nFields);
 
   }
   
 }
 
+// We need to resize the arrays that are retained and look up the field Index by field name,
+// because we are only redrawing the new fields and these stores have a field index
+// dependence:  DisplayFieldModel::_fields, FieldRenderers::_fieldRenderers, Beams::_brushes and buttonRow
+// Beams are dynamic and we will just create and delete them with the full dimension
 // add new fields to existing ray structures
 // NOTE: preconditions ... displayFieldController must contain new Fields
-void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStringList newFieldNames)
+void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, vector<string> &newFieldNames)
 {
 
   LOG(DEBUG) << "enter";
   // create 2D field data vector
-  size_t nFields = newFieldNames.size();
+  size_t nNewFields = newFieldNames.size();
   vector< vector<double> > fieldData;
-  fieldData.resize(nFields);
-  LOG(DEBUG) << " there are " << nFields << " new Fields";
+  fieldData.resize(nNewFields);
+  LOG(DEBUG) << " there are " << nNewFields << " new Fields";
   LOG(DEBUG) << " ray azimuth = " << ray->getAzimuthDeg();
   // fill data vector
   //vector<string> fieldNames = displayFieldController->getFieldNames();
@@ -1615,7 +1636,7 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStrin
   // NO. For update, we can just send a 2D array of the necessary data. 
   //for (ifieldName = newFieldNames.begin(); ifieldName != newFieldNames.end(); ifieldName++) {
   for (int ifield=0; ifield < newFieldNames.size(); ++ifield) {
-    string fieldName = newFieldNames.at(ifield).toLocal8Bit().constData();
+    string fieldName = newFieldNames.at(ifield); // .toLocal8Bit().constData();
     vector<double> &data = fieldData[ifield];
     data.resize(_nGates);
     RadxField *rfld = ray->getField(fieldName);
@@ -1725,7 +1746,9 @@ void PolarManager::_handleRayUpdate(RadxPlatform &platform, RadxRay *ray, QStrin
 
     // Add the beam to the display
     // ray contains data for ALL fields; fieldData contains only data for the new beams
-    _ppi->updateBeam(ray, _startAz, _endAz, fieldData, nFields);
+    // nFields = total number of fields (old + new)
+    size_t nFields = _displayFieldController->getNFields();
+    _ppi->updateBeamII(ray, _startAz, _endAz, fieldData, nFields, newFieldNames);
 
   }
   LOG(DEBUG) << "exit";

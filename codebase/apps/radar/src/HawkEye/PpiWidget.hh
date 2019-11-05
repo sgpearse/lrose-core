@@ -86,12 +86,27 @@ class DLL_EXPORT PpiWidget : public PolarWidget
                const float start_angle, const float stop_angle,
                const std::vector< std::vector< double > > &beam_data,
 	       size_t nFields); 
-	       //               const std::vector< DisplayField* > &fields);
+
+  void addCullTrackBeam(const RadxRay *ray,
+				   const float start_angle,
+				   const float stop_angle,
+				   const std::vector< std::vector< double > > &beam_data,
+			size_t nFields);
 
   void updateBeam(const RadxRay *ray,
                const float start_angle, const float stop_angle,
                const std::vector< std::vector< double > > &beam_data,
 	       size_t nFields); 
+
+  void updateBeamII(const RadxRay *ray,
+               const float start_angle, const float stop_angle,
+               const std::vector< std::vector< double > > &beam_data,
+		    size_t nFields,
+		    const vector<string> &fieldNames);
+
+  void movingDownTheLine(PpiBeam *beam, vector<string> fieldNames,
+			 const std::vector< std::vector< double > > &beam_data,
+			 size_t nFields); 
 
 
   // are we in archive mode? and if so are we at the start of a sweep?
@@ -233,6 +248,8 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 
   inline int _beamIndex(const double start_angle, const double stop_angle);
 
+
+  void _accumulateStats(const RadxRay *ray);
 
   RadxVol *_vol;
 };

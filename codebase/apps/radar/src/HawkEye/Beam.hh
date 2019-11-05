@@ -140,6 +140,12 @@ public:
 			  size_t number_new_fields,
 			  const QBrush *background_brush);
 
+  virtual void updateFillColorsSparse(const std::vector<double>& field_data,
+			  DisplayFieldController *displayFieldController,
+			  size_t nFields_expected,
+				      const QBrush *background_brush,
+				      size_t fieldIdx);
+
 
   /**
    * @brief Paint the given field in the given painter.
