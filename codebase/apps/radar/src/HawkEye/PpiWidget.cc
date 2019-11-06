@@ -79,7 +79,11 @@ PpiWidget::PpiWidget(QWidget* parent,
 	_openingFileInfoLabel->setStyleSheet("QLabel { background-color : darkBlue; color : yellow; qproperty-alignment: AlignCenter; }");
 	_openingFileInfoLabel->setVisible(false);
 
-  startTimer(50);  //used for boundary editor to detect shift key down (changes cursor)
+	//fires every 50ms. used for boundary editor to
+	// (1) detect shift key down (changes cursor)
+	// (2) get notified if user zooms in or out so the boundary can be rescaled
+	// Todo: investigate implementing a listener pattern instead
+  startTimer(50);
 }
 
 /*************************************************************************
@@ -415,6 +419,8 @@ void PpiWidget::configureRange(double max_range)
   
 }
 
+// Used to notify BoundaryPointEditor if the user has zoomed in/out or is pressing the Shift key
+// Todo: investigate implementing a listener pattern instead
 void PpiWidget::timerEvent(QTimerEvent *event)
 {
 	bool doUpdate = false;
@@ -459,10 +465,11 @@ void PpiWidget::mouseReleaseEvent(QMouseEvent *e)
   if (rgeom.width() <= 20)
   {
 
-	// Emit a signal to indicate that the click location has changed
+		// Emit a signal to indicate that the click location has changed
     _worldReleaseX = _zoomWorld.getXWorld(_mouseReleaseX);
     _worldReleaseY = _zoomWorld.getYWorld(_mouseReleaseY);
 
+    // If boundary editor active, then interpret boundary mouse release event
     if (_manager._boundaryEditorDialog->isVisible())
     {
     	if (BoundaryPointEditor::Instance()->getCurrentTool() == BoundaryToolType::polygon)

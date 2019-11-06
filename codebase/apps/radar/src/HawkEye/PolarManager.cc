@@ -22,17 +22,15 @@
 // ** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.    
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=* 
 ///////////////////////////////////////////////////////////////
-// HawkEye.cc
-//
-// HawkEye object
 //
 // Mike Dixon, RAP, NCAR, P.O.Box 3000, Boulder, CO, 80307-3000, USA
-//
 // Oct 2014
 //
 ///////////////////////////////////////////////////////////////
 //
 // PolarManager manages polar rendering - PPIs and RHIs
+//
+// Jeff Smith added support for the new BoundaryPointEditor (Sept-Nov 2019)
 //
 ///////////////////////////////////////////////////////////////
 
@@ -554,8 +552,8 @@ void PolarManager::_setupWindows()
   move(pos);
   
   // set up field status dialog
-
   _createClickReportDialog();
+
   createBoundaryEditorDialog();
 
   if (_archiveMode) {
@@ -2104,12 +2102,14 @@ void PolarManager::_placeTimeControl()
   }
 }
 
+// BoundaryEditor circle (radius) slider has changed value
 void PolarManager::_circleRadiusSliderValueChanged(int value)
 {
 	if (BoundaryPointEditor::Instance()->setCircleRadius(value))  //returns true if existing circle was resized with this new radius
 		_ppi->update();
 }
 
+// BoundaryEditor brush (size) slider has changed value
 void PolarManager::_brushRadiusSliderValueChanged(int value)
 {
 	BoundaryPointEditor::Instance()->setBrushRadius(value);
@@ -2202,6 +2202,7 @@ void PolarManager::_timeSliderPressed()
   }
 }
 
+// sets the directory into which boundary files will be read/written
 void PolarManager::setBoundaryDir()
 {
 	if (!_openFilePath.empty())
@@ -2236,6 +2237,7 @@ void PolarManager::_openFile()
     inputPath = temp.absolutePath();
   }
 
+  //since we are opening a new radar file, close any boundaries currently being displayed
 	BoundaryPointEditor::Instance()->clear();
 	if (_boundaryEditorDialog)
 	{
@@ -2258,8 +2260,9 @@ void PolarManager::_openFile()
     const char *openFilePath = qb.constData();
     _openFilePath = openFilePath;
 
-    //save this so the boundary editor can save boundaries to a unique directory
     cout << "_openFilePath=" << _openFilePath << endl;
+
+    //use _openFilePath to determine the new directory into which boundaries will be read/written
     setBoundaryDir();
 
     // trying this ... to get the data from the file selected
@@ -3033,6 +3036,7 @@ void PolarManager::_howto()
   QMessageBox::about(this, tr("Howto dialog"), tr(text.c_str()));
 }
 
+// Creates the boundary editor dialog and associated event slots
 void PolarManager::createBoundaryEditorDialog()
 {
 	_boundaryEditorDialog = new QDialog(this);
@@ -3144,6 +3148,7 @@ void PolarManager::createBoundaryEditorDialog()
   connect(_boundaryEditorList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onBoundaryEditorListItemClicked(QListWidgetItem*)));
 }
 
+// Select the given tool and set the hint text, while also un-selecting the other tools
 void PolarManager::selectBoundaryTool(BoundaryToolType tool)
 {
 	_boundaryEditorPolygonBtn->setChecked(false);
@@ -3167,6 +3172,7 @@ void PolarManager::selectBoundaryTool(BoundaryToolType tool)
 	}
 }
 
+// User clicked on the polygonBtn
 void PolarManager::polygonBtnBoundaryEditorClick()
 {
 	selectBoundaryTool(BoundaryToolType::polygon);
@@ -3174,6 +3180,7 @@ void PolarManager::polygonBtnBoundaryEditorClick()
 	_ppi->update();
 }
 
+// User clicked on the circleBtn
 void PolarManager::circleBtnBoundaryEditorClick()
 {
 	selectBoundaryTool(BoundaryToolType::circle);
@@ -3181,6 +3188,7 @@ void PolarManager::circleBtnBoundaryEditorClick()
 	_ppi->update();
 }
 
+// User clicked on the brushBtn
 void PolarManager::brushBtnBoundaryEditorClick()
 {
 	selectBoundaryTool(BoundaryToolType::brush);
@@ -3188,11 +3196,13 @@ void PolarManager::brushBtnBoundaryEditorClick()
 	_ppi->update();
 }
 
+// returns the file path for the boundary file, given the currently selected field and sweep
 string PolarManager::getBoundaryFilePath(string boundaryFileName)
 {
 	return(_boundaryDir + PATH_DELIM + "field" + to_string(_fieldNum) + "-sweep" + to_string(_sweepManager.getGuiIndex()) + "-" + boundaryFileName);
 }
 
+// user clicked on one of the 5 boundaries in the boundary editor list, so load that boundary
 void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 {
 	string fileName = item->text().toUtf8().constData();
@@ -3224,12 +3234,14 @@ void PolarManager::onBoundaryEditorListItemClicked(QListWidgetItem* item)
 	}
 }
 
+// user clicked the boundary editor Clear button
 void PolarManager::clearBoundaryEditorClick()
 {
 	BoundaryPointEditor::Instance()->clear();
 	_ppi->update();   //forces repaint which clears existing polygon
 }
 
+// user clicked the boundary editor Save button
 void PolarManager::saveBoundaryEditorClick()
 {
 	cout << "PolarManager, _saveBoundaryEditorClick" << endl;
@@ -3244,8 +3256,7 @@ void PolarManager::saveBoundaryEditorClick()
 	BoundaryPointEditor::Instance()->save(getBoundaryFilePath(fileName));
 }
 
-/////////////////////////////
-// show boundary editor
+// user clicked on the main menu item "Boundary Editor", so toggle it visible or invisible
 void PolarManager::showBoundaryEditor()
 {
   if (_boundaryEditorDialog)
@@ -3272,6 +3283,7 @@ void PolarManager::showBoundaryEditor()
   }
 }
 
+// check which (if any) of the 5 boundary files exist, and populate the list accordingly
 void PolarManager::refreshBoundaries()
 {
   BoundaryPointEditor::Instance()->clear();

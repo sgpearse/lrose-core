@@ -13,17 +13,28 @@
 
 using namespace std;
 
+//
+// BoundaryPointEditor.hh
+//
+//     Created: Sept-Nov 2019 by Jeff Smith
+//  Includes Point and PolygonUtils. Implemented as a singleton and stores the points for a boundary
+
+
+
+// A boundary is a vector list of Points
 struct Point
 {
   float x;
   float y;
 
+  //move this point towards given point by some fractional amount
   void lerp(Point pt, float amount)
   {
   	x = x + amount * (float)(pt.x - x);
   	y = y + amount * (float)(pt.y - y);
   }
 
+  //return the distance to (x2,y2)
   float distanceTo(float x2, float y2)
   {
     float dx = (x2 - x);
@@ -32,6 +43,7 @@ struct Point
     return(dist);
   }
 
+  //return the distance to other
   float distanceTo(Point other)
   {
     float dx = (other.x - x);
@@ -40,6 +52,7 @@ struct Point
     return(dist);
   }
 
+  //return the distance to line segment (x1, y1, x2, y2)
   float distToLineSegment(float x1, float y1, float x2, float y2)
   {
   	float A = x - x1;
@@ -77,24 +90,19 @@ struct Point
 		return distance;
   }
 
-  float distBetween(float x, float y, float x1, float y1)
-  {
-    float xx = x1 - x;
-    float yy = y1 - y;
-
-    return (float) sqrt(xx * xx + yy * yy);
-  }
-
+  //returns true if this point == other
   bool equals(Point other)
   {
     return(x == other.x && y == other.y);
   }
 };
 
-
+// PolygonUtils contains some useful methods for working with polygons
 class PolygonUtils
 {
 public:
+
+	//returns true if polygon (pts) doesn't have any segments that intersect each other
 	static bool isValidPolygon(vector<Point> &pts)
 	{
 		if (pts.size() < 4)
@@ -115,6 +123,7 @@ public:
 		return(true);
 	}
 
+	// if any segments in polygon (pts) intersect, attempt to move points so they no longer intersect
 	static void fixInvalidPolygon(vector<Point> &pts)
 	{
 		if (pts.size() < 4)
@@ -135,6 +144,7 @@ public:
 		}
 	}
 
+	//returns true if the given point (p) lies inside polygon (polyPts)
 	static bool isPointInsidePolygon(Point &p, vector<Point> &polyPts)
 	{
 		Point p2;
@@ -218,6 +228,8 @@ private:
 	    return (val > 0)? 1: 2; // clock or counterclock wise
 	}
 
+	// used to fix invalid polygons. Method determines which 2 points are closest to each other
+	// and then merges them (assigns both to the midpoint between the 2)
 	static void mergeClosestPoints(Point &p1, Point &p2, Point &p3, Point &p4)
 	{
 		float d12 = p1.distanceTo(p2);
@@ -241,6 +253,7 @@ private:
 			mergeToMidPoint(p3,p4);
 	}
 
+	// sets points a and b to the midpoint between them
 	static void mergeToMidPoint(Point &a, Point &b)
 	{
 		float xMid = (a.x + b.x) / 2;
@@ -254,7 +267,7 @@ private:
 };
 
 
-
+// Used by Boundary Editor to indicate which tool is active
 enum class BoundaryToolType
 {
   polygon,
@@ -262,13 +275,9 @@ enum class BoundaryToolType
 	brush
 };
 
-/*
- * BoundaryPointEditor.hh
- *
- *  Created on: Sep 5, 2019
- *      Author: jeff smith
- *  Implemented as a singleton and stores the points for a boundary
- */
+//
+//  Implemented as a singleton and stores the points for a boundary
+//
 class BoundaryPointEditor
 {
   public:
