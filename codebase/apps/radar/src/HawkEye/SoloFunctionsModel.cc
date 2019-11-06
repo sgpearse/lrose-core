@@ -149,7 +149,8 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 
 }
 
-float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
 					   int rayIdx, int sweepIdx,
 					   string newFieldName) {
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
@@ -228,6 +229,8 @@ float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
   RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
   //  RadxField *field1 = newRay->addField(newFieldName, "m/s", nGates, missingValue, newData, scale, offset, isLocal);
 
+  string tempFieldName = field1->getName();
+
   /*
   // to avoid this warning ...                                                                        
   // WARNING - Range geom has not been set on ray                                                     
@@ -243,8 +246,9 @@ float *SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
 
   // ============
 
-  return newData;
+  //  return newData;
 
+  return tempFieldName;
 }
 
 // TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data

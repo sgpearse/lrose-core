@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iterator>
 
+#include <Radx/RadxRay.hh>
+
 #include "SoloFunctionsController.hh"
 #include "SoloFunctionsModel.hh"
 // #include "SpreadSheetModel.hh"
@@ -99,17 +101,18 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
   return newData;
 }
 
+// return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) { 
 
   SoloFunctionsModel soloFunctionsModel;
 
-  float *result = soloFunctionsModel.ZeroMiddleThird(field.toStdString(), _data,
+  string tempFieldName = soloFunctionsModel.ZeroMiddleThird(field.toStdString(), _data,
 						     _currentRayIdx, _currentSweepIdx,
-						     "VEL_xyz");
+						     field.toStdString()); // "VEL_xyz");
 
   // TODO: returns name of new field in RadxVol
 
-  return QString("zero middle result");
+  return QString::fromStdString(tempFieldName); // QString("zero middle result");
 }
 
 
@@ -177,6 +180,34 @@ bool SoloFunctionsController::moreSweeps() {
     _data->loadFieldsFromRays();
 
   return (_currentSweepIdx < nSweeps);
+}
+
+
+void SoloFunctionsController::assign(string tempName, string userDefinedName) {
+  //_data->loadFieldsFromRays(); // TODO: this is a costly function as it moves the data/or pointers
+  // TODO: where are the field names kept? in the table map? can i just change that?
+  // Because each RadxRay holds its own FieldNameMap,
+  // TODO: maybe ...
+  vector<RadxRay *> rays = _data->getRays();
+  // for each ray, 
+  vector<RadxRay *>::iterator it;
+  for (it=rays.begin(); it != rays.end(); ++it) {
+     // renameField(oldName, newName);
+    (*it)->renameField(tempName, userDefinedName);
+    // loadFieldNameMap
+    (*it)->loadFieldNameMap();
+
+  }
+  // end for each ray
+  //
+  /* 
+  RadxField *theField = _data->getField(tempName);
+  if (theField == NULL) throw "Error: no field " + tempName + " found for " + userDefinedName + "  in data volume (SoloFunctionsController)";
+  theField->setName(userDefinedName);
+  theField->setLongName(userDefinedName);
+  theField->setStandardName(userDefinedName);
+  _data->loadRaysFromFields();
+  */
 }
 
 

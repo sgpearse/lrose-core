@@ -155,9 +155,9 @@ void ScriptEditorController::getVolumeChanges() {
 }
 
 void ScriptEditorController::volumeUpdated(QStringList newFieldNames) {
-  QStringList newFieldNamesFAKE = {"VEL_xyz"};
+  //QStringList newFieldNamesFAKE = {"VEL_xyz"};
   //  QStringList newFieldNamesFAKE = {"DBZ", "WIDTH", "ZDR"};
-  emit scriptChangedVolume(newFieldNamesFAKE); // _currentModel->getVolume());
+  emit scriptChangedVolume(newFieldNames); // FAKE); // _currentModel->getVolume());
 }
 
 
@@ -556,7 +556,10 @@ uncate(100);
 void ScriptEditorController::runForEachRayScript(QString script)
 {
   LOG(DEBUG) << "enter";
-  /*
+
+  QStringList newFieldNames; //  = {"VEL_xyz"}; // , "123", "CDE"};
+
+  
     // Grab the context before evaluating the formula                                                      
     //  YES! This works.  The new global variables are listed here;                                        
     // just find them and add them to the spreadsheet and to the Model??                                   
@@ -575,7 +578,7 @@ void ScriptEditorController::runForEachRayScript(QString script)
 uncate(100);                                                                                               
       currentVariableContext[it.name()] = it.value().toString();
     }
-  */
+  
       // ======                                                                                            
     //    try {
 
@@ -617,27 +620,8 @@ uncate(100);
           cerr << " the result is a number " << result.toString().toStdString() << endl;
           //setSelectionToValue(result.toString());                                                        
         }
-	/*
-	// ======                                                                                            
-	//  YES! This works.  The new global variables are listed here;                                      
-	// just find them and add them to the spreadsheet and to the Model??                                 
-	// HERE!!!                                                                                           
-	// try iterating over the properties of the globalObject to find new variables                       
-        QJSValue newGlobalObject = engine.globalObject();
-
-        QJSValueIterator it2(newGlobalObject);
-        while (it2.hasNext()) {
-	it2.next();
-	QString theValue = it2.value().toString();
-	theValue.truncate(100);
-	LOG(DEBUG) << it2.name().toStdString() << ": " << theValue.toStdString();
-	if (currentVariableContext.find(it2.name()) == currentVariableContext.end()) {
-	// we have a newly defined variable                                                            
-	LOG(DEBUG) << "NEW VARIABLE " << it2.name().toStdString() <<  ": " << theValue.toStdString();
-	addVariableToScriptEditor(it2.name(), it2.value());
-	}
-        }
-	*/
+	
+	
       }
       _soloFunctionsController->nextRay();
     }
@@ -653,11 +637,45 @@ uncate(100);
       criticalMessage("Error occurred during evaluation");
     }
       */
-    QStringList newFieldNames = {"VEL_xyz"}; // , "123", "CDE"};
+
+	// ======                                                                                            
+	//  YES! This works.  The new global variables are listed here;                                      
+	// just find them and add them to the spreadsheet and to the Model??                                 
+	// HERE!!!                                                                                           
+	// try iterating over the properties of the globalObject to find new variables                       
+        QJSValue newGlobalObject = engine.globalObject();
+
+        QJSValueIterator it2(newGlobalObject);
+        while (it2.hasNext()) {
+	  it2.next();
+	  QString theValue = it2.value().toString();
+	  theValue.truncate(100);
+	  LOG(DEBUG) << it2.name().toStdString() << ": " << theValue.toStdString();
+	  if (currentVariableContext.find(it2.name()) == currentVariableContext.end()) {
+	    // we have a newly defined variable                                                            
+	    LOG(DEBUG) << "NEW VARIABLE " << it2.name().toStdString() <<  ": " << theValue.toStdString();
+	    // COOL! at this point, we have the new field name AND the temporary field name in the RadxVol,
+	    // so we can do an assignment now.
+            string tempName = theValue.toStdString();
+	    string userDefinedName = it2.name().toStdString();
+            _assign(tempName, userDefinedName);
+	    //add Variable list ToScriptEditor(it2.name(), it2.value());
+	    newFieldNames << it2.name();
+	  }
+        }
+
 
     volumeUpdated(newFieldNames);
     LOG(DEBUG) << "exit";
 }
+
+
+void ScriptEditorController::_assign(string tempName, string userDefinedName) {
+
+  // rename the field in the RadxVol
+  _soloFunctionsController->assign(tempName, userDefinedName);
+}
+
 
 // request filled by Controller in response to needFieldNames signal                                       
 void ScriptEditorController::fieldNamesProvided(vector<string> fieldNames) {

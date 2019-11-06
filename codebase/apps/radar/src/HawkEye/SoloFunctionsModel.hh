@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 
 #include "Radx/RadxVol.hh"
 
@@ -24,7 +25,7 @@ public:
 				      int rayIdx, int sweepIdx);
 
 
-  float *ZeroMiddleThird(string fieldName,  RadxVol *vol,
+  string ZeroMiddleThird(string fieldName,  RadxVol *vol,
 			 int rayIdx, int sweepIdx,
 			 string newFieldName);
 

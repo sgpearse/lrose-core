@@ -102,6 +102,8 @@ public:
 
   void applyBoundary();
 
+  void assign(string tempName, string userDefinedName);
+
 private:
 
   RadxVol *_data;
@@ -113,6 +115,7 @@ private:
   vector<string> split(const string &s, char delim);
   vector<double> splitDouble(const string &s, char delim);
  
+
 };
 
 
