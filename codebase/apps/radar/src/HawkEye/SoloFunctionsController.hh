@@ -11,6 +11,8 @@
 #include <iostream>
 
 #include <Radx/RadxVol.hh>
+#include "SoloFunctionsModel.hh"
+
 //#include "HawkEyeLogger.hh"
 
 using namespace std;
@@ -76,6 +78,7 @@ private:
   size_t _currentRayIdx;
   size_t _nRays;
   size_t _nSweeps;
+  SoloFunctionsModel soloFunctionsModel;
 
   template<typename Out>
   void split(const string &s, char delim, Out result);

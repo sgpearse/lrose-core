@@ -10,7 +10,6 @@
 #include <toolsa/LogStream.hh>
 
 #include "SoloFunctionsController.hh"
-#include "SoloFunctionsModel.hh"
 // #include "SpreadSheetModel.hh"
 
 using namespace std;
@@ -69,7 +68,7 @@ QVector<double> add(QVector<double> v, QVector<double> v2) {
 // TODO:  parameters should be DataField ??
 QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) { 
 
-  SoloFunctionsModel soloFunctionsModel;
+  //SoloFunctionsModel soloFunctionsModel;
 
   // the value of the field has been substituted; If the field is a vector,
   // then the QString contains all the values as a comma separated list in a string
@@ -114,7 +113,7 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
 // return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) { 
 
-  SoloFunctionsModel soloFunctionsModel;
+  //SoloFunctionsModel soloFunctionsModel;
 
   string tempFieldName = soloFunctionsModel.ZeroMiddleThird(field.toStdString(), _data,
 						     _currentRayIdx, _currentSweepIdx,
@@ -129,7 +128,7 @@ QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) {
 // return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::ZERO_INSIDE_BOUNDARY(QString field) { 
 
-  SoloFunctionsModel soloFunctionsModel;
+  //SoloFunctionsModel soloFunctionsModel;
 
   string tempFieldName = soloFunctionsModel.ZeroInsideBoundary(field.toStdString(), _data,
 						     _currentRayIdx, _currentSweepIdx,
@@ -143,7 +142,7 @@ QString SoloFunctionsController::ZERO_INSIDE_BOUNDARY(QString field) {
 
 void SoloFunctionsController::applyBoundary() {
   
-  SoloFunctionsModel soloFunctionsModel;
+  //SoloFunctionsModel soloFunctionsModel;
   soloFunctionsModel.SetBoundaryMask(_data, _currentRayIdx, _currentSweepIdx);
 }
 

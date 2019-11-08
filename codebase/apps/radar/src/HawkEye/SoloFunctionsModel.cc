@@ -16,17 +16,31 @@
 
 using namespace std;
 
-/*
-SoloFunctionsModel::SoloFunctionsModel() {
 
+SoloFunctionsModel::SoloFunctionsModel() {
+  _boundaryMask = NULL;
+  _boundaryMaskSet = false;
+  _boundaryMaskLength = 0;
 }
-*/
+
 // call this for each new ray, since the azimuth changes each time the ray changes
 void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 					 int rayIdx, int sweepIdx) {
 
-  _boundaryMaskSet = false;
-  return; 
+  _boundaryMaskSet = true;
+
+  if (_boundaryMask != NULL) {
+    delete[] _boundaryMask;
+  }
+
+  size_t nGates = 2000;
+  _boundaryMaskLength = nGates;
+  _boundaryMask = new short[nGates];
+    for (size_t i = 0; i<nGates; i++)
+      _boundaryMask[i] = 0;
+    for (size_t i = 500; i<nGates; i++)
+      _boundaryMask[i] = 1;
+
   /*
   _boundaryMaskLength = 2000;
   _boundaryMask = new short[_boundaryMaskLength];
@@ -366,12 +380,11 @@ string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
   if (_boundaryMaskSet) {
 
     // verify dimensions on data in/out and boundary mask
-    if (nGates != _boundaryMaskLength)
+    if (nGates > _boundaryMaskLength)
       throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
 
     cerr << "there are nGates " << nGates;
     const float *data = field->getDataFl32();
-
   
     // perform the function ...
     soloFunctionsApi.ZeroInsideBoundary(data, _boundaryMask, newData, nGates);
@@ -389,16 +402,20 @@ string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
     cerr << "there are nGates " << nGates;
     const float *data = field->getDataFl32();
 
-  short *fixedBnd = new short[nGates];
-  for (size_t i = 0; i<nGates; i++)
-    fixedBnd[i] = 0;
-  for (size_t i = 500; i<nGates; i++)
-    fixedBnd[i] = 1;
   
-
+    /*  This is for a fixed boundary; and it works fine!
+    short *fixedBnd = new short[nGates];
+    for (size_t i = 0; i<nGates; i++)
+      fixedBnd[i] = 0;
+    for (size_t i = 500; i<nGates; i++)
+      fixedBnd[i] = 1;
     soloFunctionsApi.ZeroInsideBoundary(data, fixedBnd, newData, nGates);
-
     delete[] fixedBnd;
+    */
+
+    soloFunctionsApi.ZeroInsideBoundary(data, NULL, newData, nGates);
+
+
     /*
     for (int i=0; i<nGates; i++) {
 	newData[i] = 0.0;

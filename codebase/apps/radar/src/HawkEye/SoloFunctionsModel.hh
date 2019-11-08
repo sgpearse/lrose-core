@@ -17,7 +17,7 @@ class SoloFunctionsModel
 
 
 public:
-  SoloFunctionsModel() {}
+  SoloFunctionsModel();
 
   vector<double> RemoveAircraftMotion(vector<double>, RadxVol *vol);
   vector<double> RemoveAircraftMotion(string fieldName, RadxVol *vol);
