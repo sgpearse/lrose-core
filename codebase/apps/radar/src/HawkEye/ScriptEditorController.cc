@@ -11,11 +11,9 @@
 #include <QJSValueIterator>
 
 #include "ScriptEditorController.hh"
-//#include "ScriptEditorDelegate.hh"
-//#include "ScriptEditorItem.hh"
 #include "ScriptEditorModel.hh"
 #include "SoloFunctionsController.hh"
-#include <toolsa/LogStream.hh>
+ #include <toolsa/LogStream.hh>
 
 ScriptEditorController::ScriptEditorController(ScriptEditorView *view)
 {
@@ -185,6 +183,7 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("sqrt", myExt.property("sqrt"));
   engine.globalObject().setProperty("REMOVE_AIRCRAFT_MOTION", myExt.property("REMOVE_AIRCRAFT_MOTION"));
   engine.globalObject().setProperty("ZERO_MIDDLE_THIRD", myExt.property("ZERO_MIDDLE_THIRD"));
+  engine.globalObject().setProperty("ZERO_INSIDE_BOUNDARY", myExt.property("ZERO_INSIDE_BOUNDARY"));
   engine.globalObject().setProperty("add", myExt.property("add"));
 
   // print the context ...
@@ -270,149 +269,7 @@ void ScriptEditorController::processFormula(QString formula)
 }
  */
 
-/*
-void ScriptEditorController::createActions()
-{
-    cell_sumAction = new QAction(tr("- Fold"), this);
-    connect(cell_sumAction, &QAction::triggered, this, &ScriptEditorController::actionSum);
-
-    cell_addAction = new QAction(tr("&+ Fold"), this);
-    cell_addAction->setShortcut(Qt::CTRL | Qt::Key_Plus);
-    connect(cell_addAction, &QAction::triggered, this, &ScriptEditorController::actionAdd);
-
-    cell_subAction = new QAction(tr("&Delete Ray"), this);
-    cell_subAction->setShortcut(Qt::CTRL | Qt::Key_Minus);
-    connect(cell_subAction, &QAction::triggered, this, &ScriptEditorController::actionSubtract);
-
-    cell_mulAction = new QAction(tr("&- Fold Ray"), this);
-    cell_mulAction->setShortcut(Qt::CTRL | Qt::Key_multiply);
-    connect(cell_mulAction, &QAction::triggered, this, &ScriptEditorController::actionMultiply);
-
-    cell_divAction = new QAction(tr("&+ Fold Ray"), this);
-    cell_divAction->setShortcut(Qt::CTRL | Qt::Key_division);
-    connect(cell_divAction, &QAction::triggered, this, &ScriptEditorController::actionDivide);
-  
-    cell_MinusFoldRayAction = new QAction(tr("&- Fold Ray"), this);
-    //cell_MinusFoldRayAction->setShortcut(Qt::CTRL | Qt::Key_division);
-    connect(cell_MinusFoldRayAction, &QAction::triggered, this, &ScriptEditorController::actionMinusFoldRay);
- 
-    cell_divAction = new QAction(tr("&+ Fold Ray >"), this);
-    cell_divAction->setShortcut(Qt::CTRL | Qt::Key_division);
-    connect(cell_divAction, &QAction::triggered, this, &ScriptEditorController::actionDivide);
-
-    cell_divAction = new QAction(tr("&- Fold Ray >"), this);
-    cell_divAction->setShortcut(Qt::CTRL | Qt::Key_division);
-    connect(cell_divAction, &QAction::triggered, this, &ScriptEditorController::actionDivide);
-
-    cell_divAction = new QAction(tr("&Zap Gnd Spd"), this);
-    cell_divAction->setShortcut(Qt::CTRL | Qt::Key_division);
-    connect(cell_divAction, &QAction::triggered, this, &ScriptEditorController::actionDivide);
-  
-    fontAction = new QAction(tr("Font ..."), this);
-    fontAction->setShortcut(Qt::CTRL | Qt::Key_F);
-    connect(fontAction, &QAction::triggered, this, &ScriptEditorController::selectFont);
-
-    colorAction = new QAction(QPixmap(16, 16), tr("Background &Color..."), this);
-    connect(colorAction, &QAction::triggered, this, &ScriptEditorController::selectColor);
-
-    clearAction = new QAction(tr("Delete"), this);
-    clearAction->setShortcut(Qt::Key_Delete);
-    connect(clearAction, &QAction::triggered, this, &ScriptEditorController::clear);
-
-    aboutScriptEditorController = new QAction(tr("About Spreadsheet"), this);
-    connect(aboutScriptEditorController, &QAction::triggered, this, &ScriptEditorController::showAbout);
-
-    exitAction = new QAction(tr("E&xit"), this);
-    connect(exitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-
-    openAction = new QAction(tr("&Open"), this);
-    connect(openAction, &QAction::triggered, this, &ScriptEditorController::open);
-
-    printAction = new QAction(tr("&Print"), this);
-    connect(printAction, &QAction::triggered, this, &ScriptEditorController::print);
-
-    firstSeparator = new QAction(this);
-    firstSeparator->setSeparator(true);
-
-    secondSeparator = new QAction(this);
-    secondSeparator->setSeparator(true);
-}
-
-void ScriptEditorController::setupMenuBar()
-{
-    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(openAction);
-    fileMenu->addAction(printAction);
-    fileMenu->addAction(exitAction);
-
-    QMenu *cellMenu = menuBar()->addMenu(tr("&Cell/Edit"));
-    cellMenu->addAction(cell_addAction);
-    cellMenu->addAction(cell_subAction);
-    cellMenu->addAction(cell_mulAction);
-    cellMenu->addAction(cell_divAction);
-    cellMenu->addAction(cell_sumAction);
-    cellMenu->addSeparator();
-    cellMenu->addAction(colorAction);
-    cellMenu->addAction(fontAction);
-    //cellMenu->addAction(clearEditsAction);
-    //cellMenu->addAction(undoAction);
-    //cellMenu->addAction(applyEditsAction);  // TODO: what does apply edits do?
-    //cellMenu->addAction(refreshAction);
-
-
-    QMenu *optionsMenu = menuBar()->addMenu(tr("&Options"));
-    QMenu *replotMenu = menuBar()->addMenu(tr("&Replot"));
-
-    menuBar()->addSeparator();
-
-    QMenu *aboutMenu = menuBar()->addMenu(tr("&Help"));
-    aboutMenu->addAction(aboutScriptEditorController);
-}
-
-void ScriptEditorController::updateStatus(QTableWidgetItem *item)
-{
-    if (item && item == table->currentItem()) {
-        statusBar()->showMessage(item->data(Qt::StatusTipRole).toString(), 1000);
-        cellLabel->setText(tr("Cell: (%1)").arg(ScriptEditorControllerUtils::encode_pos(table->row(item), table->column(item))));
-    }
-}
-
-void ScriptEditorController::updateColor(QTableWidgetItem *item)
-{
-    QPixmap pix(16, 16);
-    QColor col;
-    if (item)
-        col = item->backgroundColor();
-    if (!col.isValid())
-        col = palette().base().color();
-
-    QPainter pt(&pix);
-    pt.fillRect(0, 0, 16, 16, col);
-
-    QColor lighter = col.light();
-    pt.setPen(lighter);
-    QPoint lightFrame[] = { QPoint(0, 15), QPoint(0, 0), QPoint(15, 0) };
-    pt.drawPolyline(lightFrame, 3);
-
-    pt.setPen(col.dark());
-    QPoint darkFrame[] = { QPoint(1, 15), QPoint(15, 15), QPoint(15, 1) };
-    pt.drawPolyline(darkFrame, 3);
-
-    pt.end();
-
-    colorAction->setIcon(pix);
-}
-
-void ScriptEditorController::updateLineEdit(QTableWidgetItem *item)
-{
-    if (item != table->currentItem())
-        return;
-    if (item)
-        formulaInput->setText(item->data(Qt::EditRole).toString());
-    else
-        formulaInput->clear();
-}
-
+  /*
 void ScriptEditorController::returnPressed()
 {
     QString text = formulaInput->text();
@@ -425,44 +282,7 @@ void ScriptEditorController::returnPressed()
         item->setData(Qt::EditRole, text);
     table->viewport()->update();
 }
-
-void ScriptEditorController::selectColor()
-{
-    QTableWidgetItem *item = table->currentItem();
-    QColor col = item ? item->backgroundColor() : table->palette().base().color();
-    col = QColorDialog::getColor(col, this);
-    if (!col.isValid())
-        return;
-
-    QList<QTableWidgetItem*> selected = table->selectedItems();
-    if (selected.count() == 0)
-        return;
-
-    foreach (QTableWidgetItem *i, selected) {
-        if (i)
-            i->setBackgroundColor(col);
-    }
-
-    updateColor(table->currentItem());
-}
-
-void ScriptEditorController::selectFont()
-{
-    QList<QTableWidgetItem*> selected = table->selectedItems();
-    if (selected.count() == 0)
-        return;
-
-    bool ok = false;
-    QFont fnt = QFontDialog::getFont(&ok, font(), this);
-
-    if (!ok)
-        return;
-    foreach (QTableWidgetItem *i, selected) {
-        if (i)
-            i->setFont(fnt);
-    }
-}
-    */
+  */
 
 //emit runOneTimeOnlyScript(oneTimeOnlyScript);
 //emit runForEachRayScript(forEachRayScript);

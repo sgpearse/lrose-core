@@ -21,18 +21,54 @@ SoloFunctionsModel::SoloFunctionsModel() {
 
 }
 */
-
 // call this for each new ray, since the azimuth changes each time the ray changes
 void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 					 int rayIdx, int sweepIdx) {
-  
-  LOG(DEBUG) << "enter"; 
 
+  _boundaryMaskSet = false;
+  return; 
+  /*
+  _boundaryMaskLength = 2000;
+  _boundaryMask = new short[_boundaryMaskLength];
+  for (int i=0; i<_boundaryMaskLength; i++)
+    _boundaryMask[i] = 3;
+  */
+}
+
+
+// call this for each new ray, since the azimuth changes each time the ray changes
+void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
+					 int rayIdx, int sweepIdx) {
+  
+  LOG(DEBUG) << "enter";
+  LOG(DEBUG) << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+ 
   short *boundary;
 
   // TODO: make this a call to BoundaryPointModel?
   BoundaryPointEditor *bpe = BoundaryPointEditor::Instance();
-  vector<Point> boundaryPoints = bpe->getWorldPoints();
+  // TODO:   vector<Point> boundaryPoints = bpe->getWorldPoints();
+  // vector<Point> myPoints = BoundaryPointEditor::Instance()->getBoundaryPoints("/media/sf_lrose/ncswp_SPOL_RHI_.nc", 0, 4, "Boundary1");  TODO
+
+  // Test data ...
+  Point p1, p2, p3, p4;
+  p1.x =     0; p1.y =    0;
+  p2.x =  1000; p2.y =    0;
+  p3.x =  1000; p3.y = 1000;
+  p4.x =     0; p4.y =    0;
+  /*
+  p1.x = -50; p1.y =  50;
+  p2.x =  50; p2.y =  50;
+  p3.x =  50; p3.y = -50;
+  p4.x = -50; p4.y = -50;
+  */
+  vector<Point> boundaryPoints;
+  boundaryPoints.push_back(p1);
+  boundaryPoints.push_back(p2);
+  boundaryPoints.push_back(p3);
+  boundaryPoints.push_back(p4);
+  // end Test data
 
   //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
   int nBoundaryPoints = boundaryPoints.size();
@@ -49,8 +85,8 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
   vector<Point>::iterator it;
   int i = 0;
   for (it = boundaryPoints.begin(); it != boundaryPoints.end(); it++) {
-    xpoints[i] = it->x;
-    ypoints[i] = it->y;
+    xpoints[i] = (short) it->x;
+    ypoints[i] = (short) it->y;
     i += 1;
   }
 
@@ -72,21 +108,58 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
   float radar_origin_longitude = vol->getLongitudeDeg();
   float radar_origin_altitude = vol->getAltitudeKm() * 1000.0;
   float boundary_origin_tilt = 0.0;
-  float boundary_origin_latitude = 0.0;
-  float boundary_origin_longitude = 0.0;
-  float boundary_origin_altitude = 0.0;
-  int nGates = 0;
-  float gateSize = 0.0;
-  float distanceToCellNInMeters = 0.0;
-  float azimuth = 0.0;
+  float boundary_origin_latitude = radar_origin_latitude; // 0.0;
+  float boundary_origin_longitude = radar_origin_longitude; // 0.0;
+  float boundary_origin_altitude = radar_origin_altitude; // 0.0;
+  
+  // =======
+
+  vol->loadRaysFromFields();
+
+  const RadxField *field;
+  /*
+  field = vol->getFieldFromRay(fieldName);
+  if (field == NULL) {
+    LOG(DEBUG) << "no RadxField found in volume";
+    throw "No data field with name " + fieldName;;
+  }
+  */
+
+  //  get the ray for this field 
+  // for the boundary mask, all we care about is the geometry of the ray,
+  // NOT the data values for each field.
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  //field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+  LOG(DEBUG) << "there are nGates " << nGates;
+
+  // =======
+
+  _boundaryMaskLength = nGates;
+
+  float gateSize = ray->getGateSpacingKm();
+  float distanceToCellNInMeters = ray->getStartRangeKm();
+  float azimuth = ray->getAzimuthDeg();
   // need to do some conversions here ...
-  int radar_scan_mode = 1; 
-  int radar_type = 1; 
-  float tilt_angle = 0.0;
+  // TODO: get these from SoloLibrary::dd_math.h
+  int radar_scan_mode = 1; // PPI;
+  int radar_type = 0; // GROUND; 
+ 
+  float tilt_angle = ray->getElevationDeg();
   float rotation_angle = 0.0; 
 
-
-    short *boundaryMask = soloFunctionsApi.GetBoundaryMask(xpoints, ypoints, nBoundaryPoints,
+  _boundaryMask = new short[_boundaryMaskLength];
+  /*
+  soloFunctionsApi.GetBoundaryMask(xpoints, ypoints, nBoundaryPoints,
                          radar_origin_latitude,
                          radar_origin_longitude,
                          radar_origin_altitude,
@@ -101,7 +174,9 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
                                            radar_scan_mode,
                                            radar_type,
                                            tilt_angle,
-                                           rotation_angle);
+						  rotation_angle,
+_boundaryMask);
+  */
 
   /*
   short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
@@ -139,8 +214,8 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 						     tilt_angle,
 						     rotation_angle);
   */
-  _boundaryMask = boundaryMask;
-
+  // _boundaryMask = boundaryMask;
+  printBoundaryMask();
 
   delete[] xpoints;
   delete[] ypoints;
@@ -250,6 +325,124 @@ string SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
 
   return tempFieldName;
 }
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
+					   int rayIdx, int sweepIdx,
+					   string newFieldName) {
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  float *newData = new float[nGates];
+
+  // =======
+  // data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  //  if (!_boundaryMaskSet) 
+  //  _boundaryMask = NULL;
+
+  // =======
+
+  if (_boundaryMaskSet) {
+
+    // verify dimensions on data in/out and boundary mask
+    if (nGates != _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+    cerr << "there are nGates " << nGates;
+    const float *data = field->getDataFl32();
+
+  
+    // perform the function ...
+    soloFunctionsApi.ZeroInsideBoundary(data, _boundaryMask, newData, nGates);
+  /*
+    if (_boundaryMaskLength != nGates) 
+      throw "Error: boundaryMaskLength not equal to nGates (ZeroInsideBoundary)";
+    for (int i=0; i<_boundaryMaskLength; i++) {
+      if (_boundaryMask[i]) 
+	newData[i] = data[i];
+      else
+	newData[i] = 0.0;
+    }
+  */
+  } else {  // no _boundaryMaskSet
+    cerr << "there are nGates " << nGates;
+    const float *data = field->getDataFl32();
+
+  short *fixedBnd = new short[nGates];
+  for (size_t i = 0; i<nGates; i++)
+    fixedBnd[i] = 0;
+  for (size_t i = 500; i<nGates; i++)
+    fixedBnd[i] = 1;
+  
+
+    soloFunctionsApi.ZeroInsideBoundary(data, fixedBnd, newData, nGates);
+
+    delete[] fixedBnd;
+    /*
+    for (int i=0; i<nGates; i++) {
+	newData[i] = 0.0;
+    }
+    */
+  }
+  /*
+  for (int i=0; i<10; i++)
+    newData[i] = data[i];   
+  for (int i=10; i<30; i++)
+    newData[i] = 0;
+  for (int i=30; i<nGates; i++)
+    newData[i] = data[i];   
+  */
+
+
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+
+  /*
+  // to avoid this warning ...                                                                        
+  // WARNING - Range geom has not been set on ray                                                     
+  double startRangeKm = 3.0;
+  double gateSpacingKm = 5.0;
+  newRay->setRangeGeom(startRangeKm, gateSpacingKm);
+  */
+
+  return tempFieldName;
+}
+
 
 // TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data
 vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
@@ -498,3 +691,8 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(vector<double> data, Rad
 
 
 
+void SoloFunctionsModel::printBoundaryMask() {
+  cout << "Boundary Mask ... Length = " << _boundaryMaskLength << endl;
+  for (int i=0; i<_boundaryMaskLength; i++)
+    cout << _boundaryMask[i] << ", ";
+}

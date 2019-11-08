@@ -117,6 +117,26 @@ public:
           int radar_type,
           float tilt_angle,
           float rotation_angle);
+
+void get_boundary_mask(
+        OneBoundary *boundaryList,
+        // bool new_sweep,  // assume new_sweep
+        //        bool operate_outside_bnd,
+        //bool shift_bnd,  // always shift
+        PointInSpace *radar_origin,
+        PointInSpace *boundary_origin,
+        int nGates,
+        float gateSize,
+        float distanceToCellNInMeters,
+        float azimuth,    // TODO: are azimuth & rotation_angle the same thing? YES
+        int radar_scan_mode,
+        int radar_type,
+        float tilt_angle, 
+        float rotation_angle,
+	short *boundary_mask);
+
+
+
   /*
 
   short *get_boundary_mask_time_series(

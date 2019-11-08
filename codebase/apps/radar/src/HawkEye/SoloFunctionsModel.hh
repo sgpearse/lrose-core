@@ -29,13 +29,21 @@ public:
 			 int rayIdx, int sweepIdx,
 			 string newFieldName);
 
+  string ZeroInsideBoundary(string fieldName,  RadxVol *vol,
+			 int rayIdx, int sweepIdx,
+			 string newFieldName);
+
   void SetBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx);
+  void SetBoundaryMaskOriginal(RadxVol *vol, int rayIdx, int sweepIdx);
  
+  void printBoundaryMask();
+
 private:
 
   //  SpreadSheetModel *dataModel;
   short *_boundaryMask;
-
+  size_t _boundaryMaskLength;
+  bool _boundaryMaskSet;
 };
 
 

@@ -241,25 +241,6 @@ float  ScriptEditorView::myPow()
   return(999.9);
 }
 
-/*
-// SoloFunctions object comes in with data model already attached
-void ScriptEditorView::setupSoloFunctions(SoloFunctions *soloFunctions) {
-
-  LOG(DEBUG) << "defining REMOVE_AIRCRAFT_MOTION function";
-  //  emit radarVolumeDataRequest();  make the request for the data inside the SoloFunctions object
-
-  //    QJSValue myExt = engine.newQObject(new SoloFunctions(_controller));
-  QJSValue myExt = engine.newQObject(soloFunctions); // new SoloFunctions());
-    engine.globalObject().setProperty("cat", myExt.property("cat"));
-    engine.globalObject().setProperty("sqrt", myExt.property("sqrt"));
-    engine.globalObject().setProperty("REMOVE_AIRCRAFT_MOTION", myExt.property("REMOVE_AIRCRAFT_MOTION"));
-    engine.globalObject().setProperty("add", myExt.property("add"));
-
-    // print the context ...
-    printQJSEngineContext();
-}
-*/
-
 void ScriptEditorView::applyChanges()
 {
   // TODO: send a list of the variables in the GlobalObject of the

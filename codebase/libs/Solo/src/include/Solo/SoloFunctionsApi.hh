@@ -50,7 +50,7 @@ public:
   // call BoundaryPointMap::get_boundary_mask to do the work
   // 
   //  short *GetBoundaryMask(OneBoundary *boundaryList,
-  short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+  void GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
 			 //float radar_origin_x,                                                      
 			 //  float radar_origin_y,                                                    
 			 //  float radar_origin_z,                                                    
@@ -71,7 +71,8 @@ public:
 					   int radar_scan_mode,
 					   int radar_type,
 					   float tilt_angle,
-					   float rotation_angle); 
+		       float rotation_angle,
+		       short *boundary_mask); 
 
 
   // TODO: use Radx::SI16, etc? to standardize the numberic sizes?  Ask Mike about this.
@@ -91,6 +92,10 @@ public:
 				   field->getDataSi16(), bad, parameter_scale, parameter_bias, dgi_clip_gate,
 				   dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundary);
   */
+
+void ZeroInsideBoundary(const float *data, short *boundaryMask,
+			float *newData, size_t nGates);
+
 
 private:
 

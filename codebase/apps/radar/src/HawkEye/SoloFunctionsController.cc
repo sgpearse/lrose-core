@@ -7,12 +7,22 @@
 #include <iterator>
 
 #include <Radx/RadxRay.hh>
+#include <toolsa/LogStream.hh>
 
 #include "SoloFunctionsController.hh"
 #include "SoloFunctionsModel.hh"
 // #include "SpreadSheetModel.hh"
 
 using namespace std;
+
+SoloFunctionsController::SoloFunctionsController(RadxVol *data, QObject *parent) : QObject(parent) {
+  _data = data;
+  _nRays = _data->getNRays();
+  _nSweeps = _data->getNSweeps();
+
+}
+
+
 
 template<typename Out>
 void SoloFunctionsController::split(const string &s, char delim, Out result) {
@@ -116,6 +126,21 @@ QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) {
 }
 
 
+// return the name of the field in which the result is stored in the RadxVol
+QString SoloFunctionsController::ZERO_INSIDE_BOUNDARY(QString field) { 
+
+  SoloFunctionsModel soloFunctionsModel;
+
+  string tempFieldName = soloFunctionsModel.ZeroInsideBoundary(field.toStdString(), _data,
+						     _currentRayIdx, _currentSweepIdx,
+						     field.toStdString()); // "VEL_xyz");
+
+  // TODO: returns name of new field in RadxVol
+
+  return QString::fromStdString(tempFieldName); // QString("zero middle result");
+}
+
+
 void SoloFunctionsController::applyBoundary() {
   
   SoloFunctionsModel soloFunctionsModel;
@@ -155,12 +180,16 @@ void SoloFunctionsController::nextRay() {
 bool SoloFunctionsController::moreRays() {
   //  LOG(DEBUG) << "entry";
   //cerr << "entry moreRays" << endl;
-  size_t nRays = _data->getNRays();
-  cerr << "There are nRays " << nRays << endl;
+  //  vector<RadxRay *> rays = _data->getRays();
+  //size_t 
+  // THIS DOES NOT WORK; it changes memory outside of its bounds
+  //  const size_t nRays = _data->getNRays();
+
+  //LOG(DEBUG) << "There are " <<  nRays << " rays";;
   //if (_currentRayIdx >= nRays)
   //  _data->loadFieldsFromRays();
-
-  return (_currentRayIdx < nRays);
+  //return (_currentRayIdx < _data->getNRays()); // nRays);
+  return (_currentRayIdx < _nRays);
 }
 
 void SoloFunctionsController::nextSweep() {
@@ -174,12 +203,12 @@ void SoloFunctionsController::nextSweep() {
 bool SoloFunctionsController::moreSweeps() {
   //  LOG(DEBUG) << "entry";
   //cerr << "entry moreSweeps" << endl;
-  size_t nSweeps = _data->getNSweeps();
-  cerr << " there are " << nSweeps << endl;
-  if (_currentSweepIdx >= nSweeps)
-    _data->loadFieldsFromRays();
+  //  const size_t nSweeps = _data->getNSweeps();
+  //LOG(DEBUG) << " there are " << nSweeps << " sweeps";;
+  //if (_currentSweepIdx >= nSweeps)
+  //  _data->loadFieldsFromRays();
 
-  return (_currentSweepIdx < nSweeps);
+  return (_currentSweepIdx < _nSweeps);
 }
 
 

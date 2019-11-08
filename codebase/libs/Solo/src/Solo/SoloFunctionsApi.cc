@@ -18,7 +18,7 @@ SoloFunctionsApi::SoloFunctionsApi() {}
 //short *SoloFunctionsApi::GetBoundaryMask(OneBoundary *boundaryList,
 //                                           PointInSpace *radar_origin,
 //                                           PointInSpace *boundary_origin,
-short *SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
 					 //float radar_origin_x,
                                          //  float radar_origin_y,
                                          //  float radar_origin_z,
@@ -39,8 +39,24 @@ short *SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npo
                                            int radar_scan_mode,
                                            int radar_type,
                                            float tilt_angle,
-                                           float rotation_angle) {
+				       float rotation_angle,
+				       short *boundary_mask_out) {
 
+
+  for (int i=0; i<nGates; i++) {
+    boundary_mask_out[i] = 0;
+  }
+  boundary_mask_out[3] = 1;
+  boundary_mask_out[4] = 1;
+  return;
+
+  /* TODO: test
+  boundary_mask_out[0] = 3;
+  boundary_mask_out[1] = 2;
+  boundary_mask_out[3] = 1;
+  return;
+  // end test
+  */
 
   // map flat data to internal data structures ...
   PointInSpace *radar_origin = new PointInSpace;
@@ -70,7 +86,7 @@ short *SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npo
   boundary_origin->tilt = boundary_origin_tilt;
 
   BoundaryPointMap bpm;
-  short *boundary_mask = bpm.get_boundary_mask(  
+  bpm.get_boundary_mask(  
   boundary,
     // bool new_sweep,  // assume new_sweep                                                                       
     //        bool operate_outside_bnd,                                                                           
@@ -84,13 +100,20 @@ short *SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npo
     radar_scan_mode,
     radar_type,
     tilt_angle,
-    rotation_angle);
+  rotation_angle,
+  boundary_mask_out);
+
+  /*
+  // copy boundary mask to output array
+  for (int i=0; i<nGates; i++)
+    boundary_mask_out[i] = boundary_mask[i];
+  */
 
   delete boundary;
   delete radar_origin;
   delete boundary_origin;
 
-  return boundary_mask;
+  //return boundary_mask;
 } 
 
 
@@ -103,4 +126,22 @@ void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_veloci
 					    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity,
 					    short *boundary_mask) {
 
+}
+
+void SoloFunctionsApi::ZeroInsideBoundary(const float *data, short *boundaryMask,
+					  float *newData, size_t nGates) {
+
+
+  if (boundaryMask != NULL) {
+    for (size_t i=0; i<nGates; i++) {                                                                  
+      if (boundaryMask[i])                                                                                      
+        newData[i] = data[i];                                                                                    
+      else                                                                                                       
+        newData[i] = 0.0;                                                                                        
+    }             
+  } else {
+    for (size_t i=0; i<nGates; i++) {
+      newData[i] = 0.0;
+    } 
+  }
 }

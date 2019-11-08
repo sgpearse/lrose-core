@@ -15,49 +15,13 @@
 
 using namespace std;
 
-/*
-static QJSValue REMOVE_AIRCRAFT_MOTION(QJSContext *context, QJSEngine *engine)
-{
-  QJSValue callee = context->callee();
-  if (context->argumentCount() == 1) { // writing?                                                                             
-    callee.setProperty("value", context->argument(0));
-  }
-  return callee.property("value");
-}
-
-static QJSValue VectorOp(QJSContext *context, QJSEngine *engine)
-{
-  QJSValue callee = context->callee();
-  if (context->argumentCount() == 1) { // writing?                                                                             
-    QJSValue arg = context->argument(0);
-    if (arg.isArray()) {
-      cerr << "it is an Array" << endl;
-      QVector<int> v = qscriptvalue_cast<QVector<int> >(context->argument(0)); 
-      cerr << "inside VectorOp ";
-      cerr << " VectorOp size = " << v.size() << endl;
-      for (QVector<int>::iterator i=v.begin(); i != v.end(); i++)                                                                                     
-	cerr << *i << endl; // outputs "[1, 2, 3, 5]"                                                                            
-
-      qSort(v.begin(), v.end());                                                                                                    
-      QJSValue jsArray = engine->newArray(v.size()); // toScriptValue(v);
-      for (int i = 0; i < v.size(); ++i) {
-	jsArray.setProperty(i, v.at(i));
-      } 
-      callee.setProperty("value", jsArray); // context->argument(0));
-  }
-}
-  return callee.property("value");
-}
-*/
-
-
 class SoloFunctionsController : public QObject
 {
   Q_OBJECT
 
 public:
   //  SoloFunctions(SpreadSheetController *controller);
-  SoloFunctionsController(RadxVol *data, QObject *parent = nullptr) : QObject(parent) {_data = data;}
+  SoloFunctionsController(RadxVol *data, QObject *parent = nullptr);
   //SoloFunctions(QObject *parent = nullptr) : QObject(parent) { }
 
   Q_INVOKABLE QString cat(QString animal) {return animal+"_cat"; }
@@ -65,6 +29,7 @@ public:
   Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field); // return the name of the new field that contains the result
 
   Q_INVOKABLE QString ZERO_MIDDLE_THIRD(QString field); // return the name of the new field that contains the result
+  Q_INVOKABLE QString ZERO_INSIDE_BOUNDARY(QString field); // return the name of the new field that contains the result
 
   //  Q_INVOKABLE QString  REMOVE_AIRCRAFT_MOTION(QString field); //  { return field+"_trump"; }
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }
@@ -107,8 +72,10 @@ public:
 private:
 
   RadxVol *_data;
-  int _currentSweepIdx;
-  int _currentRayIdx;
+  size_t _currentSweepIdx;
+  size_t _currentRayIdx;
+  size_t _nRays;
+  size_t _nSweeps;
 
   template<typename Out>
   void split(const string &s, char delim, Out result);
