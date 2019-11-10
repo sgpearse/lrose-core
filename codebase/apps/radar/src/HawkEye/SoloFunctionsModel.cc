@@ -33,6 +33,9 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
     delete[] _boundaryMask;
   }
 
+  SetBoundaryMaskOriginal(vol, rayIdx, sweepIdx);
+
+  /* fixed boundary ... 
   size_t nGates = 2000;
   _boundaryMaskLength = nGates;
   _boundaryMask = new short[nGates];
@@ -40,6 +43,7 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
       _boundaryMask[i] = 0;
     for (size_t i = 500; i<nGates; i++)
       _boundaryMask[i] = 1;
+  end fixed boundary ... */
 
   /*
   _boundaryMaskLength = 2000;
@@ -172,7 +176,10 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   float rotation_angle = 0.0; 
 
   _boundaryMask = new short[_boundaryMaskLength];
-  /*
+ 
+  if (_boundaryMaskLength != 1832)
+    LOG(DEBUG) << "HERE";
+
   soloFunctionsApi.GetBoundaryMask(xpoints, ypoints, nBoundaryPoints,
                          radar_origin_latitude,
                          radar_origin_longitude,
@@ -190,7 +197,7 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
                                            tilt_angle,
 						  rotation_angle,
 _boundaryMask);
-  */
+ 
 
   /*
   short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,

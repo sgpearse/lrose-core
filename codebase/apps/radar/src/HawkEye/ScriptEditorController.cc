@@ -414,6 +414,7 @@ uncate(100);
       // calculate boundary mask for each ray? 
       // Yes, when the ray index changes a new boundary mask is calculated 
       // in the SoloFunctionsController
+      _soloFunctionsController->applyBoundary();
 
       QJSValue result = engine.evaluate(script);
       if (result.isError()) {

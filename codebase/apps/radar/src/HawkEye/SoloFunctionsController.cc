@@ -159,7 +159,7 @@ void SoloFunctionsController::setCurrentSweepToFirst() {
 void SoloFunctionsController::setCurrentRayToFirst() {
   //cerr << "entry setCurrentRayToFirst" << endl;
   _currentRayIdx = 0;
-  applyBoundary();
+  //applyBoundary();
   //cerr << "exit setCurrentRayToFirst" << endl;
 
   //LOG(DEBUG) << "exit";
@@ -170,7 +170,7 @@ void SoloFunctionsController::nextRay() {
   //LOG(DEBUG) << "entry";
   //cerr << "entry nextRay" << endl;
   _currentRayIdx += 1;
-  applyBoundary();
+  //  applyBoundary();
   //cerr << "exit nextRay" << endl;
   //LOG(DEBUG) << "exit";
 
