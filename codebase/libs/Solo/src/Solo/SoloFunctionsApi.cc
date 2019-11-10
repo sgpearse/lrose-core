@@ -42,7 +42,7 @@ void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoin
 				       float rotation_angle,
 				       short *boundary_mask_out) {
 
-  
+  /*
   //This test boundary works
   for (int i=0; i<nGates; i++) {
     boundary_mask_out[i] = 0;
@@ -50,7 +50,7 @@ void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoin
   boundary_mask_out[3] = 1;
   boundary_mask_out[4] = 1;
   return;
-  
+  */
 
   /* TODO: test
   boundary_mask_out[0] = 3;

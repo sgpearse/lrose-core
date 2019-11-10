@@ -71,10 +71,10 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
 
   // Test data ...
   Point p1, p2, p3, p4;
-  p1.x =     0; p1.y =    0;
-  p2.x =  1000; p2.y =    0;
-  p3.x =  1000; p3.y = 1000;
-  p4.x =     0; p4.y =    0;
+  p1.x =  1000; p1.y = 1000;
+  p2.x = -1000; p2.y = 1000;
+  p3.x = -1000; p3.y =-1000;
+  p4.x =  1000; p4.y =-1000;
   /*
   p1.x = -50; p1.y =  50;
   p2.x =  50; p2.y =  50;
@@ -164,15 +164,15 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
 
   _boundaryMaskLength = nGates;
 
-  float gateSize = ray->getGateSpacingKm();
-  float distanceToCellNInMeters = ray->getStartRangeKm();
+  float gateSize = ray->getGateSpacingKm() * 1000.0;
+  float distanceToCellNInMeters = ray->getStartRangeKm() * 1000.0;
   float azimuth = ray->getAzimuthDeg();
   // need to do some conversions here ...
   // TODO: get these from SoloLibrary::dd_math.h
   int radar_scan_mode = 1; // PPI;
   int radar_type = 0; // GROUND; 
  
-  float tilt_angle = ray->getElevationDeg();
+  float tilt_angle = 0.0; // TODO: It should be this ... ray->getElevationDeg();
   float rotation_angle = 0.0; 
 
   _boundaryMask = new short[_boundaryMaskLength];
