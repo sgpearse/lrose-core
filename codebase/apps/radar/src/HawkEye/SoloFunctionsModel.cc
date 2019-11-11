@@ -69,12 +69,23 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   // TODO:   vector<Point> boundaryPoints = bpe->getWorldPoints();
   // vector<Point> myPoints = BoundaryPointEditor::Instance()->getBoundaryPoints("/media/sf_lrose/ncswp_SPOL_RHI_.nc", 0, 4, "Boundary1");  TODO
 
-  // Test data ...
+  /*
+  // Test data ...  works
   Point p1, p2, p3, p4;
   p1.x =  1000; p1.y = 1000;
   p2.x = -1000; p2.y = 1000;
   p3.x = -1000; p3.y =-1000;
   p4.x =  1000; p4.y =-1000;
+  */
+
+  // Test data ...
+  Point p1, p2, p3, p4;
+  int baseValue = 100000;
+  p1.x =  baseValue; p1.y = baseValue;
+  p2.x = -baseValue; p2.y = baseValue;
+  p3.x = -baseValue; p3.y =-baseValue;
+  p4.x =  baseValue; p4.y =-baseValue;
+
   /*
   p1.x = -50; p1.y =  50;
   p2.x =  50; p2.y =  50;

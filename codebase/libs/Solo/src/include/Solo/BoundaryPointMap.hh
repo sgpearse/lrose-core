@@ -104,7 +104,7 @@ public:
           PointInSpace *current_radar,
           int scan_mode,
           double current_tilt);
-
+  /*
   short *get_boundary_mask(
           OneBoundary *boundaryList,
           PointInSpace *radar_origin,
@@ -117,7 +117,7 @@ public:
           int radar_type,
           float tilt_angle,
           float rotation_angle);
-
+  */
 void get_boundary_mask(
         OneBoundary *boundaryList,
         // bool new_sweep,  // assume new_sweep
