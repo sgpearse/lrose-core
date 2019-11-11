@@ -18,7 +18,7 @@ SoloFunctionsApi::SoloFunctionsApi() {}
 //short *SoloFunctionsApi::GetBoundaryMask(OneBoundary *boundaryList,
 //                                           PointInSpace *radar_origin,
 //                                           PointInSpace *boundary_origin,
-void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+void SoloFunctionsApi::GetBoundaryMask(long *xpoints, long *ypoints, int npoints,
 					 //float radar_origin_x,
                                          //  float radar_origin_y,
                                          //  float radar_origin_z,
@@ -68,6 +68,7 @@ void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoin
   OneBoundary *boundary = new OneBoundary();
   BoundaryPointMap map;
 
+  // Fill the OneBoundary object with the boundary points
   for (int i=0; i<npoints; i++) {
     map.xse_add_bnd_pt(xpoints[i], ypoints[i], boundary);
   }
@@ -87,8 +88,9 @@ void SoloFunctionsApi::GetBoundaryMask(short *xpoints, short *ypoints, int npoin
   boundary_origin->altitude = boundary_origin_altitude;
   boundary_origin->tilt = boundary_origin_tilt;
 
-  BoundaryPointMap bpm;
-  bpm.get_boundary_mask(  
+  //  send the filled boundary object to the function that will
+  // create the mask for the current ray geometry
+  map.get_boundary_mask(  
   boundary,
     // bool new_sweep,  // assume new_sweep                                                                       
     //        bool operate_outside_bnd,                                                                           

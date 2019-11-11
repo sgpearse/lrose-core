@@ -107,15 +107,15 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   if (nBoundaryPoints < 3) 
     return;
  
-  short *xpoints = new short[nBoundaryPoints];
-  short *ypoints = new short[nBoundaryPoints];
+  long *xpoints = new long[nBoundaryPoints];
+  long *ypoints = new long[nBoundaryPoints];
 
   // convert data models  ...  
   vector<Point>::iterator it;
   int i = 0;
   for (it = boundaryPoints.begin(); it != boundaryPoints.end(); it++) {
-    xpoints[i] = (short) it->x;
-    ypoints[i] = (short) it->y;
+    xpoints[i] = (long) it->x;
+    ypoints[i] = (long) it->y;
     i += 1;
   }
 

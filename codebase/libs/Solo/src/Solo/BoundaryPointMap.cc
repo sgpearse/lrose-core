@@ -70,6 +70,8 @@ void BoundaryPointMap::se_delete_bnd_pt(BoundaryPointManagement *bpm,
   }
 }
 
+// add a BoundaryPointManagement block to the double linked list
+// kept by OneBoundary
 void BoundaryPointMap::xse_add_bnd_pt(long x, long y, OneBoundary *ob, 
                                       bool time_series) {
 
@@ -164,6 +166,8 @@ void BoundaryPointMap::xse_add_bnd_pt(long x, long y, OneBoundary *ob,
     ob->min_x = ob->max_x = x;
     ob->min_y = ob->max_y = y;
   }
+  //cout << "xse_add_bnd_pt finished  ... " << endl;
+  //ob->print();
 }
 
 /* c------------------------------------------------------------------------ */
@@ -1753,6 +1757,8 @@ void BoundaryPointMap::get_boundary_mask(
     if(ob->num_points < 3)
       continue;
 
+    // print the boundary for debug 
+    ob->print();
         // shift the boundary's points to be relative to current radar represented by "usi"
         se_shift_bnd(ob, boundary_origin, radar_origin,
                      radar_scan_mode,

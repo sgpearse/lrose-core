@@ -50,7 +50,7 @@ public:
   // call BoundaryPointMap::get_boundary_mask to do the work
   // 
   //  short *GetBoundaryMask(OneBoundary *boundaryList,
-  void GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
+  void GetBoundaryMask(long *xpoints, long *ypoints, int npoints,
 			 //float radar_origin_x,                                                      
 			 //  float radar_origin_y,                                                    
 			 //  float radar_origin_z,                                                    

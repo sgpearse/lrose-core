@@ -28,6 +28,9 @@
 #include "Solo/OneBoundary.hh"
 
 
+// BoundaryPointMap is just an interface to the Solo boundary
+// functions.  Remember, it holds no state!
+
 class BoundaryPointMap {
 
 public:
