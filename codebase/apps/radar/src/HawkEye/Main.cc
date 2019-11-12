@@ -65,7 +65,11 @@ int main(int argc, char **argv)
   // create program object
 
   try {
-    
+    // The following line may fix the problem of the Boundary Editor
+    // not appearing in the menu bar when HawkEye is built using
+    // linux, run on a Mac.
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar);    
+
     app = new QApplication(argc, argv);
     app->setWindowIcon(QIcon("://HawkEyeCycloneIcon.icns"));
     //app->setWindowIcon(QIcon(":/radar.HawkEye.png"));

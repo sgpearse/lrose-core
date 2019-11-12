@@ -66,39 +66,44 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
 
   // TODO: make this a call to BoundaryPointModel?
   BoundaryPointEditor *bpe = BoundaryPointEditor::Instance();
-  // TODO:   vector<Point> boundaryPoints = bpe->getWorldPoints();
+  vector<Point> boundaryPoints = bpe->getWorldPoints();
   // vector<Point> myPoints = BoundaryPointEditor::Instance()->getBoundaryPoints("/media/sf_lrose/ncswp_SPOL_RHI_.nc", 0, 4, "Boundary1");  TODO
 
-  /*
+  if (0) { 
   // Test data ...  works
   Point p1, p2, p3, p4;
   p1.x =  1000; p1.y = 1000;
   p2.x = -1000; p2.y = 1000;
   p3.x = -1000; p3.y =-1000;
   p4.x =  1000; p4.y =-1000;
-  */
+  
 
+  /* begin 
   // Test data ...
   Point p1, p2, p3, p4;
+  // case 1: this is a square in the center of the display
   int baseValue = 100000;
   p1.x =  baseValue; p1.y = baseValue;
   p2.x = -baseValue; p2.y = baseValue;
   p3.x = -baseValue; p3.y =-baseValue;
   p4.x =  baseValue; p4.y =-baseValue;
-
-  /*
+  end case 1 */
+  /* begin 
+  // case 2:
   p1.x = -50; p1.y =  50;
   p2.x =  50; p2.y =  50;
   p3.x =  50; p3.y = -50;
   p4.x = -50; p4.y = -50;
-  */
+  end case 2 */
+
+
   vector<Point> boundaryPoints;
   boundaryPoints.push_back(p1);
   boundaryPoints.push_back(p2);
   boundaryPoints.push_back(p3);
   boundaryPoints.push_back(p4);
-  // end Test data
-
+  } // end Test data
+  
   //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
   int nBoundaryPoints = boundaryPoints.size();
   LOG(DEBUG) << "nBoundaryPoints = " << nBoundaryPoints;
@@ -111,11 +116,14 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   long *ypoints = new long[nBoundaryPoints];
 
   // convert data models  ...  
+  // and change coordinate systems from World points to
+  // Solo/Data points.  This requires just a change of scale
+  // from kilometers to meters.
   vector<Point>::iterator it;
   int i = 0;
   for (it = boundaryPoints.begin(); it != boundaryPoints.end(); it++) {
-    xpoints[i] = (long) it->x;
-    ypoints[i] = (long) it->y;
+    xpoints[i] = (long) it->x * 1000;
+    ypoints[i] = (long) it->y * 1000;
     i += 1;
   }
 
