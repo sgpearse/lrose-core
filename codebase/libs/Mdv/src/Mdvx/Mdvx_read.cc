@@ -2225,6 +2225,11 @@ int Mdvx::_read_master_header(master_header_t &mhdr,
       return -1;
     }
     master_header_from_BE(mhdr);
+    if (mhdr.struct_id != MASTER_HEAD_MAGIC_COOKIE_64) {
+      _errStr += "Cannot read 64-bit master header\n";
+      TaStr::AddInt(_errStr, " Bad magic cookie: ", mhdr.struct_id);
+      return -1;
+    }
   } else {
     // 32-bit header
     master_header_32_t mhdr32;
@@ -2233,6 +2238,11 @@ int Mdvx::_read_master_header(master_header_t &mhdr,
       return -1;
     }
     master_header_from_BE_32(mhdr32);
+    if (mhdr32.struct_id != MASTER_HEAD_MAGIC_COOKIE_32) {
+      _errStr += "Cannot read 32-bit master header\n";
+      TaStr::AddInt(_errStr, " Bad magic cookie: ", mhdr32.struct_id);
+      return -1;
+    }
     // copy 32 to 64 bit version
     _copyMasterHeader32to64(mhdr32, mhdr);
     // print 32-bit header in debug mode
