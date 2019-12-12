@@ -275,6 +275,15 @@ public:
   static bool isArgValid(const char *arg);
 
   ////////////////////////////////////////////
+  // isArgValid()
+  // 
+  // Check if a command line arg is a valid TDRP arg.
+  // return number of args consumed.
+  //
+
+  static int isArgValidN(const char *arg);
+
+  ////////////////////////////////////////////
   // load()
   //
   // Loads up TDRP for a given class.
@@ -553,6 +562,8 @@ public:
 
   tdrp_bool_t read_as_single_part;
 
+  tdrp_bool_t read_using_32_bit_headers;
+
   time_list_mode_t time_list_mode;
 
   char* time_list_start;
@@ -596,7 +607,7 @@ private:
 
   void _init();
 
-  mutable TDRPtable _table[74];
+  mutable TDRPtable _table[75];
 
   const char *_className;
 

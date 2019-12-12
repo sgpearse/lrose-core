@@ -637,6 +637,12 @@ int DsMdvx::_readAllHeadersRemote(const DsURL &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf = msg.assembleReadAllHdrs(*this);
   if (msgBuf == NULL) {
     _errStr += "ERROR - DsMdvx::readAllHeaders.\n";
@@ -704,6 +710,12 @@ int DsMdvx::_readVolumeRemote(const DsURL &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf = msg.assembleReadVolume(*this);
   if (msgBuf == NULL) {
     _errStr += "ERROR - DsMdvx::_readVolumeRemote.\n";
@@ -850,6 +862,12 @@ int DsMdvx::_readVsectionRemote(const DsURL &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf = msg.assembleReadVsection(*this);
   if (msgBuf == NULL) {
     _errStr += "ERROR - DsMdvx::_readVsectionRemote.\n";
@@ -988,6 +1006,12 @@ int DsMdvx::compileTimeList()
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf = msg.assembleCompileTimeList(*this);
   if (msgBuf == NULL) {
     _errStr += "ERROR - DsMdvx::compileTimeList.\n";
@@ -1065,6 +1089,11 @@ int DsMdvx::compileTimeHeight()
   DsMdvxMsg msg;
   if (_debug) {
     msg.setDebug();
+  }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleCompileTimeHeight(*this);
@@ -1163,6 +1192,12 @@ int DsMdvx::writeToDir(const string &output_url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleWrite(DsMdvxMsg::MDVP_WRITE_TO_DIR, *this, url.getURLStr());
   if (msgBuf == NULL) {
@@ -1228,6 +1263,12 @@ int DsMdvx::writeToPath(const string &output_url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleWrite(DsMdvxMsg::MDVP_WRITE_TO_PATH, *this, url.getURLStr());
   if (msgBuf == NULL) {
@@ -1433,7 +1474,7 @@ int DsMdvx::_communicate(const DsURL &url,
 			 const int msgLen)
   
 {
-  
+
   DsClient client;
   client.setDebug(_debug);
   client.setErrStr("ERROR - DsMdvx::_communicate\n");
@@ -2022,6 +2063,12 @@ int DsMdvx::_convertMdv2NcfViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleConvertMdv2Ncf(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -2194,6 +2241,12 @@ int DsMdvx::_convertNcf2MdvViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleConvertNcf2Mdv(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -2323,6 +2376,12 @@ int DsMdvx::_readAllHeadersNcfViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleReadAllHdrsNcf(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -2490,6 +2549,12 @@ int DsMdvx::_readNcfViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleReadNcf(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -2737,6 +2802,12 @@ int DsMdvx::_readAllHeadersRadxViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleReadAllHdrsRadx(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -2935,6 +3006,12 @@ int DsMdvx::_readRadxViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleReadRadx(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {
@@ -3013,6 +3090,12 @@ int DsMdvx::_writeNcfToDir(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleWrite(DsMdvxMsg::MDVP_WRITE_TO_DIR, *this, trans_url.getURLStr());
 
@@ -3119,6 +3202,12 @@ int DsMdvx::_constrainNcfViaServer(const string &url)
   if (_debug) {
     msg.setDebug();
   }
+  if (_read32BitHeaders) {
+    msg.setUse32BitHeaders(true);
+  } else {
+    msg.setUse32BitHeaders(false);
+  }
+
   void *msgBuf =
     msg.assembleConstrainNcf(*this, trans_url.getURLStr());
   if (msgBuf == NULL) {

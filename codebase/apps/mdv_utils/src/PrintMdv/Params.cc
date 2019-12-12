@@ -278,6 +278,18 @@
   }
 
   ////////////////////////////////////////////
+  // isArgValid()
+  // 
+  // Check if a command line arg is a valid TDRP arg.
+  // return number of args consumed.
+  //
+
+  int Params::isArgValidN(const char *arg)
+  {
+    return (tdrpIsArgValidN(arg));
+  }
+
+  ////////////////////////////////////////////
   // load()
   //
   // Loads up TDRP for a given class.
@@ -1346,6 +1358,18 @@
     tt->help = tdrpStrDup("If true, the MDV main object will be sent across as a single part. This option is used by the Java MDV API.");
     tt->val_offset = (char *) &read_as_single_part - &_start_;
     tt->single_val.b = pFALSE;
+    tt++;
+    
+    // Parameter 'read_using_32_bit_headers'
+    // ctype is 'tdrp_bool_t'
+    
+    memset(tt, 0, sizeof(TDRPtable));
+    tt->ptype = BOOL_TYPE;
+    tt->param_name = tdrpStrDup("read_using_32_bit_headers");
+    tt->descr = tdrpStrDup("Read using the legacy 32-bit headers.");
+    tt->help = tdrpStrDup("If false, the new 64-bit headers will be used.");
+    tt->val_offset = (char *) &read_using_32_bit_headers - &_start_;
+    tt->single_val.b = pTRUE;
     tt++;
     
     // Parameter 'Comment 3'
