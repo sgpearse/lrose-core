@@ -638,9 +638,9 @@ int DsMdvx::_readAllHeadersRemote(const DsURL &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleReadAllHdrs(*this);
@@ -679,6 +679,7 @@ int DsMdvx::_readAllHeadersRemote(const DsURL &url)
 
 int DsMdvx::readVolume()
 {
+
   clearErrStr();
 
   // resolve server details - should we contact server?
@@ -711,9 +712,9 @@ int DsMdvx::_readVolumeRemote(const DsURL &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleReadVolume(*this);
@@ -863,9 +864,9 @@ int DsMdvx::_readVsectionRemote(const DsURL &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleReadVsection(*this);
@@ -1007,9 +1008,9 @@ int DsMdvx::compileTimeList()
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleCompileTimeList(*this);
@@ -1091,9 +1092,9 @@ int DsMdvx::compileTimeHeight()
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf = msg.assembleCompileTimeHeight(*this);
@@ -1193,9 +1194,9 @@ int DsMdvx::writeToDir(const string &output_url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -1264,9 +1265,9 @@ int DsMdvx::writeToPath(const string &output_url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2064,9 +2065,9 @@ int DsMdvx::_convertMdv2NcfViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2242,9 +2243,9 @@ int DsMdvx::_convertNcf2MdvViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2377,9 +2378,9 @@ int DsMdvx::_readAllHeadersNcfViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2494,6 +2495,10 @@ int DsMdvx::readNcf(const string &url)
     }
   }
 
+  // copy the main headers to file headers
+
+  _copyMainHeadersToFileHeaders();
+
   return 0;
 
 }
@@ -2550,9 +2555,9 @@ int DsMdvx::_readNcfViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2803,9 +2808,9 @@ int DsMdvx::_readAllHeadersRadxViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -2923,6 +2928,10 @@ int DsMdvx::readRadx(const string &url)
     return -1;
   }
 
+  // copy the main headers to file headers
+
+  _copyMainHeadersToFileHeaders();
+
   // set format to MDV
   
   _currentFormat = FORMAT_MDV;
@@ -3007,9 +3016,9 @@ int DsMdvx::_readRadxViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -3091,9 +3100,9 @@ int DsMdvx::_writeNcfToDir(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
@@ -3203,9 +3212,9 @@ int DsMdvx::_constrainNcfViaServer(const string &url)
     msg.setDebug();
   }
   if (_read32BitHeaders) {
-    msg.setUse32BitHeaders(true);
+    msg._setUse32BitHeaders(true);
   } else {
-    msg.setUse32BitHeaders(false);
+    msg._setUse32BitHeaders(false);
   }
 
   void *msgBuf =
