@@ -231,7 +231,10 @@ hawkeye_app:
 	mkdir -p HawkEye.app/Contents/MacOS/../share
 	cp -r ~/git/lrose-displays/color_scales HawkEye.app/Contents/MacOS/../share/.
 # make the dmg  
-	macdeployqt HawkEye.app -dmg -always-overwrite -codesign="${CERT_NAME}"
+	# export MAC_QT_PATH="/usr/local/Cellar/qt/5.13.1/bin"
+	# must be set in the environment
+	# export PKG_CONFIG_PATH="/usr/local/opt/qt/lib/pkgconfig"
+	${MAC_QT_PATH}/macdeployqt HawkEye.app -dmg -always-overwrite -codesign="${CERT_NAME}"
 # now build the folder for the dmg installer
 	mkdir -p HawkEye_bkg_test
 	cp ~/Desktop/arrow.pdf HawkEye_bkg_test/.background
