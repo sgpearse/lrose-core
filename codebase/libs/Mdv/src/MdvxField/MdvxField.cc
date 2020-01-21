@@ -129,7 +129,7 @@ MdvxField::MdvxField(const Mdvx::field_header_t &f_hdr,
   }
 
   if (_fhdr.compression_type == Mdvx::COMPRESSION_NONE) {
-    int expected_volume_size =
+    int64_t expected_volume_size =
       _fhdr.nx * _fhdr.ny * _fhdr.nz * _fhdr.data_element_nbytes;
     if (_fhdr.volume_size != expected_volume_size) {
       cerr << "WARNING - MdvxField::MdvxField" << endl;
@@ -190,11 +190,11 @@ MdvxField::MdvxField(const Mdvx::field_header_t &f_hdr,
 	break;
       case Mdvx::ENCODING_INT16:
 	{
-	  int npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-	  if (npts <= (int) (_fhdr.volume_size / sizeof(ui16))) {
+	  int64_t npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+	  if (npts <= (int64_t) (_fhdr.volume_size / sizeof(ui16))) {
 	    ui16 missing = (ui16) _fhdr.missing_data_value;
 	    ui16 *val = (ui16 *) _volBuf.getPtr();
-	    for (int i = 0; i < npts; i++, val++) {
+	    for (int64_t i = 0; i < npts; i++, val++) {
 	      *val = missing;
 	    }
 	  }
@@ -202,11 +202,11 @@ MdvxField::MdvxField(const Mdvx::field_header_t &f_hdr,
 	break;
       case Mdvx::ENCODING_FLOAT32:
 	{
-	  int npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-	  if (npts <= (int) (_fhdr.volume_size / sizeof(fl32))) {
+	  int64_t npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+	  if (npts <= (int64_t) (_fhdr.volume_size / sizeof(fl32))) {
 	    fl32 missing = (fl32) _fhdr.missing_data_value;
 	    fl32 *val = (fl32 *) _volBuf.getPtr();
-	    for (int i = 0; i < npts; i++, val++) {
+	    for (int64_t i = 0; i < npts; i++, val++) {
 	      *val = missing;
 	    }
 	  }
@@ -214,11 +214,11 @@ MdvxField::MdvxField(const Mdvx::field_header_t &f_hdr,
 	break;
       case Mdvx::ENCODING_RGBA32:
 	{
-	  int npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-	  if (npts <= (int) (_fhdr.volume_size / sizeof(ui32))) {
+	  int64_t npts = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+	  if (npts <= (int64_t) (_fhdr.volume_size / sizeof(ui32))) {
 	    ui32 missing = (ui32) _fhdr.missing_data_value;
 	    ui32 *val = (ui32 *) _volBuf.getPtr();
-	    for (int i = 0; i < npts; i++, val++) {
+	    for (int64_t i = 0; i < npts; i++, val++) {
 	      *val = missing;
 	    }
 	  }
@@ -273,9 +273,9 @@ MdvxField::MdvxField(const MdvxField &rhs, int plane_num)
       
       // not compressed
       
-      int plane_len = 
+      int64_t plane_len = 
 	_fhdr.nx * _fhdr.ny * _fhdr.data_element_nbytes;
-      int in_plane_offset = plane_len * plane_num;
+      int64_t in_plane_offset = plane_len * plane_num;
       void *plane_ptr = (ui08 *) rhs_vol + in_plane_offset;
       _volBuf.add(plane_ptr, plane_len);
       
@@ -288,9 +288,9 @@ MdvxField::MdvxField(const MdvxField &rhs, int plane_num)
 
       // get the plane needed
       
-      int plane_len = 
+      int64_t plane_len = 
 	_fhdr.nx * _fhdr.ny * _fhdr.data_element_nbytes;
-      int in_plane_offset = plane_len * plane_num;
+      int64_t in_plane_offset = plane_len * plane_num;
       void *plane_ptr = (ui08 *) rhs_vol + in_plane_offset;
       _volBuf.add(plane_ptr, plane_len);
 
@@ -338,7 +338,7 @@ MdvxField::MdvxField(const MdvxField &rhs, int plane_num)
     // copy the plane
 
     MemBuf tmpBuf;
-    int nbytes = _fhdr.nx * _fhdr.nz;
+    int64_t nbytes = _fhdr.nx * _fhdr.nz;
     tmpBuf.add((char *) _volBuf.getPtr() + plane_num * nbytes, nbytes);
     _volBuf = tmpBuf;
     _fhdr.ny = 1;
@@ -371,7 +371,7 @@ MdvxField::MdvxField(const MdvxField &rhs, int plane_num)
 //    scale, bias
 
 MdvxField::MdvxField(int plane_num,
-		     ssize_t plane_size,
+		     int64_t plane_size,
 		     const Mdvx::field_header_t &f_hdr,
 		     const Mdvx::vlevel_header_t &v_hdr,
 		     const void *plane_data /* = NULL*/ )
@@ -483,7 +483,7 @@ MdvxField &MdvxField::_copy(const MdvxField &rhs)
 // Scaling type, scale and bias only apply to INT8 and INT16 encoding.
 
 void MdvxField::setVolData(const void *vol_data,
-			   ssize_t volume_size,
+			   int64_t volume_size,
 			   Mdvx::encoding_type_t encoding_type,
 			   Mdvx::scaling_type_t scaling_type
 			     /* = Mdvx::SCALING_ROUNDED */,
@@ -531,7 +531,7 @@ void MdvxField::setVolData(const void *vol_data,
 
   _fhdr.data_element_nbytes = Mdvx::dataElementSize(encoding_type);
 
-  ssize_t volume_size = nz * ny * nx * _fhdr.data_element_nbytes;
+  int64_t volume_size = nz * ny * nx * _fhdr.data_element_nbytes;
   setVolData(vol_data, volume_size,
              encoding_type, scaling_type,
              scale, bias);
@@ -602,9 +602,9 @@ void MdvxField::clearVolData()
 void MdvxField::_clearVolDataInt8()
 {
   ui08 *data = (ui08 *)getVol();
-  ssize_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
+  int64_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
   
-  for (ssize_t i = 0; i < num_values; ++i)
+  for (int64_t i = 0; i < num_values; ++i)
     data[i] = (ui08)_fhdr.missing_data_value;
 }
 
@@ -618,9 +618,9 @@ void MdvxField::_clearVolDataInt8()
 void MdvxField::_clearVolDataInt16()
 {
   ui16 *data = (ui16 *)getVol();
-  ssize_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
+  int64_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
   
-  for (ssize_t i = 0; i < num_values; ++i)
+  for (int64_t i = 0; i < num_values; ++i)
     data[i] = (ui16)_fhdr.missing_data_value;
 }
 
@@ -634,9 +634,9 @@ void MdvxField::_clearVolDataInt16()
 void MdvxField::_clearVolDataFloat32()
 {
   fl32 *data = (fl32 *)getVol();
-  ssize_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
+  int64_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
   
-  for (ssize_t i = 0; i < num_values; ++i)
+  for (int64_t i = 0; i < num_values; ++i)
     data[i] = _fhdr.missing_data_value;
 }
 
@@ -650,9 +650,9 @@ void MdvxField::_clearVolDataFloat32()
 void MdvxField::_clearVolDataRgba32()
 {
   ui32 *data = (ui32 *)getVol();
-  ssize_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
+  int64_t num_values = _fhdr.volume_size / _fhdr.data_element_nbytes;
   
-  for (ssize_t i = 0; i < num_values; ++i)
+  for (int64_t i = 0; i < num_values; ++i)
     data[i] = (ui32)_fhdr.missing_data_value;
 }
 
@@ -1041,12 +1041,12 @@ int MdvxField::transform2Log()
   // 3 orders of magnitude below that
 
   fl32 missing = _fhdr.missing_data_value;
-  int nn = _volBuf.getLen() / sizeof(fl32);
+  int64_t nn = _volBuf.getLen() / sizeof(fl32);
   fl32 fmin = 1.0e30;
   bool allMissing = true;
   
   fl32 *ff = (fl32 *) _volBuf.getPtr();
-  for (int i = 0; i < nn; i++, ff++) {
+  for (int64_t i = 0; i < nn; i++, ff++) {
     fl32 fff = *ff;
     if (fff != missing && fff > 0) {
       allMissing = false;
@@ -1062,7 +1062,7 @@ int MdvxField::transform2Log()
     // transform to natural log
     
     ff = (fl32 *) _volBuf.getPtr();
-    for (int i = 0; i < nn; i++, ff++) {
+    for (int64_t i = 0; i < nn; i++, ff++) {
       fl32 fff = *ff;
       if (fff != missing) {
 	if (fff <= 0) {
@@ -1142,8 +1142,8 @@ int MdvxField::transform2Linear()
 
   fl32 missing = _fhdr.missing_data_value;
   fl32 *ff = (fl32 *) _volBuf.getPtr();
-  int nn = _volBuf.getLen() / sizeof(fl32);
-  for (int i = 0; i < nn; i++, ff++) {
+  int64_t nn = _volBuf.getLen() / sizeof(fl32);
+  for (int64_t i = 0; i < nn; i++, ff++) {
     fl32 fff = *ff;
     if (fff != missing) {
       *ff = exp(fff);
@@ -1218,8 +1218,8 @@ int MdvxField::negate(bool convert_to_linear /* = false*/ )
   
   fl32 missing = _fhdr.missing_data_value;
   fl32 *ff = (fl32 *) _volBuf.getPtr();
-  int nn = _volBuf.getLen() / sizeof(fl32);
-  for (int i = 0; i < nn; i++, ff++) {
+  int64_t nn = _volBuf.getLen() / sizeof(fl32);
+  for (int64_t i = 0; i < nn; i++, ff++) {
     fl32 fff = *ff;
     if (fff != missing) {
       if (convertToLinear) {
@@ -1322,7 +1322,7 @@ int MdvxField::convert2Composite(int lower_plane_num /* = -1*/,
     upperPlaneNum = tmp_plane_num;
   }
 
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
 
   // make sure we have decompressed data
 
@@ -1346,14 +1346,14 @@ int MdvxField::convert2Composite(int lower_plane_num /* = -1*/,
   switch (_fhdr.encoding_type) {
     
   case Mdvx::ENCODING_INT8: {
-    int nbytes_comp = npoints_plane * sizeof(ui08);
+    int64_t nbytes_comp = npoints_plane * sizeof(ui08);
     ui08 *comp = (ui08 *) workBuf.prepare(nbytes_comp);
-    for (int i = 0; i < npoints_plane; ++i)
+    for (int64_t i = 0; i < npoints_plane; ++i)
       comp[i] = (ui08) _fhdr.missing_data_value;
     for (int j = lowerPlaneNum; j <= upperPlaneNum; j++) {
       ui08 *c = comp;
       ui08 *v = (ui08 *) _volBuf.getPtr() + j * npoints_plane;
-      for (int i = 0; i < npoints_plane; i++, c++, v++) {
+      for (int64_t i = 0; i < npoints_plane; i++, c++, v++) {
 	ui08 val = *v;
 	if (val == _fhdr.missing_data_value || val == _fhdr.bad_data_value)
 	  continue;
@@ -1367,14 +1367,14 @@ int MdvxField::convert2Composite(int lower_plane_num /* = -1*/,
   }
 
   case Mdvx::ENCODING_INT16: {
-    int nbytes_comp = npoints_plane * sizeof(ui16);
+    int64_t nbytes_comp = npoints_plane * sizeof(ui16);
     ui16 *comp = (ui16 *) workBuf.prepare(nbytes_comp);
-    for (int i = 0; i < npoints_plane; ++i)
+    for (int64_t i = 0; i < npoints_plane; ++i)
       comp[i] = (ui16) _fhdr.missing_data_value;
     for (int j = lowerPlaneNum; j <= upperPlaneNum; j++) {
       ui16 *v = (ui16 *) _volBuf.getPtr() + j * npoints_plane;
       ui16 *c = comp;
-      for (int i = 0; i < npoints_plane; i++, c++, v++) {
+      for (int64_t i = 0; i < npoints_plane; i++, c++, v++) {
 	ui16 val = *v;
 	if (val == _fhdr.missing_data_value || val == _fhdr.bad_data_value)
 	  continue;
@@ -1388,16 +1388,16 @@ int MdvxField::convert2Composite(int lower_plane_num /* = -1*/,
   }
 
   case Mdvx::ENCODING_FLOAT32: {
-    int nbytes_comp = npoints_plane * sizeof(fl32);
+    int64_t nbytes_comp = npoints_plane * sizeof(fl32);
     fl32 *comp = (fl32 *) workBuf.prepare(nbytes_comp);
     fl32 *c = comp;
-    for (int i = 0; i < npoints_plane; i++, c++) {
+    for (int64_t i = 0; i < npoints_plane; i++, c++) {
       *c = _fhdr.missing_data_value;
     }
     for (int j = lowerPlaneNum; j <= upperPlaneNum; j++) {
       fl32 *v = (fl32 *) _volBuf.getPtr() + j * npoints_plane;
       c = comp;
-      for (int i = 0; i < npoints_plane; i++, c++, v++) {
+      for (int64_t i = 0; i < npoints_plane; i++, c++, v++) {
 	fl32 val = *v;
 	if (val == _fhdr.missing_data_value || val == _fhdr.bad_data_value)
 	  continue;
@@ -1585,12 +1585,12 @@ int MdvxField::convert2Vsection(const Mdvx::master_header_t &mhdr,
   }
 
   const vector<Mdvx::vsect_samplept_t> &samplePts = lut.getSamplePts();
-  int nSamplePoints = samplePts.size();
+  int64_t nSamplePoints = samplePts.size();
   
   // set up working buffer
 
   MemBuf workBuf;
-  int nBytes = nSamplePoints * _fhdr.nz * _fhdr.data_element_nbytes;
+  int64_t nBytes = nSamplePoints * _fhdr.nz * _fhdr.data_element_nbytes;
   workBuf.prepare(nBytes);
 
   // compute the vert section
@@ -1827,13 +1827,13 @@ int MdvxField::convertRhi2Vsect(const Mdvx::master_header_t &mhdr,
   // set up working buffer, initialize to missing vals
   
   MemBuf workBuf;
-  int nGridOut = nX * nz;
-  int nBytes = nGridOut * _fhdr.data_element_nbytes;
+  int64_t nGridOut = nX * nz;
+  int64_t nBytes = nGridOut * _fhdr.data_element_nbytes;
   workBuf.prepare(nBytes);
   
   fl32 missing = (fl32) _fhdr.missing_data_value;
   fl32 *vval = (fl32 *) workBuf.getPtr();
-  for (int i = 0;  i < nGridOut; i++, vval++) {
+  for (int64_t i = 0;  i < nGridOut; i++, vval++) {
     *vval = missing;
   }
 
@@ -1948,20 +1948,20 @@ void MdvxField::_computeVsection(MdvxVsectLut &lut,
 {
 
   const vector<Mdvx::vsect_samplept_t> &samplePts = lut.getSamplePts();
-  int nSamplePoints = samplePts.size();
-  int nGridPoints = nSamplePoints * _fhdr.nz;
+  int64_t nSamplePoints = samplePts.size();
+  int64_t nGridPoints = nSamplePoints * _fhdr.nz;
   
   // initialize the work buffer to missing vals
   
   fl32 missing = (fl32) _fhdr.missing_data_value;
   fl32 *vval = (fl32 *) workBuf.getPtr();
-  for (int i = 0;  i < nGridPoints; i++, vval++) {
+  for (int64_t i = 0;  i < nGridPoints; i++, vval++) {
     *vval = missing;
   }
   
   fl32 *in = (fl32 *) _volBuf.getPtr();
   fl32 *out = (fl32 *) workBuf.getPtr();
-  int npointsPlane = _fhdr.nx * _fhdr.ny;
+  int64_t npointsPlane = _fhdr.nx * _fhdr.ny;
   
   if (interp) {
     
@@ -1969,14 +1969,14 @@ void MdvxField::_computeVsection(MdvxVsectLut &lut,
     
     const vector<MdvxVsectLutEntry> &entries = lut.getWeights();
     
-    for (int ii = 0; ii < nSamplePoints; ii++) {
+    for (int64_t ii = 0; ii < nSamplePoints; ii++) {
       
       const MdvxVsectLutEntry entry = entries[ii];
       
       if (entry.set && entry.wts[0] > 0 && entry.wts[1] > 0 &&
 	  entry.wts[2] > 0 && entry.wts[3] > 0) {
 
-	for (int iz = 0; iz < _fhdr.nz; iz++) {
+	for (int64_t iz = 0; iz < _fhdr.nz; iz++) {
 	  fl32 v0 = in[iz * npointsPlane + entry.offsets[0]];
 	  fl32 v1 = in[iz * npointsPlane + entry.offsets[1]];
 	  fl32 v2 = in[iz * npointsPlane + entry.offsets[2]];
@@ -2025,26 +2025,26 @@ void MdvxField::_computeVsectionRGBA(MdvxVsectLut &lut,
 {
   
   const vector<Mdvx::vsect_samplept_t> &samplePts = lut.getSamplePts();
-  int nSamplePoints = samplePts.size();
-  int nGridPoints = nSamplePoints * _fhdr.nz;
+  int64_t nSamplePoints = samplePts.size();
+  int64_t nGridPoints = nSamplePoints * _fhdr.nz;
   
   // initialize the work buffer to missing vals
   
   ui32 missing = (ui32) _fhdr.missing_data_value;
   ui32 *vval = (ui32 *) workBuf.getPtr();
-  for (int i = 0;  i < nGridPoints; i++, vval++) {
+  for (int64_t i = 0;  i < nGridPoints; i++, vval++) {
     *vval = missing;
   }
   
   ui32 *in = (ui32 *) _volBuf.getPtr();
   ui32 *out = (ui32 *) workBuf.getPtr();
-  int npointsPlane = _fhdr.nx * _fhdr.ny;
+  int64_t npointsPlane = _fhdr.nx * _fhdr.ny;
   
   // nearest neighbor
     
   const vector<int> &offsets = lut.getOffsets();
     
-  for (int ii = 0; ii < nSamplePoints; ii++) {
+  for (int64_t ii = 0; ii < nSamplePoints; ii++) {
     if (offsets[ii] >= 0) {
       for (int iz = 0; iz < _fhdr.nz; iz++) {
 	ui32 vv = in[iz * npointsPlane + offsets[ii]];
@@ -2067,20 +2067,20 @@ void MdvxField::_computeVsectionPolarRadar(const MdvxVsectLut &lut,
 {
 
   const vector<Mdvx::vsect_samplept_t> &samplePts = lut.getSamplePts();
-  int nSamplePoints = samplePts.size();
-  int nGridPoints = nSamplePoints * _fhdr.nz;
+  int64_t nSamplePoints = samplePts.size();
+  int64_t nGridPoints = nSamplePoints * _fhdr.nz;
   
   // initialize the work buffer to missing vals
   
   fl32 missing = (fl32) _fhdr.missing_data_value;
   fl32 *vval = (fl32 *) workBuf.getPtr();
-  for (int i = 0;  i < nGridPoints; i++, vval++) {
+  for (int64_t i = 0;  i < nGridPoints; i++, vval++) {
     *vval = missing;
   }
   
   fl32 *in = (fl32 *) _volBuf.getPtr();
   fl32 *out = (fl32 *) workBuf.getPtr();
-  int npointsPlane = _fhdr.nx * _fhdr.ny;
+  int64_t npointsPlane = _fhdr.nx * _fhdr.ny;
   
   for (size_t ii = 0; ii < samplePts.size(); ii++) {
     
@@ -2129,7 +2129,7 @@ void MdvxField::_vsectionElev2Ht(const Mdvx::master_header_t &mhdr,
 {
 
   const vector<Mdvx::vsect_samplept_t> &samplePts = lut.getSamplePts();
-  int nSamplePoints = samplePts.size();
+  int64_t nSamplePoints = samplePts.size();
   
   // precompute the sin and cos of the elevation angles
   
@@ -2157,7 +2157,7 @@ void MdvxField::_vsectionElev2Ht(const Mdvx::master_header_t &mhdr,
   double *gndRange = new double[nSamplePoints];
   double maxGndRange = 0.0;
   
-  for (int ii = 0; ii < nSamplePoints; ii++) {
+  for (int64_t ii = 0; ii < nSamplePoints; ii++) {
     double xx, yy;
     PJGLatLon2DxDy(_fhdr.proj_origin_lat, _fhdr.proj_origin_lon,
 		   samplePts[ii].lat, samplePts[ii].lon,
@@ -2187,14 +2187,14 @@ void MdvxField::_vsectionElev2Ht(const Mdvx::master_header_t &mhdr,
   // set up interpolation buffer
   
   MemBuf interpBuf;
-  int nBytes = nSamplePoints * nz * _fhdr.data_element_nbytes;
+  int64_t nBytes = nSamplePoints * nz * _fhdr.data_element_nbytes;
   interpBuf.prepare(nBytes);
 
   // initialize the interp buffer to missing vals
   
   fl32 missing = (fl32) _fhdr.missing_data_value;
   fl32 *vval = (fl32 *) interpBuf.getPtr();
-  for (int i = 0;  i < nSamplePoints * nz; i++, vval++) {
+  for (int64_t i = 0;  i < nSamplePoints * nz; i++, vval++) {
     *vval = missing;
   }
   
@@ -2203,7 +2203,7 @@ void MdvxField::_vsectionElev2Ht(const Mdvx::master_header_t &mhdr,
   fl32 *in = (fl32 *) workBuf.getPtr();
   fl32 *out = (fl32 *) interpBuf.getPtr();
   
-  for (int ii = 0; ii < nSamplePoints; ii++) {
+  for (int64_t ii = 0; ii < nSamplePoints; ii++) {
     
     // compute the heights of the PPIs at this point
     
@@ -2920,8 +2920,8 @@ int MdvxField::remap(MdvxRemapLut &lut,
   // create source proj object
   
   MdvxProj projSource(_fhdr);
-  int nPointsSourcePlane = _fhdr.nx * _fhdr.ny;
-  int nBytesSourcePlane = nPointsSourcePlane * _fhdr.data_element_nbytes;
+  int64_t nPointsSourcePlane = _fhdr.nx * _fhdr.ny;
+  int64_t nBytesSourcePlane = nPointsSourcePlane * _fhdr.data_element_nbytes;
 
   // compute lookup table - this will only recompute if the source or
   // target projection has changed.
@@ -2932,10 +2932,10 @@ int MdvxField::remap(MdvxRemapLut &lut,
 
   MemBuf workBuf;
   const Mdvx::coord_t &targetCoords = proj_target.getCoord();
-  int nPointsTargetPlane = targetCoords.nx * targetCoords.ny;
-  int nPointsTargetVol = nPointsTargetPlane * _fhdr.nz;
-  int nBytesTargetPlane = nPointsTargetPlane * _fhdr.data_element_nbytes;
-  int nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
+  int64_t nPointsTargetPlane = targetCoords.nx * targetCoords.ny;
+  int64_t nPointsTargetVol = nPointsTargetPlane * _fhdr.nz;
+  int64_t nBytesTargetPlane = nPointsTargetPlane * _fhdr.data_element_nbytes;
+  int64_t nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
   workBuf.prepare(nBytesTargetVol);
 
   // zero out the work buffer
@@ -2945,7 +2945,7 @@ int MdvxField::remap(MdvxRemapLut &lut,
   case Mdvx::ENCODING_INT8: {
     ui08 missing = (ui08) _fhdr.missing_data_value;
     ui08 *vval = (ui08 *) workBuf.getPtr();
-    for (int i = 0;  i < nPointsTargetVol; i++, vval++) {
+    for (int64_t i = 0;  i < nPointsTargetVol; i++, vval++) {
       *vval = missing;
     }
     break;
@@ -2954,7 +2954,7 @@ int MdvxField::remap(MdvxRemapLut &lut,
   case Mdvx::ENCODING_INT16: {
     ui16 missing = (ui16) _fhdr.missing_data_value;
     ui16 *vval = (ui16 *) workBuf.getPtr();
-    for (int i = 0;  i < nPointsTargetVol; i++, vval++) {
+    for (int64_t i = 0;  i < nPointsTargetVol; i++, vval++) {
       *vval = missing;
     }
     break;
@@ -2963,7 +2963,7 @@ int MdvxField::remap(MdvxRemapLut &lut,
   case Mdvx::ENCODING_FLOAT32: {
     fl32 missing = (fl32) _fhdr.missing_data_value;
     fl32 *vval = (fl32 *) workBuf.getPtr();
-    for (int i = 0;  i < nPointsTargetVol; i++, vval++) {
+    for (int64_t i = 0;  i < nPointsTargetVol; i++, vval++) {
       *vval = missing;
     }
     break;
@@ -2972,7 +2972,7 @@ int MdvxField::remap(MdvxRemapLut &lut,
   case Mdvx::ENCODING_RGBA32: {
     ui32 missing = (ui32) _fhdr.missing_data_value;
     ui32 *vval = (ui32 *) workBuf.getPtr();
-    for (int i = 0;  i < nPointsTargetVol; i++, vval++) {
+    for (int64_t i = 0;  i < nPointsTargetVol; i++, vval++) {
       *vval = missing;
     }
     break;
@@ -2985,11 +2985,11 @@ int MdvxField::remap(MdvxRemapLut &lut,
   ui08 *source = (ui08 *) _volBuf.getPtr();
   ui08 *target = (ui08 *) workBuf.getPtr();
 
-  int nOffsets = lut.getNOffsets();
+  int64_t nOffsets = lut.getNOffsets();
   const int *sourceOffsets = lut.getSourceOffsets();
   const int *targetOffsets = lut.getTargetOffsets();
   
-  for (int i = 0; i < nOffsets; i++, sourceOffsets++, targetOffsets++) {
+  for (int64_t i = 0; i < nOffsets; i++, sourceOffsets++, targetOffsets++) {
 
     int soff = *sourceOffsets * _fhdr.data_element_nbytes;
     int toff = *targetOffsets * _fhdr.data_element_nbytes;
@@ -3042,7 +3042,7 @@ int MdvxField::remap(MdvxRemapLut &lut,
 //
 // Returns 0 on success, -1 on failure.
 
-int MdvxField::decimate(ssize_t max_nxy)
+int MdvxField::decimate(int64_t max_nxy)
   
 {
 
@@ -3063,7 +3063,7 @@ int MdvxField::decimate(ssize_t max_nxy)
   if (max_nxy <= 0 || full_nxy < max_nxy) {
     return 0;
   }
-  ssize_t sparsity = (ssize_t) (sqrt(full_nxy / (double) max_nxy) + 1);
+  int64_t sparsity = (int64_t) (sqrt(full_nxy / (double) max_nxy) + 1);
   if (sparsity < 2) {
     return 0;
   }
@@ -3085,16 +3085,16 @@ int MdvxField::decimate(ssize_t max_nxy)
   int elSize = _fhdr.data_element_nbytes;
   int jumpSize = sparsity * elSize;
   
-  ssize_t startPos = (sparsity - 1) / 2;
+  int64_t startPos = (sparsity - 1) / 2;
   int outNx = (_fhdr.nx - startPos - 1) / sparsity + 1;
   int outNy = (_fhdr.ny - startPos - 1) / sparsity + 1;
 
-  int nBytesSourceRow = _fhdr.nx * elSize;
-  ssize_t nBytesSourcePlane = nBytesSourceRow * _fhdr.ny;
+  int64_t nBytesSourceRow = _fhdr.nx * elSize;
+  int64_t nBytesSourcePlane = nBytesSourceRow * _fhdr.ny;
   
-  ssize_t nBytesTargetRow = outNx * elSize;
-  ssize_t nBytesTargetPlane = nBytesTargetRow * outNy;
-  ssize_t nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
+  int64_t nBytesTargetRow = outNx * elSize;
+  int64_t nBytesTargetPlane = nBytesTargetRow * outNy;
+  int64_t nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
 
   // set up working buffer
   
@@ -3276,7 +3276,7 @@ void MdvxField::computePlaneLimits(double vlevel1,
 ////////////////////////////////////////////
 // Convert data buffer from BE byte ordering
 
-void MdvxField::buffer_from_BE(void *buf, ssize_t buflen,
+void MdvxField::buffer_from_BE(void *buf, int64_t buflen,
 			       int encoding_type)
      
 {
@@ -3299,7 +3299,7 @@ void MdvxField::buffer_from_BE(void *buf, ssize_t buflen,
 ////////////////////////////////////////////
 // Convert data buffer to BE byte ordering
 
-void MdvxField::buffer_to_BE(void *buf, ssize_t buflen,
+void MdvxField::buffer_to_BE(void *buf, int64_t buflen,
 			     int encoding_type)
   
 {
@@ -3325,7 +3325,7 @@ void MdvxField::buffer_to_BE(void *buf, ssize_t buflen,
 
 void MdvxField::_data_from_BE(const Mdvx::field_header_t &fhdr,
                               void *buf,
-                              ssize_t buflen)
+                              int64_t buflen)
 
 {
   
@@ -3555,10 +3555,10 @@ void MdvxField::setPlanePtrs() const
 
     // not compressed
 
-    int size = _fhdr.nx * _fhdr.ny * _fhdr.data_element_nbytes;
+    int64_t size = _fhdr.nx * _fhdr.ny * _fhdr.data_element_nbytes;
 
     for (int i = 0; i < nz; i++) {
-      int offset = i * size;
+      int64_t offset = i * size;
       _planeSizes[i] = size;
       _planeOffsets[i] = offset;
       _planeData[i] = (void *) ((ui08 *) _volBuf.getPtr() + _planeOffsets[i]);
@@ -3628,8 +3628,8 @@ void MdvxField::_int8_to_float32()
 
   // allocate the output buffer
 
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(fl32);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(fl32);
   _volBuf.prepare(output_size);
   
   // convert data
@@ -3652,7 +3652,7 @@ void MdvxField::_int8_to_float32()
   fl32 float_missing_val = _fhdr.missing_data_value * scale + bias;
   fl32 float_bad_val = _fhdr.bad_data_value * scale + bias;
   
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     if (*in == byte_missing_val) {
       *out = float_missing_val;
     } else if (*in == byte_bad_val) {
@@ -3693,8 +3693,8 @@ void MdvxField::_int16_to_float32()
 
   // allocate the output buffer
 
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(fl32);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(fl32);
   _volBuf.prepare(output_size);
   
   // convert data
@@ -3717,7 +3717,7 @@ void MdvxField::_int16_to_float32()
   fl32 float_missing_val = _fhdr.missing_data_value * scale + bias;
   fl32 float_bad_val = _fhdr.bad_data_value * scale + bias;
   
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     if (*in == short_missing_val) {
       *out = float_missing_val;
     } else if (*in == short_bad_val) {
@@ -3809,17 +3809,17 @@ void MdvxField::_float32_to_int8(int output_scaling)
 
   // allocate the output buffer
 
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(ui08);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(ui08);
   _volBuf.prepare(output_size);
 
   // convert data
   
   fl32 *in = (fl32 *) copyBuf.getPtr();
   ui08 *out = (ui08 *) _volBuf.getPtr();
-  ssize_t nBad = 0;
+  int64_t nBad = 0;
 
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     fl32 in_val = *in;
     if (in_val == in_missing) {
       *out = out_missing;
@@ -3923,8 +3923,8 @@ void MdvxField::_float32_to_int8(double output_scale,
 
   // allocate the output buffer
 
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(ui08);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(ui08);
   _volBuf.prepare(output_size);
 
   // convert data
@@ -3932,7 +3932,7 @@ void MdvxField::_float32_to_int8(double output_scale,
   fl32 *in = (fl32 *) copyBuf.getPtr();
   ui08 *out = (ui08 *) _volBuf.getPtr();
 
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     fl32 in_val = *in;
     if (in_val == in_missing) {
       *out = out_missing;
@@ -4028,17 +4028,17 @@ void MdvxField::_float32_to_int16(int output_scaling)
 
   // allocate the output buffer
   
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(ui16);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(ui16);
   _volBuf.prepare(output_size);
 
   // convert data
   
   fl32 *in = (fl32 *) copyBuf.getPtr();
   ui16 *out = (ui16 *) _volBuf.getPtr();
-  ssize_t nBad = 0;
+  int64_t nBad = 0;
 
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     fl32 in_val = *in;
     if (in_val == in_missing) {
       *out = out_missing;
@@ -4142,8 +4142,8 @@ void MdvxField::_float32_to_int16(double output_scale,
 
   // allocate the output buffer
 
-  ssize_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
-  ssize_t output_size = npoints * sizeof(ui16);
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t output_size = npoints * sizeof(ui16);
   _volBuf.prepare(output_size);
 
   // convert data
@@ -4151,7 +4151,7 @@ void MdvxField::_float32_to_int16(double output_scale,
   fl32 *in = (fl32 *) copyBuf.getPtr();
   ui16 *out = (ui16 *) _volBuf.getPtr();
 
-  for (ssize_t i = 0; i < npoints; i++, in++, out++) {
+  for (int64_t i = 0; i < npoints; i++, in++, out++) {
     fl32 in_val = *in;
     if (in_val == in_missing) {
       *out = out_missing;
@@ -4283,9 +4283,9 @@ void MdvxField::constrainVertical(const Mdvx &mdvx)
     // uncompressed data
     
     MemBuf outBuf;
-    int outOffset = (_fhdr.nx * _fhdr.ny *
+    int64_t outOffset = (_fhdr.nx * _fhdr.ny *
 		     _fhdr.data_element_nbytes * minPlane);
-    int outSize = _fhdr.nx * _fhdr.ny * outNz * _fhdr.data_element_nbytes;
+    int64_t outSize = _fhdr.nx * _fhdr.ny * outNz * _fhdr.data_element_nbytes;
     void *outData = ((ui08 *) _volBuf.getPtr() + outOffset);
     outBuf.add(outData, outSize);
     _volBuf = outBuf;
@@ -4636,12 +4636,12 @@ void MdvxField::constrainHorizontal(const Mdvx &mdvx)
 
   MemBuf workBuf;
   
-  int nbytesLineIn = _fhdr.nx * _fhdr.data_element_nbytes;
-  int nbytesPlaneIn = nbytesLineIn * _fhdr.ny;
-  int nbytesLineOut = nxOut * _fhdr.data_element_nbytes;
+  int64_t nbytesLineIn = _fhdr.nx * _fhdr.data_element_nbytes;
+  int64_t nbytesPlaneIn = nbytesLineIn * _fhdr.ny;
+  int64_t nbytesLineOut = nxOut * _fhdr.data_element_nbytes;
   
   for (int iz = 0; iz < _fhdr.nz; iz++) {
-    int offset = (iz * nbytesPlaneIn) +
+    int64_t offset = (iz * nbytesPlaneIn) +
       (minIy * _fhdr.nx + minIx) * _fhdr.data_element_nbytes;
     for (int iy = minIy; iy <= maxIy; iy++, offset += nbytesLineIn) {
       void *ptr = ((ui08 *) _volBuf.getPtr() + offset);
@@ -4972,16 +4972,16 @@ int MdvxField::_constrain_radar_horiz(const Mdvx &mdvx)
 
   MemBuf workBuf;
   
-  int nbytesBeamIn = _fhdr.nx * _fhdr.data_element_nbytes;
-  int nbytesPlaneIn = nbytesBeamIn * _fhdr.ny;
-  int nbytesBeamOut = nRange * _fhdr.data_element_nbytes;
+  int64_t nbytesBeamIn = _fhdr.nx * _fhdr.data_element_nbytes;
+  int64_t nbytesPlaneIn = nbytesBeamIn * _fhdr.ny;
+  int64_t nbytesBeamOut = nRange * _fhdr.data_element_nbytes;
   
   for (int iz = 0; iz < _fhdr.nz; iz++) {
     
     for (int iaz = 0; iaz < nAz; iaz++) {
       
       int azIndex = (iaz + minAzIndex + _fhdr.ny) % _fhdr.ny;
-      int offset = (iz * nbytesPlaneIn) +
+      int64_t offset = (iz * nbytesPlaneIn) +
         (azIndex * _fhdr.nx + minRangeIndex) * _fhdr.data_element_nbytes;
       void *ptr = ((ui08 *) _volBuf.getPtr() + offset);
       workBuf.add(ptr, nbytesBeamOut);
@@ -5018,7 +5018,7 @@ int MdvxField::_constrain_radar_horiz(const Mdvx &mdvx)
 //
 // Returns 0 on success, -1 on failure.
 
-int MdvxField::_decimate_radar_horiz(ssize_t max_nxy)
+int MdvxField::_decimate_radar_horiz(int64_t max_nxy)
   
 {
 
@@ -5078,12 +5078,12 @@ int MdvxField::_decimate_radar_horiz(ssize_t max_nxy)
   int outNx = (_fhdr.nx - rangeStartPos - 1) / rangeSparsity + 1;
   int outNy = (_fhdr.ny - azStartPos - 1) / azSparsity + 1;
 
-  ssize_t nBytesSourceRow = _fhdr.nx * elemSize;
-  ssize_t nBytesSourcePlane = nBytesSourceRow * _fhdr.ny;
+  int64_t nBytesSourceRow = _fhdr.nx * elemSize;
+  int64_t nBytesSourcePlane = nBytesSourceRow * _fhdr.ny;
   
-  ssize_t nBytesTargetRow = outNx * elemSize;
-  ssize_t nBytesTargetPlane = nBytesTargetRow * outNy;
-  ssize_t nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
+  int64_t nBytesTargetRow = outNx * elemSize;
+  int64_t nBytesTargetPlane = nBytesTargetRow * outNy;
+  int64_t nBytesTargetVol = nBytesTargetPlane * _fhdr.nz;
 
   // set up working buffer
   
@@ -5148,7 +5148,7 @@ int MdvxField::_decimate_radar_horiz(ssize_t max_nxy)
 // Decimate to max grid cell count using pixel averaging
 // Returns 0 on success, -1 on failure.
 
-int MdvxField::_decimate_rgba(ssize_t max_nxy)
+int MdvxField::_decimate_rgba(int64_t max_nxy)
   
 {
   // check if we need to decimate
@@ -5182,11 +5182,11 @@ int MdvxField::_decimate_rgba(ssize_t max_nxy)
   int x_pix_count = x_ratio + 1; // Pixels input in X direction per output pixel
   int y_pix_count = y_ratio + 1; // Pixels input in Y direction per output pixel
   
-  ssize_t nPixTargetRow = outNx;
-  ssize_t nPixTargetPlane = nPixTargetRow * outNy;
-  ssize_t nBytesTargetVol = nPixTargetPlane * _fhdr.nz * elSize;
+  int64_t nPixTargetRow = outNx;
+  int64_t nPixTargetPlane = nPixTargetRow * outNy;
+  int64_t nBytesTargetVol = nPixTargetPlane * _fhdr.nz * elSize;
 
-  ssize_t count = 0;
+  int64_t count = 0;
   int y_loc,x_loc;
   uint r_val,g_val,b_val,a_val;
   uint r_sum,g_sum,b_sum,a_sum;
@@ -5308,10 +5308,10 @@ int MdvxField::compress(int compression_type) const
   }
 
   int nz = _fhdr.nz;
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
-  int nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
-  int nbytes_vol = nbytes_plane * nz;
-  int next_offset = 0;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
+  int64_t nbytes_vol = nbytes_plane * nz;
+  int64_t next_offset = 0;
 
   // swap volume data to BE as appropriate
 
@@ -5385,7 +5385,7 @@ int MdvxField::compress(int compression_type) const
 
   // swap plane offset and size arrays
 
-  int index_array_size = nz * sizeof(ui32);
+  int64_t index_array_size = nz * sizeof(ui32);
   BE_from_array_32(plane_offsets, index_array_size);
   BE_from_array_32(plane_sizes, index_array_size);
 
@@ -5416,9 +5416,9 @@ int MdvxField::_compressGzipVol() const
 
 {
 
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
-  int nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
-  int nbytes_vol = nbytes_plane * _fhdr.nz;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
+  int64_t nbytes_vol = nbytes_plane * _fhdr.nz;
 
   // swap volume data to BE as appropriate
 
@@ -5475,10 +5475,10 @@ int MdvxField::decompress() const
   }
   
   int nz = _fhdr.nz;
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
-  int nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
-  int nbytes_vol = nz * nbytes_plane;
-  int index_array_size =  nz * sizeof(ui32);
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
+  int64_t nbytes_vol = nz * nbytes_plane;
+  int64_t index_array_size =  nz * sizeof(ui32);
 
   ui32 *plane_offsets = (ui32 *) _volBuf.getPtr();
   ui32 *plane_sizes = plane_offsets + nz;
@@ -5514,7 +5514,7 @@ int MdvxField::decompress() const
       _errStr += "ERROR - MdvxField::decompress.\n";
       _errStr +=  "  Wrong number of bytes in plane.\n";
       char errstr[128];
-      sprintf(errstr, "  %d expected, %d found.\n",
+      sprintf(errstr, "  %ld expected, %d found.\n",
 	      nbytes_plane, nbytes_uncompressed);
       _errStr += errstr;
       ta_compress_free(uncompressed_plane);
@@ -5532,7 +5532,7 @@ int MdvxField::decompress() const
     _errStr += "ERROR - MdvxField::decompress.\n";
     _errStr +=  "  Wrong number of bytes in vol.\n";
     char errstr[128];
-    sprintf(errstr, "  %d expected, %d found.\n",
+    sprintf(errstr, "  %ld expected, %d found.\n",
 	    nbytes_vol, (int) workBuf.getLen());
     _errStr += errstr;
     return -1;
@@ -5566,9 +5566,9 @@ int MdvxField::_decompressGzipVol() const
   
 {
 
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
-  int nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
-  int nbytes_vol = _fhdr.nz * nbytes_plane;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t nbytes_plane = npoints_plane * _fhdr.data_element_nbytes;
+  int64_t nbytes_vol = _fhdr.nz * nbytes_plane;
 
   // uncompress buffer
   
@@ -5589,7 +5589,7 @@ int MdvxField::_decompressGzipVol() const
     _errStr += "ERROR - MdvxField::_decompressGzipVol.\n";
     _errStr +=  "  Wrong number of bytes in vol.\n";
     char errstr[128];
-    sprintf(errstr, "  %d expected, %d found.\n",
+    sprintf(errstr, "  %ld expected, %d found.\n",
             nbytes_vol, nbytes_uncompressed);
     _errStr += errstr;
     ta_compress_free(uncompressed_vol);
@@ -5684,7 +5684,7 @@ int MdvxField::computeMinAndMax(bool force /* = false*/ )
     wasCompressed = true;
   }
 
-  int npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
+  int64_t npoints = _fhdr.nx * _fhdr.ny * _fhdr.nz;
 
   if (_fhdr.encoding_type == Mdvx::ENCODING_INT8) {
     
@@ -5694,7 +5694,7 @@ int MdvxField::computeMinAndMax(bool force /* = false*/ )
     ui08 missing = (ui08) _fhdr.missing_data_value;
     ui08 bad = (ui08) _fhdr.bad_data_value;
     
-    for (int i = 0; i < npoints; i++, val++) {
+    for (int64_t i = 0; i < npoints; i++, val++) {
       ui08 this_val = *val;
       if (this_val != missing && this_val != bad) {
 	min_val = MIN(min_val, this_val);
@@ -5717,7 +5717,7 @@ int MdvxField::computeMinAndMax(bool force /* = false*/ )
     ui16 missing = (ui16) _fhdr.missing_data_value;
     ui16 bad = (ui16) _fhdr.bad_data_value;
    
-    for (int i = 0; i < npoints; i++, val++) {
+    for (int64_t i = 0; i < npoints; i++, val++) {
       ui16 this_val = *val;
       if (this_val != missing && this_val != bad) {
 	min_val = MIN(min_val, this_val);
@@ -5740,7 +5740,7 @@ int MdvxField::computeMinAndMax(bool force /* = false*/ )
     fl32 missing = _fhdr.missing_data_value;
     fl32 bad = _fhdr.bad_data_value;
     
-    for (int i = 0; i < npoints; i++, val++) {
+    for (int64_t i = 0; i < npoints; i++, val++) {
       fl32 this_val = *val;
       if (this_val != missing && this_val != bad) {
 	min_val = MIN(min_val, this_val);
@@ -5761,7 +5761,7 @@ int MdvxField::computeMinAndMax(bool force /* = false*/ )
     ui32 missing = (ui32) _fhdr.missing_data_value;
     ui32 bad = (ui32) _fhdr.bad_data_value;
     
-    for (int i = 0; i < npoints; i++, val++) {
+    for (int64_t i = 0; i < npoints; i++, val++) {
       ui32 this_val = *val;
       if (this_val != missing && this_val != bad) {
 	min_val = MIN(min_val, this_val);
@@ -5864,7 +5864,7 @@ int MdvxField::_read_volume(TaFile &infile,
   clearErrStr();
   infile.fseek(_fhdr.field_data_offset, SEEK_SET);
 
-  int volume_size = _fhdr.volume_size;
+  int64_t volume_size = _fhdr.volume_size;
   void *buf = _volBuf.prepare(volume_size);
 
   if (infile.fread(buf, 1, volume_size) != volume_size) {
@@ -6105,14 +6105,14 @@ int MdvxField::_apply_read_constraints(const Mdvx &mdvx,
 // Returns 0 on success, -1 on failure.
 
 int MdvxField::_write_volume(TaFile &outfile,
-			     ssize_t this_offset,
-			     ssize_t &next_offset) const
+			     int64_t this_offset,
+			     int64_t &next_offset) const
 
 {
 
   clearErrStr();
 
-  ssize_t volume_size = _fhdr.volume_size;
+  int64_t volume_size = _fhdr.volume_size;
   ui32 be_volume_size = BE_from_ui32(volume_size);
 
   // Set the constant values in the headers
@@ -6171,7 +6171,7 @@ int MdvxField::_write_volume(TaFile &outfile,
     _errStr += "ERROR - MdvxField::writeVol\n";
     _errStr += string("  Cannot write data for field: ")
       + _fhdr.field_name + "\n";
-    sprintf(errstr, "%ld", (ssize_t) copyBuf.getLen());
+    sprintf(errstr, "%ld", (int64_t) copyBuf.getLen());
     _errStr += string("  copyBuf has ") + errstr + " bytes, ";
     sprintf(errstr, "%ld", volume_size);
     _errStr += string(" should have ") + errstr + " bytes.\n";
@@ -6200,7 +6200,7 @@ void MdvxField::_print_voldata_verbose(ostream &out,
 
 {     
   
-  ssize_t npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
   char outstr[32];
   
   switch (_fhdr.encoding_type) {
@@ -6213,7 +6213,7 @@ void MdvxField::_print_voldata_verbose(ostream &out,
       if (print_labels) {
 	out << "INT8 data for plane " << iz << ":" << endl << endl;
       }
-      for (ssize_t i = 0; i < npoints_plane; i++, val++) {
+      for (int64_t i = 0; i < npoints_plane; i++, val++) {
 	ui08 this_val = *val;
 	if (this_val == bad) {
 	  out << "BAD ";
@@ -6237,7 +6237,7 @@ void MdvxField::_print_voldata_verbose(ostream &out,
       if (print_labels) {
 	out << "INT16 data for plane " << iz << ":" << endl << endl;
       }
-      for (ssize_t i = 0; i < npoints_plane; i++, val++) {
+      for (int64_t i = 0; i < npoints_plane; i++, val++) {
 	ui16 this_val = *val;
 	if (this_val == bad) {
 	  out << "BAD ";
@@ -6261,7 +6261,7 @@ void MdvxField::_print_voldata_verbose(ostream &out,
       if (print_labels) {
 	out << "FLOAT32 data for plane " << iz << ":" << endl << endl;
       }
-      for (ssize_t i = 0; i < npoints_plane; i++, val++) {
+      for (int64_t i = 0; i < npoints_plane; i++, val++) {
 	fl32 this_val = *val;
 	if (this_val == bad) {
 	  out << "BAD ";
@@ -6289,7 +6289,7 @@ void MdvxField::_print_voldata_verbose(ostream &out,
       if (print_labels) {
 	out << "RGBA32 data for plane " << iz << ":" << endl << endl;
       }
-      for (ssize_t i = 0; i < npoints_plane; i++, val++) {
+      for (int64_t i = 0; i < npoints_plane; i++, val++) {
 	ui32 this_val = *val;
 	if (this_val == bad) {
 	  out << "BAD ";
@@ -6318,7 +6318,7 @@ void MdvxField::_print_voldata_packed(ostream &out,
 
 {     
 
-  int npoints_plane = _fhdr.nx * _fhdr.ny;
+  int64_t npoints_plane = _fhdr.nx * _fhdr.ny;
 
   switch (_fhdr.encoding_type) {
     
@@ -6339,11 +6339,11 @@ void MdvxField::_print_voldata_packed(ostream &out,
 	out << "npoints_plane: " << npoints_plane << endl;
 	out << "INT8 data for plane " << iz << ":" << endl << endl;
       }
-      ssize_t printed = 0;
-      ssize_t count = 1;
+      int64_t printed = 0;
+      int64_t count = 1;
       ui08 prev_val = *val;
       val++;
-      for (int i = 1; i < npoints_plane; i++, val++) {
+      for (int64_t i = 1; i < npoints_plane; i++, val++) {
 	ui08 this_val = *val;
 	if (this_val != prev_val) {
           if (printCanonical) out << "fulldata: ";
@@ -6387,10 +6387,10 @@ void MdvxField::_print_voldata_packed(ostream &out,
 	out << "INT16 data for plane " << iz << ":" << endl << endl;
       }
       int printed = 0;
-      int count = 1;
+      int64_t count = 1;
       ui16 prev_val = *val;
       val++;
-      for (int i = 1; i < npoints_plane; i++, val++) {
+      for (int64_t i = 1; i < npoints_plane; i++, val++) {
 	ui16 this_val = *val;
 	if (this_val != prev_val) {
           if (printCanonical) out << "fulldata: ";
@@ -6436,10 +6436,10 @@ void MdvxField::_print_voldata_packed(ostream &out,
 	out << "FLOAT32 data for plane " << iz << ":" << endl << endl;
       }
       int printed = 0;
-      int count = 1;
+      int64_t count = 1;
       fl32 prev_val = *val;
       val++;
-      for (int i = 1; i < npoints_plane; i++, val++) {
+      for (int64_t i = 1; i < npoints_plane; i++, val++) {
 	fl32 this_val = *val;
 	if (this_val != prev_val) {
           if (printCanonical) out << "fulldata: ";
@@ -6483,10 +6483,10 @@ void MdvxField::_print_voldata_packed(ostream &out,
 	out << "RGBA data for plane " << iz << ":" << endl << endl;
       }
       int printed = 0;
-      int count = 1;
+      int64_t count = 1;
       ui32 prev_val = *val;
       val++;
-      for (int i = 1; i < npoints_plane; i++, val++) {
+      for (int64_t i = 1; i < npoints_plane; i++, val++) {
 	ui32 this_val = *val;
 	if (this_val != prev_val) {
           if (printCanonical) out << "fulldata: ";
@@ -6758,8 +6758,8 @@ void MdvxField::_plane_fill_missing(int encoding_type,
 
     // check that less than 75 % is missing
 
-    int count = 0;
-    for (int i = 0; i < nx * ny; i++) {
+    int64_t count = 0;
+    for (int64_t i = 0; i < nx * ny; i++) {
       if (a[i] == missing) {
 	count++;
       }
@@ -6831,8 +6831,8 @@ void MdvxField::_plane_fill_missing(int encoding_type,
 
     // check that less than 75 % is missing
 
-    int count = 0;
-    for (int i = 0; i < nx * ny; i++) {
+    int64_t count = 0;
+    for (int64_t i = 0; i < nx * ny; i++) {
       if (a[i] == missing) {
 	count++;
       }
@@ -6903,8 +6903,8 @@ void MdvxField::_plane_fill_missing(int encoding_type,
 
     // check that less than 75 % is missing
 
-    int count = 0;
-    for (int i = 0; i < nx * ny; i++) {
+    int64_t count = 0;
+    for (int64_t i = 0; i < nx * ny; i++) {
       if (a[i] == missing) {
 	count++;
       }
@@ -6997,8 +6997,8 @@ void MdvxField::_vsection_fill_missing(int encoding_type,
 
     // check that less than 75 % is missing
 
-    int count = 0;
-    for (int i = 0; i < nx * nz; i++) {
+    int64_t count = 0;
+    for (int64_t i = 0; i < nx * nz; i++) {
       if (a[i] == missing) {
 	count++;
       }
@@ -7073,8 +7073,8 @@ void MdvxField::_vsection_fill_missing(int encoding_type,
 
     // check that less than 75 % is missing
 
-    int count = 0;
-    for (int i = 0; i < nx * nz; i++) {
+    int64_t count = 0;
+    for (int64_t i = 0; i < nx * nz; i++) {
       if (a[i] == missing) {
 	count++;
       }
@@ -7522,8 +7522,8 @@ void MdvxField::remapVlevels(int nz, double minz, double dz)
   // load temporary output buffer with data for new levels
   
   MemBuf outBuf;
-  ssize_t nPointsPlane = _fhdr.nx * _fhdr.ny;
-  ssize_t nBytesPlane = nPointsPlane * _fhdr.data_element_nbytes;
+  int64_t nPointsPlane = _fhdr.nx * _fhdr.ny;
+  int64_t nBytesPlane = nPointsPlane * _fhdr.data_element_nbytes;
   
   for (int ii = 0; ii < nz; ii++) {
 
@@ -7536,7 +7536,7 @@ void MdvxField::remapVlevels(int nz, double minz, double dz)
     cerr << " Remapping ii, zz, plane index: "
          << ii << ", " << zVals[ii] << ", " << iz0 << endl;
 #endif
-    ssize_t offset = iz0 * nBytesPlane;
+    int64_t offset = iz0 * nBytesPlane;
     void *plane = ((ui08 *) _volBuf.getPtr() + offset);
     outBuf.add(plane, nBytesPlane);
 
