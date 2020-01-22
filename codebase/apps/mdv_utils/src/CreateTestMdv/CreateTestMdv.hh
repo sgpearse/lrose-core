@@ -79,6 +79,9 @@ private:
   Args _args;
   Params _params;
 
+  int _createMdvx(DsMdvx &mdvx);
+  int _writeMdvx(DsMdvx &mdvx);
+  void _addField(DsMdvx &mdvx, const Params::output_field_t &ofld);
   int _computeDataTime(time_t &data_time);
   void _loadFieldData(ui08 *inBuf,
                       int nx, int ny, int nz, int nxy, int nxyz,
@@ -87,6 +90,7 @@ private:
                       fl32 *data);
   void _initMasterHeader(DsMdvx &mdvx, time_t dataTime);
   void _addField(DsMdvx &mdvx, int fieldNum, fl32 *data);
+  void _initProjection(Mdvx::field_header_t &fhdr);
   int _writeOutput(DsMdvx &mdvx);
 
 };

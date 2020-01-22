@@ -36,6 +36,7 @@
 
 #include <cerrno>
 #include <toolsa/mem.h>
+#include <toolsa/ucopyright.h>
 #include <toolsa/Path.hh>
 #include <toolsa/DateTime.hh>
 #include <Mdv/MdvxField.hh>
@@ -50,13 +51,12 @@ CreateTestMdv::CreateTestMdv(int argc, char **argv)
 
 {
 
-  _input = NULL;
   isOK = true;
 
   // set programe name
 
-  _progName = "CreateTestMdv";
-  ucopyright((char *) _progName.c_str());
+  _progName = (char *) "CreateTestMdv";
+  ucopyright(_progName.c_str());
   
   // get command line args
 
@@ -69,7 +69,7 @@ CreateTestMdv::CreateTestMdv(int argc, char **argv)
 
   // get TDRP params
   
-  _paramsPath = "unknown";
+  _paramsPath = (char *) "unknown";
   if (_params.loadFromArgs(argc, argv, _args.override.list,
 			   &_paramsPath)) {
     cerr << "ERROR: " << _progName << endl;
@@ -95,9 +95,6 @@ CreateTestMdv::~CreateTestMdv()
 int CreateTestMdv::Run ()
 {
 
-  int iret = 0;
-  PMU_auto_register("Run");
-  
   DsMdvx mdvx;
   if (_createMdvx(mdvx)) {
     cerr << "ERROR - CreateTestMdv::Run" << endl;
@@ -128,19 +125,115 @@ int CreateTestMdv::_createMdvx(DsMdvx &mdvx)
     cerr << "Creating file at time: "
          << DateTime::strm(dataTime) << endl;
   }
-
+  
   // initialize the master header
   
   _initMasterHeader(mdvx, dataTime);
   
   // add the fields
-
+  
   int nFields = _params.output_fields_n;
   for (int ifield = 0; ifield < nFields; ifield++) {
     Params::output_field_t &ofld = _params._output_fields[ifield];
     _addField(mdvx, ofld);
   }
+
+  return 0;
+
+}
+
+///////////////////////////////
+// write MDV file
+
+int CreateTestMdv::_writeMdvx(DsMdvx &mdvx)
+
+{
   
+  return 0;
+
+}
+
+///////////////////////////////
+// add a field
+
+void CreateTestMdv::_addField(DsMdvx &mdvx,
+                              const Params::output_field_t &ofld)
+
+{
+  
+  // fill in field header and vlevel header
+  
+  Mdvx::field_header_t fhdr;
+  MEM_zero(fhdr);
+  Mdvx::vlevel_header_t vhdr;
+  MEM_zero(vhdr);
+
+  MdvxProj proj;
+  _initProjection(fhdr);
+  
+  fhdr.proj_origin_lat = _params.grid_origin_lat;
+  fhdr.proj_origin_lon = _params.grid_origin_lon;
+  fhdr.nx = _params.grid_xy_geom.nx;
+  fhdr.ny = _params.grid_xy_geom.ny;
+  fhdr.nz = _params.grid_xy_geom.nz;
+  fhdr.grid_dx = _params.grid_geom.dx;
+  fhdr.grid_dy = _params.grid_geom.dy;
+  fhdr.grid_minx = _params.grid_geom.minx;
+  fhdr.grid_miny = _params.grid_geom.miny;
+
+  if (_params.vlevels_n > 1) {
+    fhdr.grid_dz = _params._vlevels[1] - _params._vlevels[0];
+    fhdr.grid_minz = _params._vlevels[0];
+  } else if (_params.vlevels_n > 0) {
+    fhdr.grid_dz = 1.0;
+    fhdr.grid_minz = _params._vlevels[0];
+  } else {
+    fhdr.grid_dz = 1.0;
+    fhdr.grid_minz = 0.0;
+  }
+      
+  // int npointsPlane = fhdr.nx * fhdr.ny;
+    
+  fhdr.compression_type = Mdvx::COMPRESSION_NONE;
+  fhdr.transform_type = Mdvx::DATA_TRANSFORM_NONE;
+  fhdr.scaling_type = Mdvx::SCALING_NONE;
+
+  fhdr.native_vlevel_type = _params.vlevel_type;
+  fhdr.vlevel_type = _params.vlevel_type;
+  fhdr.dz_constant = false;
+
+  fhdr.bad_data_value = _missingFloat;
+  fhdr.missing_data_value = _missingFloat;
+  
+  fhdr.encoding_type = Mdvx::ENCODING_FLOAT32;
+  fhdr.data_element_nbytes = sizeof(fl32);
+  fhdr.volume_size = fhdr.nx * fhdr.ny * fhdr.nz * sizeof(fl32);
+
+  // vlevel header
+  
+  for (int iz = 0; iz < fhdr.nz; iz++) {
+    vhdr.type[iz] = _params.vlevel_type;
+    vhdr.level[iz] = _params._vlevels[iz];
+  }
+
+  // create field
+  
+  MdvxField *field = new MdvxField(fhdr, vhdr, data);
+
+  // set name etc
+  
+  field->setFieldName(_params._fields[fieldNum].name);
+  field->setFieldNameLong(_params._fields[fieldNum].name_long);
+  field->setUnits(_params._fields[fieldNum].units);
+  field->setTransform(_params._fields[fieldNum].transform);
+  
+  field->convertRounded((Mdvx::encoding_type_t) _params.output_encoding,
+                        (Mdvx::compression_type_t) _params.output_compression);
+
+  // add field to mdvx object
+
+  mdvx.addField(field);
+
   int nBytesExpected = 0;
 
   switch (_params.input_encoding) {
@@ -247,6 +340,61 @@ int CreateTestMdv::_createMdvx(DsMdvx &mdvx)
   }
 
   return 0;
+
+}
+
+////////////////////////////////////////////////////////////
+// Initialize projection
+
+void CreateTestMdv::_initProjection(Mdvx::field_header_t &fhdr)
+  
+{
+
+  fhdr.proj_origin_lat = _params.grid_origin_lat;
+  fhdr.proj_origin_lon = _params.grid_origin_lon;
+
+  if (_params.gridprojection == Params::PROJ_LATLON) {
+    fhdr.proj_type = Mdvx::PROJ_LATLON;
+  } else if (_params.gridprojection == Params::PROJ_FLAT) {
+    fhdr.proj_type = Mdvx::PROJ_FLAT;
+    fhdr.proj_rotation = _params.grid_rotation;
+    fhdr.proj_params[0] = _params.grid_rotation;
+  } else if (_params.gridprojection == Params::PROJ_LAMBERT_CONF) {
+    fhdr.proj_type = Mdvx::PROJ_LAMBERT_CONF;
+    fhdr.proj_params[0] = _params.grid_lat1;
+    fhdr.proj_params[1] = _params.grid_lat2;
+  } else if (_params.gridprojection == Params::PROJ_POLAR_STEREO) {
+    fhdr.proj_type = Mdvx::PROJ_POLAR_STEREO;
+    fhdr.proj_params[0] = _params.grid_tangent_lon;
+    if (_params.grid_pole_is_north) {
+      fhdr.proj_params[1] = 1;
+    } else {
+      fhdr.proj_params[1] = 0;
+    }
+    fhdr.proj_params[2] = _params.grid_central_scale;
+  } else if (_params.gridprojection == Params::PROJ_OBLIQUE_STEREO) {
+    fhdr.proj_type = Mdvx::PROJ_OBLIQUE_STEREO;
+    fhdr.proj_params[0] = _params.grid_tangent_lat;
+    fhdr.proj_params[1] = _params.grid_tangent_lon;
+    fhdr.proj_params[2] = _params.grid_central_scale;
+  } else if (_params.gridprojection == Params::PROJ_MERCATOR) {
+    fhdr.proj_type = Mdvx::PROJ_MERCATOR;
+  } else if (_params.gridprojection == Params::PROJ_TRANS_MERCATOR) {
+    fhdr.proj_type = Mdvx::PROJ_TRANS_MERCATOR;
+    fhdr.proj_params[0] = _params.grid_central_scale;
+  } else if (_params.gridprojection == Params::PROJ_ALBERS) {
+    fhdr.proj_type = Mdvx::PROJ_ALBERS;
+    fhdr.proj_params[0] = _params.grid_lat1;
+    fhdr.proj_params[1] = _params.grid_lat2;
+  } else if (_params.gridprojection == Params::PROJ_LAMBERT_AZIM) {
+    fhdr.proj_type = Mdvx::PROJ_LAMBERT_AZIM;
+  } else if (_params.gridprojection == Params::PROJ_VERT_PERSP) {
+    fhdr.proj_type = Mdvx::PROJ_VERT_PERSP;
+    proj.initLambertAzim(_params.grid_persp_radius);
+  }
+  
+  fhdr.proj_params[6] = _params.grid_false_northing;
+  fhdr.proj_params[7] = _params.grid_false_easting;
 
 }
 
@@ -390,111 +538,6 @@ void CreateTestMdv::_initMasterHeader(DsMdvx &mdvx, time_t dataTime)
 void CreateTestMdv::_addField(DsMdvx &mdvx, int fieldNum, fl32 *data)
 
 {
-
-  // fill in field header and vlevel header
-  
-  Mdvx::field_header_t fhdr;
-  MEM_zero(fhdr);
-  Mdvx::vlevel_header_t vhdr;
-  MEM_zero(vhdr);
-  
-  switch (_params.grid_projection) {
-    
-    case Params::PROJ_FLAT: {
-      fhdr.proj_type = Mdvx::PROJ_FLAT;
-      fhdr.proj_rotation = _params.flat_rotation;
-      break;
-    }
-
-    case Params::PROJ_LATLON: {
-      fhdr.proj_type = Mdvx::PROJ_LATLON;
-      break;
-    }
-    
-    case Params::PROJ_LAMBERT_CONF: {
-      fhdr.proj_type = Mdvx::PROJ_LAMBERT_CONF;
-      fhdr.proj_param[0] = _params.lambert_lat1;
-      fhdr.proj_param[1] = _params.lambert_lat2;
-      break;
-    }
-    
-    case Params::PROJ_POLAR_STEREO: {
-      fhdr.proj_type = Mdvx::PROJ_POLAR_STEREO;
-      fhdr.proj_param[0] = _params.polar_stereo_tangent_lon;
-      fhdr.proj_param[1] =
-        _params.grid_geom.miny >= 0 ? Mdvx::POLE_NORTH : Mdvx::POLE_SOUTH;
-      break;
-    }
-
-    case Params::PROJ_POLAR_RADAR: {
-      fhdr.proj_type = Mdvx::PROJ_POLAR_RADAR;
-      break;
-    }
-
-  }
-
-  fhdr.proj_origin_lat = _params.grid_origin_lat;
-  fhdr.proj_origin_lon = _params.grid_origin_lon;
-  fhdr.nx = _params.grid_size.nx;
-  fhdr.ny = _params.grid_size.ny;
-  fhdr.nz = _params.grid_size.nz;
-  fhdr.grid_dx = _params.grid_geom.dx;
-  fhdr.grid_dy = _params.grid_geom.dy;
-  fhdr.grid_minx = _params.grid_geom.minx;
-  fhdr.grid_miny = _params.grid_geom.miny;
-
-  if (_params.vlevels_n > 1) {
-    fhdr.grid_dz = _params._vlevels[1] - _params._vlevels[0];
-    fhdr.grid_minz = _params._vlevels[0];
-  } else if (_params.vlevels_n > 0) {
-    fhdr.grid_dz = 1.0;
-    fhdr.grid_minz = _params._vlevels[0];
-  } else {
-    fhdr.grid_dz = 1.0;
-    fhdr.grid_minz = 0.0;
-  }
-      
-  // int npointsPlane = fhdr.nx * fhdr.ny;
-    
-  fhdr.compression_type = Mdvx::COMPRESSION_NONE;
-  fhdr.transform_type = Mdvx::DATA_TRANSFORM_NONE;
-  fhdr.scaling_type = Mdvx::SCALING_NONE;
-
-  fhdr.native_vlevel_type = _params.vlevel_type;
-  fhdr.vlevel_type = _params.vlevel_type;
-  fhdr.dz_constant = false;
-
-  fhdr.bad_data_value = _missingFloat;
-  fhdr.missing_data_value = _missingFloat;
-  
-  fhdr.encoding_type = Mdvx::ENCODING_FLOAT32;
-  fhdr.data_element_nbytes = sizeof(fl32);
-  fhdr.volume_size = fhdr.nx * fhdr.ny * fhdr.nz * sizeof(fl32);
-
-  // vlevel header
-  
-  for (int iz = 0; iz < fhdr.nz; iz++) {
-    vhdr.type[iz] = _params.vlevel_type;
-    vhdr.level[iz] = _params._vlevels[iz];
-  }
-
-  // create field
-  
-  MdvxField *field = new MdvxField(fhdr, vhdr, data);
-
-  // set name etc
-  
-  field->setFieldName(_params._fields[fieldNum].name);
-  field->setFieldNameLong(_params._fields[fieldNum].name_long);
-  field->setUnits(_params._fields[fieldNum].units);
-  field->setTransform(_params._fields[fieldNum].transform);
-  
-  field->convertRounded((Mdvx::encoding_type_t) _params.output_encoding,
-                        (Mdvx::compression_type_t) _params.output_compression);
-
-  // add field to mdvx object
-
-  mdvx.addField(field);
 
 }
 

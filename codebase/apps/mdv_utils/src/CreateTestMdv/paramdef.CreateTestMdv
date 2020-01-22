@@ -182,24 +182,6 @@ paramdef double {
   p_help = "Occasionally, this is added to the X coordinate so that all coordinates are positive. Normally 0.";
 } grid_false_easting;
 
-paramdef boolean {
-  p_default = false;
-  p_descr = "Do you want to specify an offset origin using lat/lon instead of false_northing and false_easting?";
-  p_help = "If true, set grid_offset_origin_latitude and grid_offset_origin_longitude.";
-} grid_set_offset_origin;
-
-paramdef double {
-  p_default = 0;
-  p_descr = "Latitude of offset origin.";
-  p_help = "See grid_set_offset_origin.";
-} grid_offset_origin_latitude;
-
-paramdef double {
-  p_default = 0;
-  p_descr = "Longitude of offset origin.";
-  p_help = "See grid_set_offset_origin.";
-} grid_offset_origin_longitude;
-
 commentdef {
   p_header = "CARTESIAN GRID VERTICAL LEVELS";
   p_text = 
@@ -294,13 +276,15 @@ typedef struct {
   string output_name;
   string long_name;
   string output_units;
+  double min_val;
+  double max_val;
   encoding_type_t output_encoding;
 } output_field_t;
 
 paramdef struct output_field_t {
   p_default = {
-    {"DBZ", "DBZ", "dBZ", ENCODING_INT16 },
-    {"VEL", "VEL", "m/s", ENCODING_INT16 }
+    {"DBZ", "DBZ", "dBZ", -30, 80, ENCODING_INT16 },
+    {"VEL", "VEL", "m/s", -25, 25, ENCODING_INT16 }
   };
   p_descr = "Array of output fields.";
   p_help = "The program will create these fields.";

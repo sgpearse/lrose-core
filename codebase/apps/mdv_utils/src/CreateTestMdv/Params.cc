@@ -846,42 +846,6 @@
     tt->single_val.d = 0;
     tt++;
     
-    // Parameter 'grid_set_offset_origin'
-    // ctype is 'tdrp_bool_t'
-    
-    memset(tt, 0, sizeof(TDRPtable));
-    tt->ptype = BOOL_TYPE;
-    tt->param_name = tdrpStrDup("grid_set_offset_origin");
-    tt->descr = tdrpStrDup("Do you want to specify an offset origin using lat/lon instead of false_northing and false_easting?");
-    tt->help = tdrpStrDup("If true, set grid_offset_origin_latitude and grid_offset_origin_longitude.");
-    tt->val_offset = (char *) &grid_set_offset_origin - &_start_;
-    tt->single_val.b = pFALSE;
-    tt++;
-    
-    // Parameter 'grid_offset_origin_latitude'
-    // ctype is 'double'
-    
-    memset(tt, 0, sizeof(TDRPtable));
-    tt->ptype = DOUBLE_TYPE;
-    tt->param_name = tdrpStrDup("grid_offset_origin_latitude");
-    tt->descr = tdrpStrDup("Latitude of offset origin.");
-    tt->help = tdrpStrDup("See grid_set_offset_origin.");
-    tt->val_offset = (char *) &grid_offset_origin_latitude - &_start_;
-    tt->single_val.d = 0;
-    tt++;
-    
-    // Parameter 'grid_offset_origin_longitude'
-    // ctype is 'double'
-    
-    memset(tt, 0, sizeof(TDRPtable));
-    tt->ptype = DOUBLE_TYPE;
-    tt->param_name = tdrpStrDup("grid_offset_origin_longitude");
-    tt->descr = tdrpStrDup("Longitude of offset origin.");
-    tt->help = tdrpStrDup("See grid_set_offset_origin.");
-    tt->val_offset = (char *) &grid_offset_origin_longitude - &_start_;
-    tt->single_val.d = 0;
-    tt++;
-    
     // Parameter 'Comment 4'
     
     memset(tt, 0, sizeof(TDRPtable));
@@ -1060,7 +1024,7 @@
     tt->array_elem_size = sizeof(output_field_t);
     tt->array_n = 2;
     tt->struct_def.name = tdrpStrDup("output_field_t");
-    tt->struct_def.nfields = 4;
+    tt->struct_def.nfields = 6;
     tt->struct_def.fields = (struct_field_t *)
         tdrpMalloc(tt->struct_def.nfields * sizeof(struct_field_t));
       tt->struct_def.fields[0].ftype = tdrpStrDup("string");
@@ -1078,32 +1042,46 @@
       tt->struct_def.fields[2].ptype = STRING_TYPE;
       tt->struct_def.fields[2].rel_offset = 
         (char *) &_output_fields->output_units - (char *) _output_fields;
-      tt->struct_def.fields[3].ftype = tdrpStrDup("encoding_type_t");
-      tt->struct_def.fields[3].fname = tdrpStrDup("output_encoding");
-      tt->struct_def.fields[3].ptype = ENUM_TYPE;
+      tt->struct_def.fields[3].ftype = tdrpStrDup("double");
+      tt->struct_def.fields[3].fname = tdrpStrDup("min_val");
+      tt->struct_def.fields[3].ptype = DOUBLE_TYPE;
       tt->struct_def.fields[3].rel_offset = 
+        (char *) &_output_fields->min_val - (char *) _output_fields;
+      tt->struct_def.fields[4].ftype = tdrpStrDup("double");
+      tt->struct_def.fields[4].fname = tdrpStrDup("max_val");
+      tt->struct_def.fields[4].ptype = DOUBLE_TYPE;
+      tt->struct_def.fields[4].rel_offset = 
+        (char *) &_output_fields->max_val - (char *) _output_fields;
+      tt->struct_def.fields[5].ftype = tdrpStrDup("encoding_type_t");
+      tt->struct_def.fields[5].fname = tdrpStrDup("output_encoding");
+      tt->struct_def.fields[5].ptype = ENUM_TYPE;
+      tt->struct_def.fields[5].rel_offset = 
         (char *) &_output_fields->output_encoding - (char *) _output_fields;
-        tt->struct_def.fields[3].enum_def.name = tdrpStrDup("encoding_type_t");
-        tt->struct_def.fields[3].enum_def.nfields = 3;
-        tt->struct_def.fields[3].enum_def.fields = (enum_field_t *) tdrpMalloc
-          (tt->struct_def.fields[3].enum_def.nfields * sizeof(enum_field_t));
-        tt->struct_def.fields[3].enum_def.fields[0].name = tdrpStrDup("ENCODING_INT8");
-        tt->struct_def.fields[3].enum_def.fields[0].val = ENCODING_INT8;
-        tt->struct_def.fields[3].enum_def.fields[1].name = tdrpStrDup("ENCODING_INT16");
-        tt->struct_def.fields[3].enum_def.fields[1].val = ENCODING_INT16;
-        tt->struct_def.fields[3].enum_def.fields[2].name = tdrpStrDup("ENCODING_FLOAT32");
-        tt->struct_def.fields[3].enum_def.fields[2].val = ENCODING_FLOAT32;
-    tt->n_struct_vals = 8;
+        tt->struct_def.fields[5].enum_def.name = tdrpStrDup("encoding_type_t");
+        tt->struct_def.fields[5].enum_def.nfields = 3;
+        tt->struct_def.fields[5].enum_def.fields = (enum_field_t *) tdrpMalloc
+          (tt->struct_def.fields[5].enum_def.nfields * sizeof(enum_field_t));
+        tt->struct_def.fields[5].enum_def.fields[0].name = tdrpStrDup("ENCODING_INT8");
+        tt->struct_def.fields[5].enum_def.fields[0].val = ENCODING_INT8;
+        tt->struct_def.fields[5].enum_def.fields[1].name = tdrpStrDup("ENCODING_INT16");
+        tt->struct_def.fields[5].enum_def.fields[1].val = ENCODING_INT16;
+        tt->struct_def.fields[5].enum_def.fields[2].name = tdrpStrDup("ENCODING_FLOAT32");
+        tt->struct_def.fields[5].enum_def.fields[2].val = ENCODING_FLOAT32;
+    tt->n_struct_vals = 12;
     tt->struct_vals = (tdrpVal_t *)
         tdrpMalloc(tt->n_struct_vals * sizeof(tdrpVal_t));
       tt->struct_vals[0].s = tdrpStrDup("DBZ");
       tt->struct_vals[1].s = tdrpStrDup("DBZ");
       tt->struct_vals[2].s = tdrpStrDup("dBZ");
-      tt->struct_vals[3].e = ENCODING_INT16;
-      tt->struct_vals[4].s = tdrpStrDup("VEL");
-      tt->struct_vals[5].s = tdrpStrDup("VEL");
-      tt->struct_vals[6].s = tdrpStrDup("m/s");
-      tt->struct_vals[7].e = ENCODING_INT16;
+      tt->struct_vals[3].d = -30;
+      tt->struct_vals[4].d = 80;
+      tt->struct_vals[5].e = ENCODING_INT16;
+      tt->struct_vals[6].s = tdrpStrDup("VEL");
+      tt->struct_vals[7].s = tdrpStrDup("VEL");
+      tt->struct_vals[8].s = tdrpStrDup("m/s");
+      tt->struct_vals[9].d = -25;
+      tt->struct_vals[10].d = 25;
+      tt->struct_vals[11].e = ENCODING_INT16;
     tt++;
     
     // Parameter 'Comment 6'

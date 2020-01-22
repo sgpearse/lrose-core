@@ -137,6 +137,8 @@ public:
     char* output_name;
     char* long_name;
     char* output_units;
+    double min_val;
+    double max_val;
     encoding_type_t output_encoding;
   } output_field_t;
 
@@ -464,12 +466,6 @@ public:
 
   double grid_false_easting;
 
-  tdrp_bool_t grid_set_offset_origin;
-
-  double grid_offset_origin_latitude;
-
-  double grid_offset_origin_longitude;
-
   vlevel_type_t vlevel_type;
 
   grid_z_geom_t grid_z_geom;
@@ -501,7 +497,7 @@ private:
 
   void _init();
 
-  mutable TDRPtable _table[37];
+  mutable TDRPtable _table[34];
 
   const char *_className;
 
