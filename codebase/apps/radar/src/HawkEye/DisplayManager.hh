@@ -121,6 +121,8 @@ public:
   
   virtual void enableZoomButton() const = 0;
 
+  virtual double getSelectedSweepAngle() {return 0.0;}
+  virtual size_t getSelectedFieldIndex() {return 0;}
 
 public slots:
 

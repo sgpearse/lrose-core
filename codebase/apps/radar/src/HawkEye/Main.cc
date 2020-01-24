@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   } catch (std::bad_alloc &a) {
     cerr << ">>>>> bad alloc: " << a.what() << endl;
   }
-
+  
 }
 
 // tidy up on exit

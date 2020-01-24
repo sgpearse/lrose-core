@@ -47,6 +47,7 @@
 #include <QRubberBand>
 #include <QPoint>
 #include <QTransform>
+#include <QMessageBox>
 
 #include <Radx/RadxPlatform.hh>
 #include <Radx/RadxVol.hh>
@@ -565,6 +566,9 @@ class DLL_EXPORT PolarWidget : public QWidget
   virtual void ExamineEdit(const RadxRay *closestRay);
   void notImplemented();
   virtual void informationMessage();
+  void errorMessage(string title, string message) {                                                    
+    QMessageBox::information(this, QString::fromStdString(title), QString::fromStdString(message));                 
+  }  
 
  public slots:
 

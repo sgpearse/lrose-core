@@ -101,7 +101,7 @@ public:
 
   int getGuiIndex() const { return _guiIndex; }
   int getFileIndex() const { return _sweeps[_guiIndex].indexInFile; }
-  int getSelectedAngle() const { return _selectedAngle; }
+  double getSelectedAngle() const { return _selectedAngle; }
   double getFixedAngleDeg(ssize_t sweepIndex = -1) const;
   bool getReversedInGui() const { return _reversedInGui; }
   

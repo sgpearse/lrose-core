@@ -142,7 +142,7 @@ class DLL_EXPORT PpiWidget : public PolarWidget
   const RadxTime &getPlotEndTime() { return _plotEndTime; }
 
   void ShowContextMenu(const QPoint &pos, RadxVol *vol);
-  void ExamineEdit(const RadxRay *closestRay);
+  void ExamineEdit(double azimuth, double elevation, size_t fieldIndex); // const RadxRay *closestRay);
   void EditRunScript();
 
   //////////////
@@ -191,6 +191,9 @@ class DLL_EXPORT PpiWidget : public PolarWidget
 
   // get ray closest to click point
   virtual const RadxRay *_getClosestRay(double x_km, double y_km);
+
+  // get azimuth closest to click point
+  virtual double _getClosestAz(double x_km, double y_km);
 
   /**
    * @brief Render the rings and grid. The current value of _ringsGridColor

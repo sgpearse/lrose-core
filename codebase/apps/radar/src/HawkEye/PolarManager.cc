@@ -1196,6 +1196,14 @@ int PolarManager::_getArchiveData()
 
 }
 
+double PolarManager::getSelectedSweepAngle() {
+  double angle = _sweepManager.getSelectedAngle();
+  return angle;
+}
+
+size_t PolarManager::getSelectedFieldIndex() {
+  return _displayFieldController->getSelectedFieldNum();
+}
 
 /////////////////////////////
 // apply new, edited  data in archive mode

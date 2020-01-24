@@ -89,6 +89,7 @@ PpiWidget::PpiWidget(QWidget* parent,
 PpiWidget::~PpiWidget()
 {
 
+  LOG(DEBUG) << "enter";
   // delete all of the dynamically created beams
   
   for (size_t i = 0; i < _ppiBeams.size(); ++i) {
@@ -96,7 +97,7 @@ PpiWidget::~PpiWidget()
   }
   LOG(DEBUG) << "_ppiBeams.clear()";
   _ppiBeams.clear();
-  
+  LOG(DEBUG) << "exit";
   //  delete _ppiBeamController;
 }
 
@@ -969,9 +970,14 @@ const RadxRay *PpiWidget::_getClosestRay(double x_km, double y_km)
 
   double minDiff = 1.0e99;
   const RadxRay *closestRay = NULL;
+  // _ppiBeams may be empty at this point, so get the closest ray from the 
+  // RadxVol itself.
+  // 
+  LOG(DEBUG) << "_ppiBeams.size() = " << _ppiBeams.size();
   for (size_t ii = 0; ii < _ppiBeams.size(); ii++) {
     const RadxRay *ray = _ppiBeams[ii]->getRay();
     double rayAz = ray->getAzimuthDeg();
+    // LOG(DEBUG) << "rayAz = " << rayAz;
     double diff = fabs(radarDisplayAz - rayAz);
     if (diff > 180.0) {
       diff = fabs(diff - 360.0);
@@ -989,6 +995,26 @@ const RadxRay *PpiWidget::_getClosestRay(double x_km, double y_km)
   return closestRay;
 
 }
+
+////////////////////////////////////////////////////////////////////////////
+// get azimuth closest to click point
+
+double PpiWidget::_getClosestAz(double x_km, double y_km)
+
+{
+
+  double clickAz = atan2(y_km, x_km) * RAD_TO_DEG;
+  double radarDisplayAz = 90.0 - clickAz;
+  if (radarDisplayAz < 0.0) radarDisplayAz += 360.0;
+  LOG(DEBUG) << "clickAz = " << clickAz << " from x_km, y_km = " 
+                          << x_km << "," << y_km; 
+  LOG(DEBUG) << "radarDisplayAz = " << radarDisplayAz << " from x_km, y_km = "
+             << x_km << y_km;
+
+  return radarDisplayAz;
+
+}
+
 
 /*************************************************************************
  * _setGridSpacing()
@@ -1724,38 +1750,47 @@ void PpiWidget::changeToDisplayField(string fieldName)  // , ColorMap newColorMa
 
 
  
-void PpiWidget::ExamineEdit(const RadxRay *closestRay) {
-  
+void PpiWidget::ExamineEdit(double azimuth, double elevation, size_t fieldIndex) {   
 
   // get an version of the ray that we can edit
   // we'll need the az, and sweep number to get a list from
   // the volume
 
+  LOG(DEBUG) << "azimuth=" << azimuth << ", elevation=" << elevation << ", fieldIndex=" << fieldIndex;
   vector<RadxRay *> rays = _vol->getRays();
   // find that ray
   bool foundIt = false;
+  double minDiff = 1.0e99;
+  double delta = 0.01;
   RadxRay *closestRayToEdit = NULL;
   vector<RadxRay *>::iterator r;
   r=rays.begin();
   int idx = 0;
   while(r<rays.end()) {
     RadxRay *rayr = *r;
-    if (closestRay->getAzimuthDeg() == rayr->getAzimuthDeg()) {
-      if (closestRay->getElevationDeg() == rayr->getElevationDeg()) {
+    double diff = fabs(azimuth - rayr->getAzimuthDeg());
+    if (diff > 180.0) {
+      diff = fabs(diff - 360.0);
+    }
+    if (diff < minDiff) {
+      if (abs(elevation - rayr->getElevationDeg()) <= delta) {
         foundIt = true;
         closestRayToEdit = *r;
-        LOG(DEBUG) << "Found closest ray: index = " << idx << " pointer = " << closestRayToEdit;
-        closestRay->print(cout); 
+        minDiff = diff;
       }
     }
     r += 1;
     idx += 1;
   }  
-  if (!foundIt || closestRayToEdit == NULL)
-    throw "couldn't find closest ray";
+  if (!foundIt || closestRayToEdit == NULL) {
+    //throw "couldn't find closest ray";
+    errorMessage("ExamineEdit Error", "couldn't find closest ray");
+    return;
+  }
 
-  
-  //RadxRay *closestRayCopy = new RadxRay(*closestRay);
+  LOG(DEBUG) << "Found closest ray: index = " << idx << " pointer = " << closestRayToEdit;
+  closestRayToEdit->print(cout); 
+
 
   // create the view
   SpreadSheetView *sheetView;
@@ -1795,15 +1830,26 @@ void PpiWidget::contextMenuEditor()
   double x_km = _worldPressX;
   double y_km = _worldPressY;
 
-  // get ray closest to click point
-  const RadxRay *closestRay = _getClosestRay(x_km, y_km);
+  // get azimuth closest to click point
+  double  closestAz = _getClosestAz(x_km, y_km);
   // TODO: make sure the point is in the valid area
-  if (closestRay == NULL) {
+  //if (closestRay == NULL) {
     // report error
-    QMessageBox::information(this, QString::fromStdString(""), QString::fromStdString("No ray found at location clicked"));
+  //  QMessageBox::information(this, QString::fromStdString(""), QString::fromStdString("No ray found at location clicked"));
     // TODO: move to this ...  errorMessage("", "No ray found at location clicked");
+  //} else {
+  try {
+  PolarManager *polarManager = PolarManager::Instance();
+  if (polarManager != NULL) {
+    double elevation = polarManager->getSelectedSweepAngle();
+    size_t fieldIdx = polarManager->getSelectedFieldIndex();
+    LOG(DEBUG) << "elevation=" << elevation << ", fieldIdx=" << fieldIdx;
+    ExamineEdit(closestAz, elevation, fieldIdx);
   } else {
-    ExamineEdit(closestRay);
+    LOG(DEBUG) << "polarManager is NULL";
+  }
+  } catch (const string& ex) {
+    errorMessage("ExamineEdit Error", ex);
   }
   LOG(DEBUG) << "exit";
 }

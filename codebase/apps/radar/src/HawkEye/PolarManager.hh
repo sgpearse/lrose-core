@@ -133,6 +133,10 @@ public:
 
   //  const RadxVol getDataVolume();
 
+  double getSelectedSweepAngle();
+  size_t getSelectedFieldIndex();
+
+
 public slots:
 
   //colorMapRedefineReceived(string, ColorMap)
