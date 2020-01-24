@@ -1212,7 +1212,7 @@ size_t PolarManager::getSelectedFieldIndex() {
 void PolarManager::_applyDataEdits()
 {
 
-  if (_params.debug) {
+  if (0) { // _params.debug) {
     std::ofstream outfile("/tmp/voldebug_PolarManager_applyDataEdits.txt");
     _vol.printWithFieldData(outfile);  
     outfile << "_vol = " << &_vol << endl;
@@ -2075,7 +2075,7 @@ void PolarManager::setVolume() { // const RadxVol &radarDataVolume) {
 
 }
 
-// TODO: make this a SLOT to a SIGNAL form  ScriptEditor 
+// TODO: make this a SLOT to a SIGNAL from  ScriptEditor 
 
 void PolarManager::updateVolume(QStringList newFieldNames) {
 

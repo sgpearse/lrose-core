@@ -679,13 +679,13 @@ vector<float> *SpreadSheetView::getDataForVariableFromSpreadSheet(int column, st
 
   vector<float> *data = new vector<float>;
 
-  int c = 0;
+  //int c = 0;
   // QTableWidgetItem *tableWidgetItem = table->horizontalHeaderItem(c);
   // TODO; verify fieldName and matches expected name
   LOG(DEBUG) << "getting data for column " << column << ", " << fieldName;;
   // go through the rows and put the data into a vector
   for (int r = 0; r < table->rowCount(); r++) {
-    QTableWidgetItem *tableWidgetItem = table->item(r, c);
+    QTableWidgetItem *tableWidgetItem = table->item(r, column);
     bool ok;
     float value = tableWidgetItem->text().toFloat(&ok);
     if (ok) {

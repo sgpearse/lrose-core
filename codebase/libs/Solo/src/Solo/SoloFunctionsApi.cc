@@ -138,7 +138,7 @@ void SoloFunctionsApi::ZeroInsideBoundary(const float *data, short *boundaryMask
 
   if (boundaryMask != NULL) {
     for (size_t i=0; i<nGates; i++) {                                                                  
-      if (boundaryMask[i])                                                                                      
+      if (!boundaryMask[i])                                                                                      
         newData[i] = data[i];                                                                                    
       else                                                                                                       
         newData[i] = 0.0;                                                                                        
