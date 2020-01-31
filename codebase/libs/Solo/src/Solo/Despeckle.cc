@@ -16,8 +16,7 @@ int SampleAddInt(int i1, int i2)
   //
   //  end points to first bad after length of good
   // 
-void zap_speckle(size_t end, size_t length, float *data, float bad) {
-  size_t start = end - length;
+void zap_speckle(size_t start, size_t end, float *data, float bad) {
   for (size_t i = start; i<end; i++) 
     data[i] = bad; 
 }
@@ -59,31 +58,17 @@ void se_despeckle(const float *data, float *newData, size_t nGates, float bad, i
   if (dgi_clip_gate > nGates) throw std::invalid_argument("dgi_clip_gate greater than number of gates");
   nc = dgi_clip_gate;
   bnd = boundary_mask;
-  //                                                                                                             
-  // find the field to be thresholded                                                                            
-  //
-  //if((fn = dd_find_field(dgi, dst_name)) < 0) {
-  // field not found                                                                                         
-  //
-  //  uii_printf("Field to be thresholded: %s not found\n", dst_name);
-  //  seds->punt = YES;
-  //  return(-1);
-  //}
-  //# ifdef NEW_ALLOC_SCHEME
-  //  ss = (short *)dds->qdat_ptrs[fn];
-  //# else
-  //  ss = (short *)((char *)dds->rdat[fn] + sizeof(struct paramdata_d));
-  //# endif
-  //bad = dds->parm[fn]->bad_data;
 
   // memcopy data into newData
-  //memcpy(newData, data, nGates*sizeof(float));
-  printf("\n");
+  memcpy(newData, data, nGates*sizeof(float));
+  /*
+  //printf("\n");
   for (size_t i = 0; i<nGates; i++) {
     newData[i] = data[i];
-    printf("%f,", newData[i]);
+    //printf("%f,", newData[i]);
   }
-  printf("\n");
+  //printf("\n");
+  */
 
   size_t zzIdx = nGates;
   if (dgi_clip_gate < nGates)
@@ -99,12 +84,23 @@ void se_despeckle(const float *data, float *newData, size_t nGates, float bad, i
   // reset the length if we are out of boundary, and
   // after zapping a speckle
   //
+  bool seen_bad = false;
+  
   while (ssIdx < zzIdx) {
     if (boundary_mask[ssIdx]) {
       if ((newData[ssIdx] - bad) < 0.00001) {
         if ((length > 0) && (length <= a_speckle)) {
+          size_t start = ssIdx - length;
           size_t end = ssIdx;
-          zap_speckle(end, length, newData, bad);
+          if (start == 0) { // is a speckle; otherwise, skip it
+	    zap_speckle(start, end, newData, bad);
+	  } else {  // do some further investigation;
+	    // if this is a boundary
+            if (boundary_mask[start-1]) { // it's a speckle
+	      zap_speckle(start, end, newData, bad);
+	    } // else,  we cannot be sure what is on the other
+	      // side of the boundary, so skip it
+	  }
         }
         length = 0;
       } else { // good data
@@ -114,13 +110,14 @@ void se_despeckle(const float *data, float *newData, size_t nGates, float bad, i
       length = 0;
     }
     ssIdx += 1;
-    printf("ssIdx=%d length=%d\n", ssIdx, length);
+    // printf("ssIdx=%d length=%d\n", ssIdx, length);
   }
   // consider any ending length
   bool at_end_of_ray = ssIdx >= nGates;
   if ((length > 0) && (length <= a_speckle) && at_end_of_ray) {
+    size_t start = ssIdx - length;
     size_t end = ssIdx;
-    zap_speckle(end, length, newData, bad);
+    zap_speckle(start, end, newData, bad);
   }
   
   /*
