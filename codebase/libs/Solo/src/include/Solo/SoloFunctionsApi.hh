@@ -72,7 +72,7 @@ public:
 					   int radar_type,
 					   float tilt_angle,
 		       float rotation_angle,
-		       short *boundary_mask); 
+		       bool *boundary_mask); 
 
 
   // TODO: use Radx::SI16, etc? to standardize the numberic sizes?  Ask Mike about this.
@@ -88,7 +88,7 @@ public:
 			    float ew_gndspd_corr, float tilt, float elevation,
 			    short *data, short bad, float parameter_scale, 
 			    float parameter_bias, int dgi_clip_gate,
-			    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity, short *boundary_mask); 
+			    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity, bool *boundary_mask); 
   /*   //SoloFunctionsApi soloFunctionsApi;                                                       
   int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
 				   ew_gndspd_corr, tilt, elevation,
@@ -96,7 +96,7 @@ public:
 				   dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundary);
   */
 
-void ZeroInsideBoundary(const float *data, short *boundaryMask,
+void ZeroInsideBoundary(const float *data, bool *boundaryMask,
 			float *newData, size_t nGates);
 
 

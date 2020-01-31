@@ -136,7 +136,7 @@ void get_boundary_mask(
         int radar_type,
         float tilt_angle, 
         float rotation_angle,
-	short *boundary_mask);
+	bool *boundary_mask);
 
 
 

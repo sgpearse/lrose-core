@@ -1738,18 +1738,18 @@ void BoundaryPointMap::get_boundary_mask(
         int radar_type,
         float tilt_angle, 
         float rotation_angle,
-	short *boundary_mask) {
+	bool *boundary_mask) {
 
   OneBoundary *ob;
   //rota = d = dd_rotation_angle(dgi);
-  short bflag;
+  bool bflag;
 
   //  short *bnd = new short[nGates];
-  short *bnd = boundary_mask;
+  bool *bnd = boundary_mask;
 
   int nn = nGates;
-    bflag = 1;
-    memset(bnd, 0, nn * sizeof(short));
+  bflag = true;
+  memset(bnd, 0, nn * sizeof(bool));
   // for each boundary, add to the mask; the mask is the intersection
   // of all boundaries?
   //

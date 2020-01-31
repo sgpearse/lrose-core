@@ -84,7 +84,6 @@ void se_despeckle(const float *data, float *newData, size_t nGates, float bad, i
   // reset the length if we are out of boundary, and
   // after zapping a speckle
   //
-  bool seen_bad = false;
   
   while (ssIdx < zzIdx) {
     if (boundary_mask[ssIdx]) {

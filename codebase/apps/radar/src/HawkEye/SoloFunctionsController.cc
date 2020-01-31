@@ -148,7 +148,10 @@ QString SoloFunctionsController::DESPECKLE(QString field, size_t speckle_length,
 
   string tempFieldName = soloFunctionsModel.Despeckle(field.toStdString(), _data,
 						     _currentRayIdx, _currentSweepIdx,
-						     field.toStdString()); // "VEL_xyz");
+						      speckle_length,
+						      clip_gate,
+						      bad_data,
+						     field.toStdString());
 
   // TODO: returns name of new field in RadxVol
 

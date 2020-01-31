@@ -29,28 +29,84 @@ void SoloFunctionsModel::SetBoundaryMask(RadxVol *vol,
 
   _boundaryMaskSet = true;
 
-  if (_boundaryMask != NULL) {
-    delete[] _boundaryMask;
+  CheckForDefaultMask(vol, rayIdx, sweepIdx);
+  //  SetBoundaryMaskOriginal(vol, rayIdx, sweepIdx);
+}
+
+
+void SoloFunctionsModel::CheckForDefaultMask(RadxVol *vol, int rayIdx, int sweepIdx) {
+
+  
+  LOG(DEBUG) << "enter";
+  LOG(DEBUG) << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+ 
+  short *boundary;
+
+  // TODO: make this a call to BoundaryPointModel?
+  BoundaryPointEditor *bpe = BoundaryPointEditor::Instance();
+  vector<Point> boundaryPoints = bpe->getWorldPoints();
+  // vector<Point> myPoints = BoundaryPointEditor::Instance()->getBoundaryPoints("/media/sf_lrose/ncswp_SPOL_RHI_.nc", 0, 4, "Boundary1");  TODO
+  
+  //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
+  int nBoundaryPoints = boundaryPoints.size();
+  LOG(DEBUG) << "nBoundaryPoints = " << nBoundaryPoints;
+
+  // need nGates & do NOT delete unless the number of gates changes
+
+  // can we reuse the boundary mask?  If it is all true, we can reuse it
+  // The boundary mask will be all true if the nBoundaryPoints < 3
+  // if we have less than three points, then it is NOT a boundary
+  if (nBoundaryPoints < 3) { 
+    // set default (all true) boundary mask; 
+    SetDefaultMask(vol, rayIdx, sweepIdx);
+  } else {
+    DetermineBoundaryMask(vol, rayIdx, sweepIdx);
+  } 
+
+}
+
+void SoloFunctionsModel::SetDefaultMask(RadxVol *vol, int rayIdx, int sweepIdx) {
+  vol->loadRaysFromFields();
+
+  const RadxField *field;
+
+  //  get the ray for this field 
+  // for the boundary mask, all we care about is the geometry of the ray,
+  // NOT the data values for each field.
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  //field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+  LOG(DEBUG) << "there are nGates " << nGates;
+
+  if (nGates != _boundaryMaskLength) {
+    // clear old mask
+    if (_boundaryMask != NULL) {
+      delete[] _boundaryMask;
+    }
+
+    // allocate new mask
+    _boundaryMaskLength = nGates;
+    _boundaryMask = new bool[_boundaryMaskLength];
   }
 
+  for (size_t i=0; i<nGates; i++) {
+    _boundaryMask[i] = true;
+  } 
+}
+
+
+void SoloFunctionsModel::DetermineBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx) {
   SetBoundaryMaskOriginal(vol, rayIdx, sweepIdx);
-
-  /* fixed boundary ... 
-  size_t nGates = 2000;
-  _boundaryMaskLength = nGates;
-  _boundaryMask = new short[nGates];
-    for (size_t i = 0; i<nGates; i++)
-      _boundaryMask[i] = 0;
-    for (size_t i = 500; i<nGates; i++)
-      _boundaryMask[i] = 1;
-  end fixed boundary ... */
-
-  /*
-  _boundaryMaskLength = 2000;
-  _boundaryMask = new short[_boundaryMaskLength];
-  for (int i=0; i<_boundaryMaskLength; i++)
-    _boundaryMask[i] = 3;
-  */
 }
 
 
@@ -68,50 +124,23 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   BoundaryPointEditor *bpe = BoundaryPointEditor::Instance();
   vector<Point> boundaryPoints = bpe->getWorldPoints();
   // vector<Point> myPoints = BoundaryPointEditor::Instance()->getBoundaryPoints("/media/sf_lrose/ncswp_SPOL_RHI_.nc", 0, 4, "Boundary1");  TODO
-
-  if (0) { 
-  // Test data ...  works
-  Point p1, p2, p3, p4;
-  p1.x =  1000; p1.y = 1000;
-  p2.x = -1000; p2.y = 1000;
-  p3.x = -1000; p3.y =-1000;
-  p4.x =  1000; p4.y =-1000;
-  
-
-  /* begin 
-  // Test data ...
-  Point p1, p2, p3, p4;
-  // case 1: this is a square in the center of the display
-  int baseValue = 100000;
-  p1.x =  baseValue; p1.y = baseValue;
-  p2.x = -baseValue; p2.y = baseValue;
-  p3.x = -baseValue; p3.y =-baseValue;
-  p4.x =  baseValue; p4.y =-baseValue;
-  end case 1 */
-  /* begin 
-  // case 2:
-  p1.x = -50; p1.y =  50;
-  p2.x =  50; p2.y =  50;
-  p3.x =  50; p3.y = -50;
-  p4.x = -50; p4.y = -50;
-  end case 2 */
-
-
-  vector<Point> boundaryPoints;
-  boundaryPoints.push_back(p1);
-  boundaryPoints.push_back(p2);
-  boundaryPoints.push_back(p3);
-  boundaryPoints.push_back(p4);
-  } // end Test data
   
   //map boundaryPoints to a list of short/boolean the same size as the ray->datafield->ngates
   int nBoundaryPoints = boundaryPoints.size();
   LOG(DEBUG) << "nBoundaryPoints = " << nBoundaryPoints;
 
-  // if we have less than three points, then it is NOT a boundary
-  if (nBoundaryPoints < 3) 
-    return;
+  //---------  HERE -------
+  // need nGates & do NOT delete unless the number of gates changes
+
+  // can we reuse the boundary mask?  
+
+  if (_boundaryMask != NULL) {
+    delete[] _boundaryMask;
+  }
  
+  //--------- END HERE ----------
+
+
   long *xpoints = new long[nBoundaryPoints];
   long *ypoints = new long[nBoundaryPoints];
 
@@ -194,11 +223,10 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
   float tilt_angle = 0.0; // TODO: It should be this ... ray->getElevationDeg();
   float rotation_angle = 0.0; 
 
-  _boundaryMask = new short[_boundaryMaskLength];
- 
-  if (_boundaryMaskLength != 1832)
-    LOG(DEBUG) << "HERE";
 
+  // TODO: need to fix this!  sending bool*, expecting short*
+  _boundaryMask = new bool[_boundaryMaskLength];
+ 
   soloFunctionsApi.GetBoundaryMask(xpoints, ypoints, nBoundaryPoints,
                          radar_origin_latitude,
                          radar_origin_longitude,
@@ -207,54 +235,16 @@ void SoloFunctionsModel::SetBoundaryMaskOriginal(RadxVol *vol,
                          boundary_origin_latitude,
                          boundary_origin_longitude,
                          boundary_origin_altitude,
-                                           nGates,
-                                           gateSize,
-                                           distanceToCellNInMeters,
-                                           azimuth,
-                                           radar_scan_mode,
-                                           radar_type,
-                                           tilt_angle,
-						  rotation_angle,
-_boundaryMask);
+				   nGates,
+				   gateSize,
+				   distanceToCellNInMeters,
+				   azimuth,
+				   radar_scan_mode,
+				   radar_type,
+				   tilt_angle,
+				   rotation_angle,
+				   _boundaryMask);
  
-
-  /*
-  short *GetBoundaryMask(short *xpoints, short *ypoints, int npoints,
-                         //float radar_origin_x,                                                                                     
-                         //  float radar_origin_y,                                                                                   
-                         //  float radar_origin_z,                                                                                   
-                         float radar_origin_latitude,
-                         float radar_origin_longitude,
-                         float radar_origin_altitude,
-                         float boundary_origin_tilt,
-                         // float boundary_origin_x,                                                                                 
-                         // float boundary_origin_y,                                                                                 
-                         // float boundary_origin_z,                                                                                 
-                         float boundary_origin_latitude,
-                         float boundary_origin_longitude,
-                         float boundary_origin_altitude,
-                                           int nGates,
-                                           float gateSize,
-                                           float distanceToCellNInMeters,
-                                           float azimuth,
-                                           int radar_scan_mode,
-                                           int radar_type,
-                                           float tilt_angle,
-                                           float rotation_angle);
-
-  short *boundaryMask = soloFunctionsApi.GetBoundaryMask(boundaryList, // is this boundary_name?
-						     &radar_origin,
-						     &boundary_origin,
-				nGates, // for this ray
-				gateSize, // for this ray
-				distanceToCellNInMeters, // for this ray
-				azimuth, // ray azimuth
-						     radar_scan_mode,
-						     radar_type,
-						     tilt_angle,
-						     rotation_angle);
-  */
-  // _boundaryMask = boundaryMask;
   printBoundaryMask();
 
   delete[] xpoints;
@@ -489,8 +479,12 @@ string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
 
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
-					   int rayIdx, int sweepIdx,
+				     int rayIdx, int sweepIdx,
+				     size_t speckle_length,
+				     size_t clip_gate,
+				     float bad_data_value,
 				     string newFieldName) {
+
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
 
@@ -515,50 +509,32 @@ string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
 
   float *newData = new float[nGates];
 
-  // =======
   // data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-  //  if (!_boundaryMaskSet) 
-  //  _boundaryMask = NULL;
 
-  // =======
-
-  if (_boundaryMaskSet) {
-
+  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
     // verify dimensions on data in/out and boundary mask
     if (nGates > _boundaryMaskLength)
       throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
 
-    cerr << "there are nGates " << nGates;
-    const float *data = field->getDataFl32();
-  
-    // TODO:  get rid of this when working
-    size_t speckle_length = 3;
-    size_t clip_gate = nGates;
-    float bad_data_value = -3.0;
-    bool temp_bnd_mask[3000];
-    for (int i=0; i<nGates; i++) {
-      if (_boundaryMask[i]) temp_bnd_mask[i] = true;
-      else temp_bnd_mask[i] = false;
-    }
-
-    // perform the function ...
-    soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
-			       clip_gate, temp_bnd_mask); // _boundaryMask);
-  } else {  // no _boundaryMaskSet
-    cerr << "there are nGates " << nGates;
-    const float *data = field->getDataFl32();
-
-    // TODO: get a default boundary mask of all true
-    soloFunctionsApi.ZeroInsideBoundary(data, NULL, newData, nGates);
-
-    /*
-    for (int i=0; i<nGates; i++) {
-	newData[i] = 0.0;
-    }
-    */
   }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  /* TODO:  get rid of this when working
+  size_t speckle_length = 3;
+  size_t clip_gate = nGates;
+  float bad_data_value = -3.0;
+  */
+
+  // perform the function ...
+  soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
+			     clip_gate, _boundaryMask);
+
+  // TODO: remove this; let boundary mask manage it
+  //delete temp_bnd_mask,
 
   // insert new field into RadxVol                                                                             
   cerr << "result = ";

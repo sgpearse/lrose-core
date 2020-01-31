@@ -41,7 +41,7 @@ void SoloFunctionsApi::GetBoundaryMask(long *xpoints, long *ypoints, int npoints
                                            int radar_type,
                                            float tilt_angle,
 				       float rotation_angle,
-				       short *boundary_mask_out) {
+				       bool *boundary_mask_out) {
 
   /*
   //This test boundary works
@@ -136,11 +136,11 @@ void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_veloci
 					    short *data, short bad, float parameter_scale,
 					    float parameter_bias, int dgi_clip_gate,
 					    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity,
-					    short *boundary_mask) {
+					    bool *boundary_mask) {
 
 }
 
-void SoloFunctionsApi::ZeroInsideBoundary(const float *data, short *boundaryMask,
+void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
 					  float *newData, size_t nGates) {
 
 
