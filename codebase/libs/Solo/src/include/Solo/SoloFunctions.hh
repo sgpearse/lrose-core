@@ -22,8 +22,8 @@
 // ** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.    
 // *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=* 
 
-#ifndef SOLOFUNCTIONSAPI_H
-#define SOLOFUNCTIONSAPI_H
+#ifndef SOLOFUNCTIONS_H
+#define SOLOFUNCTIONS_H
 
 #include <stdio.h>
 

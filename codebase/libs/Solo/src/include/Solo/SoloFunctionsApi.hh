@@ -80,6 +80,9 @@ public:
   // name of the boundary mask, 1st.  Then, translate the name to the list of
   // boolean mask; The API performs the translation.
 
+  void Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
+				   int dgi_clip_gate, bool *boundary_mask);
+
   // data is in/out parameter
   void RemoveAircraftMotion(float vert_velocity, float ew_velocity, float ns_velocity,
 			    float ew_gndspd_corr, float tilt, float elevation,

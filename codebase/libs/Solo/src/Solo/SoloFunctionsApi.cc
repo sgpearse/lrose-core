@@ -2,6 +2,7 @@
 #include <Solo/OneBoundary.hh>
 #include <Solo/BoundaryPointMap.hh>
 #include <Solo/PointInSpace.hh>
+#include <Solo/SoloFunctions.hh>
 
 
 //void SoloFunctionsApi::CreateBoundary() {
@@ -120,7 +121,14 @@ void SoloFunctionsApi::GetBoundaryMask(long *xpoints, long *ypoints, int npoints
   //return boundary_mask;
 } 
 
-
+void SoloFunctionsApi::Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
+				 int dgi_clip_gate, bool *boundary_mask) {
+  try {
+    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
 
   // data is in/out parameter
 void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_velocity, float ns_velocity,

@@ -33,6 +33,10 @@ public:
 			 int rayIdx, int sweepIdx,
 			 string newFieldName);
 
+  string Despeckle(string fieldName,  RadxVol *vol,
+		 int rayIdx, int sweepIdx,
+		 string newFieldName);
+
   void SetBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx);
   void SetBoundaryMaskOriginal(RadxVol *vol, int rayIdx, int sweepIdx);
  

@@ -487,6 +487,99 @@ string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
 }
 
 
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
+					   int rayIdx, int sweepIdx,
+				     string newFieldName) {
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  float *newData = new float[nGates];
+
+  // =======
+  // data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  //  if (!_boundaryMaskSet) 
+  //  _boundaryMask = NULL;
+
+  // =======
+
+  if (_boundaryMaskSet) {
+
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+    cerr << "there are nGates " << nGates;
+    const float *data = field->getDataFl32();
+  
+    // TODO:  get rid of this when working
+    size_t speckle_length = 3;
+    size_t clip_gate = nGates;
+    float bad_data_value = -3.0;
+    bool temp_bnd_mask[3000];
+    for (int i=0; i<nGates; i++) {
+      if (_boundaryMask[i]) temp_bnd_mask[i] = true;
+      else temp_bnd_mask[i] = false;
+    }
+
+    // perform the function ...
+    soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
+			       clip_gate, temp_bnd_mask); // _boundaryMask);
+  } else {  // no _boundaryMaskSet
+    cerr << "there are nGates " << nGates;
+    const float *data = field->getDataFl32();
+
+    // TODO: get a default boundary mask of all true
+    soloFunctionsApi.ZeroInsideBoundary(data, NULL, newData, nGates);
+
+    /*
+    for (int i=0; i<nGates; i++) {
+	newData[i] = 0.0;
+    }
+    */
+  }
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+
+  return tempFieldName;
+}
+
+
 // TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data
 vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
 							int rayIdx, int sweepIdx) { 

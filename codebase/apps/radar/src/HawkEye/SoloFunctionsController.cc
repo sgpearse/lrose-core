@@ -140,6 +140,22 @@ QString SoloFunctionsController::ZERO_INSIDE_BOUNDARY(QString field) {
 }
 
 
+// return the name of the field in which the result is stored in the RadxVol
+QString SoloFunctionsController::DESPECKLE(QString field, size_t speckle_length, float bad_data,
+					   size_t clip_gate) { 
+
+  //SoloFunctionsModel soloFunctionsModel;
+
+  string tempFieldName = soloFunctionsModel.Despeckle(field.toStdString(), _data,
+						     _currentRayIdx, _currentSweepIdx,
+						     field.toStdString()); // "VEL_xyz");
+
+  // TODO: returns name of new field in RadxVol
+
+  return QString::fromStdString(tempFieldName); // QString("zero middle result");
+}
+
+
 void SoloFunctionsController::applyBoundary() {
   
   //SoloFunctionsModel soloFunctionsModel;

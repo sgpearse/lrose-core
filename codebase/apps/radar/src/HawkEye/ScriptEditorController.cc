@@ -185,6 +185,7 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("ZERO_MIDDLE_THIRD", myExt.property("ZERO_MIDDLE_THIRD"));
   engine.globalObject().setProperty("ZERO_INSIDE_BOUNDARY", myExt.property("ZERO_INSIDE_BOUNDARY"));
   engine.globalObject().setProperty("add", myExt.property("add"));
+  engine.globalObject().setProperty("DESPECKLE", myExt.property("DESPECKLE"));
 
   // print the context ...
   // printQJSEngineContext();
