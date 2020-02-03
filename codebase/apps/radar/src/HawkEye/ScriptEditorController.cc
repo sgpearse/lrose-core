@@ -13,7 +13,7 @@
 #include "ScriptEditorController.hh"
 #include "ScriptEditorModel.hh"
 #include "SoloFunctionsController.hh"
- #include <toolsa/LogStream.hh>
+#include <toolsa/LogStream.hh>
 
 ScriptEditorController::ScriptEditorController(ScriptEditorView *view)
 {
@@ -196,7 +196,6 @@ void ScriptEditorController::printQJSEngineContext() {
                                                                                                            
   LOG(DEBUG) << "current QJSEngine context ...";
 
-  // LOG(DEBUG) << "pepsi cola";                                                                         
   std::map<QString, QString> currentVariableContext;
   QJSValue theGlobalObject = engine.globalObject();
 
@@ -480,9 +479,16 @@ uncate(100);
 	    // so we can do an assignment now.
             string tempName = theValue.toStdString();
 	    string userDefinedName = it2.name().toStdString();
-            _assign(tempName, userDefinedName);
-	    //add Variable list ToScriptEditor(it2.name(), it2.value());
-	    newFieldNames << it2.name();
+	    // only assign the ray data if this is a Solo Function, f(x)
+            size_t length = tempName.length();
+            if (length > 0) {
+            if (tempName[length-1] == '#') {
+              tempName.resize(length-1);
+	      _assign(tempName, userDefinedName);
+	      // add Variable list ToScriptEditor(it2.name(), it2.value());
+	      newFieldNames << it2.name();
+	    }
+	    }
 	  }
         }
 
