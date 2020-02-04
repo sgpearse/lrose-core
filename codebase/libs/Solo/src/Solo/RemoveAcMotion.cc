@@ -30,10 +30,11 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
      */
     //struct ui_command *cmdq=cmds+1; /* point to the first argument */
     // int ii, nc, nn, mark, pn, sn;
-  size_t nc, ssIdx;
+    size_t nc, ssIdx;
     int scaled_nyqv, scaled_nyqi, scaled_ac_vel, adjust;
     // char *name;
-    short *ss, *zz, vx; // bnd is a boundary mask
+    // short *ss, *zz, vx; // bnd is a boundary mask
+    float vx; 
     float nyqv, nyqi, ac_vel;
     // double d;
     //struct dd_general_info *dgi, *dd_window_dgi();
@@ -93,8 +94,12 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
     //    nyqv = dds_radd_eff_unamb_vel;
     //# else
     // TODO: ?? if Nyquist velocity set in editor use it? else use unambiguous velocity from the data file?
-    nyqv = seds_nyquist_velocity ? seds_nyquist_velocity
-          : dds_radd_eff_unamb_vel;
+    if (seds_nyquist_velocity != 0.0)
+      nyqv = seds_nyquist_velocity;
+    else 
+      nyqv = dds_radd_eff_unamb_vel;
+    // nyqv = seds_nyquist_velocity ? seds_nyquist_velocity
+    //      : dds_radd_eff_unamb_vel;
     //# endif
     // NOTE: DD_SCALE adds 0.5 and converts to an integer 
     //scaled_nyqv = DD_SCALE(nyqv, scale, bias);
@@ -126,13 +131,13 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
       if (bnd[ssIdx] && !bad) {
         vx = data[ssIdx] + adjust;
         if(abs(vx) > scaled_nyqv) {
-	    printf("vx = %d, greater than nyquist, %d,  adjusting to ", vx, nyqi);
+	    printf("vx = %f, greater than nyquist, %f,  adjusting to ", vx, nyqi);
             if (vx > 0) {
               vx = vx - scaled_nyqi;
 	    } else {
               vx = vx + scaled_nyqi;
             }
-	    printf("%d\n", vx);
+	    printf("%f\n", vx);
         }
         newData[ssIdx] = vx;
       }
