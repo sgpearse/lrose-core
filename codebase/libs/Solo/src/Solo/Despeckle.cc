@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
@@ -86,7 +87,8 @@ void se_despeckle(const float *data, float *newData, size_t nGates, float bad, i
   
   while (ssIdx < zzIdx) {
     if (boundary_mask[ssIdx]) {
-      if ((newData[ssIdx] - bad) < 0.00001) {
+      bool bad_data = abs(newData[ssIdx] - bad) < 0.00001; 
+      if (bad_data) {
         if ((length > 0) && (length <= a_speckle)) {
           size_t start = ssIdx - length;
           size_t end = ssIdx;

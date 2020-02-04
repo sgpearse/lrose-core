@@ -122,14 +122,16 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
     }
 
     printf("adjust = %d\n", adjust);
-
+    
     // TODO: make delta a variable or parameter and make it consistent
     //       maybe make it a function, then we can easily make it consistent.
+    ssIdx = 0;
     while (ssIdx < zzIdx) {
       // if in boundary and not bad
-      bool bad = (data[ssIdx] - bad) < 0.0001;
-      if (bnd[ssIdx] && !bad) {
+      bool bad_data = abs((data[ssIdx] - bad)) < 0.0001;
+      if (bnd[ssIdx] && !bad_data) {
         vx = data[ssIdx] + adjust;
+        printf("abs(%f) = %f\n", vx, abs(vx));
         if(abs(vx) > scaled_nyqv) {
 	    printf("vx = %f, greater than nyquist, %f,  adjusting to ", vx, nyqi);
             if (vx > 0) {
