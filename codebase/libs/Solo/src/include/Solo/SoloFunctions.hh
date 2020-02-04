@@ -30,4 +30,12 @@
 void se_despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
                   int dgi_clip_gate, bool *boundary_mask);
 
+
+void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_velocity,
+                         float ew_gndspd_corr, float tilt, float elevation,
+                         const float *data, float *newData, size_t nGates,
+                         float bad, size_t dgi_clip_gate,
+                         float dds_radd_eff_unamb_vel,
+                         float seds_nyquist_velocity, bool *bnd);
+
 #endif

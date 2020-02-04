@@ -28,9 +28,8 @@ void zap_speckle(size_t start, size_t end, float *data, float bad) {
 // clip_gate determines the end of the ray
 // a_speckle determines the number of contiguous good data considered a speckle
 void se_despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
-		  int dgi_clip_gate, bool *boundary_mask) 
+		  size_t dgi_clip_gate, bool *boundary_mask) 
 {
-  int below;
   //  struct ui_command *cmdq=cmds+1; // point to the first argument 
   //  struct solo_edit_stuff *seds, *return_sed_stuff();
   //  struct dd_general_info *dgi, *dd_window_dgi();

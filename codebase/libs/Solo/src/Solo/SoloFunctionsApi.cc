@@ -133,10 +133,27 @@ void SoloFunctionsApi::Despeckle(const float *data, float *newData, size_t nGate
   // data is in/out parameter
 void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_velocity, float ns_velocity,
 					    float ew_gndspd_corr, float tilt, float elevation,
-					    short *data, short bad, float parameter_scale,
-					    float parameter_bias, int dgi_clip_gate,
-					    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity,
+					    const float *data, float *newData, size_t nGates,
+					    float bad, size_t dgi_clip_gate,
+					    float dds_radd_eff_unamb_vel, float seds_nyquist_velocity,
 					    bool *boundary_mask) {
+
+  // TODO: remove parameter_scale and parameter_bias?
+
+  try {
+
+    /// All data are coming in scaled and biased                                              
+    se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
+			     ew_gndspd_corr, tilt, elevation,
+			     data, newData, nGates,
+			     bad, dgi_clip_gate,
+			     dds_radd_eff_unamb_vel,
+			     seds_nyquist_velocity, boundary_mask);
+
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
 
 }
 

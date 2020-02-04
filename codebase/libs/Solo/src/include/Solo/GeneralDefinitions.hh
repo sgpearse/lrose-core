@@ -17,6 +17,7 @@
 # define PIOVR2 1.570796327
 # define TWOPI 6.283185307
 # define DD_SCALE(x,scale,offset) ((x)*(scale)+(offset)+.5)
+# define DD_SCALE_TO_INT(x) ((x)+.5)
 
 // use DoradeData.hh radar_type_t or lidar_type_t
 /* Dorade radar types */

@@ -1,3 +1,7 @@
+#include <cstdlib>
+#include <stdexcept>
+#include <cmath>
+#include <string>
 
 // #include "GeneralDefinitions.hh"
 
@@ -14,6 +18,7 @@ double dd_ac_vel(float vert_velocity, float ew_velocity, float ns_velocity, floa
 {
     double vert, d, ac_vel;
 
+    // TODO: handle bad data in the calling function?
     vert =  vert_velocity != -999 ? vert_velocity : 0;
     d = sqrt((double)(SQ(ew_velocity) + SQ(ns_velocity)));
     d += ew_gndspd_corr; // klooge to correct ground speed

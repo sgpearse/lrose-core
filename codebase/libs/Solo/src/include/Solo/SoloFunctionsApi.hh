@@ -83,21 +83,15 @@ public:
   void Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
 				   int dgi_clip_gate, bool *boundary_mask);
 
-  // data is in/out parameter
   void RemoveAircraftMotion(float vert_velocity, float ew_velocity, float ns_velocity,
 			    float ew_gndspd_corr, float tilt, float elevation,
-			    short *data, short bad, float parameter_scale, 
-			    float parameter_bias, int dgi_clip_gate,
-			    short dds_radd_eff_unamb_vel, int seds_nyquist_velocity, bool *boundary_mask); 
-  /*   //SoloFunctionsApi soloFunctionsApi;                                                       
-  int result = se_remove_ac_motion(vert_velocity, ew_velocity, ns_velocity,
-				   ew_gndspd_corr, tilt, elevation,
-				   field->getDataSi16(), bad, parameter_scale, parameter_bias, dgi_clip_gate,
-				   dds_radd_eff_unamb_vel, seds_nyquist_velocity, boundary);
-  */
+			    const float *data, float *newData, size_t nGates,
+			    float bad, size_t dgi_clip_gate,
+			    float dds_radd_eff_unamb_vel, float seds_nyquist_velocity,
+			    bool *boundary_mask);
 
-void ZeroInsideBoundary(const float *data, bool *boundaryMask,
-			float *newData, size_t nGates);
+  void ZeroInsideBoundary(const float *data, bool *boundaryMask,
+			  float *newData, size_t nGates);
 
 
 private:
