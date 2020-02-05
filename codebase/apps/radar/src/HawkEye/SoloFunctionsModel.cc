@@ -260,7 +260,6 @@ string SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
 					   string newFieldName) {
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
-  cerr << "inside SoloFunctionsModel::RemoveAircraftMotion" << endl;
 
   // gather data from context -- most of the data are in a DoradeRadxFile object
 
@@ -656,9 +655,9 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
   LOG(DEBUG) <<   "ew_gndspd_corr " << ew_gndspd_corr;
   LOG(DEBUG) <<   "tilt " << tilt;
   LOG(DEBUG) <<   "elevation " << elevation;
-  LOG(DEBUG) <<   "bad " << bad;
+  //LOG(DEBUG) <<   "bad " << bad;
   //  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
-  LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
+  // LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
   LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
   LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
 
@@ -668,10 +667,6 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
-
-  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
-  SoloFunctionsApi soloFunctionsApi;
-
 
   if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
     // verify dimensions on data in/out and boundary mask
@@ -683,9 +678,9 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
   
-
   //==========
 
+  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
   /*						     
@@ -703,7 +698,7 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
   soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
 					ew_gndspd_corr, tilt, elevation,
 					data, newData, nGates,
-					bad, dgi_clip_gate,
+					bad_data_value, clip_gate,
 					dds_radd_eff_unamb_vel, seds_nyquist_velocity,
 					_boundaryMask);
   

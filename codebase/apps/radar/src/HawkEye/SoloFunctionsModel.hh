@@ -24,6 +24,13 @@ public:
   vector<double> RemoveAircraftMotion(string fieldName, RadxVol *vol,
 				      int rayIdx, int sweepIdx);
 
+  string RemoveAircraftMotion(string fieldName, RadxVol *vol,
+			      int rayIdx, int sweepIdx,
+			      float nyquist_velocity,
+			      size_t clip_gate,
+			      float bad_data_value,
+			      string newFieldName);
+
 
   string ZeroMiddleThird(string fieldName,  RadxVol *vol,
 			 int rayIdx, int sweepIdx,

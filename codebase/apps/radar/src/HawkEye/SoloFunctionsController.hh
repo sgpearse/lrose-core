@@ -28,12 +28,13 @@ public:
 
   Q_INVOKABLE QString cat(QString animal) {return animal+"_cat"; }
   //  Q_INVOKABLE QString ZERO(QString field); // return the name of the new field that contains the result
-  Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field); // return the name of the new field that contains the result
+  //  Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field); // return the name of the new field that contains the result
 
   Q_INVOKABLE QString ZERO_MIDDLE_THIRD(QString field); // return the name of the new field that contains the result
   Q_INVOKABLE QString ZERO_INSIDE_BOUNDARY(QString field); // return the name of the new field that contains the result
 
   Q_INVOKABLE QString DESPECKLE(QString field, size_t speckle_length, float bad_data, size_t clip_gate); // return the name of the new field that contains the result
+  Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field, float nyquist, float bad_data, size_t clip_gate); // return the name of the new field that contains the result
 
   //  Q_INVOKABLE QString  REMOVE_AIRCRAFT_MOTION(QString field); //  { return field+"_trump"; }
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }

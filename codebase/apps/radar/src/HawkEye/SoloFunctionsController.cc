@@ -65,8 +65,24 @@ QVector<double> add(QVector<double> v, QVector<double> v2) {
 */
 
 
-// TODO:  parameters should be DataField ??
+QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field, float nyquist, float bad_data,
+					   size_t clip_gate) { 
+
+  string tempFieldName = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data,
+						     _currentRayIdx, _currentSweepIdx,
+						      nyquist,
+						      clip_gate,
+						      bad_data,
+						     field.toStdString());
+
+  // returns name of new field in RadxVol
+  return QString::fromStdString(tempFieldName);
+}
+
+/*
+// How to return a vector
 QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) { 
+
 
   //SoloFunctionsModel soloFunctionsModel;
 
@@ -74,17 +90,10 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
   // then the QString contains all the values as a comma separated list in a string
   // parse the field data into a vector 
   //vector<string> x = split(field.toStdString(), ',');
-  /*vector<double> x = splitDouble(field.toStdString(), ',');
-
-  cerr << "list of field values: " << endl;
-  for (vector<double>::iterator it = x.begin(); it != x.end(); ++it) 
-    cerr << ' ' << *it;
-  cerr << endl;
-  */
 
   //  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data);
-  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data,
-								  _currentRayIdx, _currentSweepIdx);
+    vector<double> result = soloFunctionsModel.RemoveAircraftMotion(field.toStdString(), _data,
+  								  _currentRayIdx, _currentSweepIdx);
  // ,
 								  //								  _currentSweep, _currentRay);
   //  vector<double> result = soloFunctionsModel.RemoveAircraftMotion(x, dataModel);
@@ -109,6 +118,7 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) {
 
   return newData;
 }
+*/
 
 // return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::ZERO_MIDDLE_THIRD(QString field) { 
