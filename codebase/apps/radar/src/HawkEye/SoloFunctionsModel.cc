@@ -523,18 +523,9 @@ string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
   
-  /* TODO:  get rid of this when working
-  size_t speckle_length = 3;
-  size_t clip_gate = nGates;
-  float bad_data_value = -3.0;
-  */
-
   // perform the function ...
   soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
 			     clip_gate, _boundaryMask);
-
-  // TODO: remove this; let boundary mask manage it
-  //delete temp_bnd_mask,
 
   // insert new field into RadxVol                                                                             
   cerr << "result = ";
@@ -556,21 +547,18 @@ string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
   return tempFieldName;
 }
 
+string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
+						int rayIdx, int sweepIdx,
+						float nyquist_velocity,
+						size_t clip_gate,
+						float bad_data_value,
+						string newFieldName) { 
 
-// TODO: send rayIdx, sweepIdx, OR  Radx::Float32 *data
-vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
-							int rayIdx, int sweepIdx) { 
-
-  // TODO: what is being returned? the name of the new field in the model that
+  // What is being returned? the name of the new field in the model that
   // contains the results.
-  // since the std::vector<double> data has to be copied to QVector anyway, 
-  // go ahead and format it as a string?
-  // maybe return a pointer to std::vector<double> ?? then when presenting the data, we can convert it to string,
-  // but maintain the precision in the model (RadxVol)??
 
   LOG(DEBUG) << "entry with fieldName ... ";
   LOG(DEBUG) << fieldName;
-  cerr << "inside SoloFunctionsModel::RemoveAircraftMotion" << endl;
 
   // gather data from context -- most of the data are in a DoradeRadxFile object
 
@@ -578,16 +566,15 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   //RadxVol vol = context->_vol;
   // make sure the radar angles have been calculated.
 
-  vol->loadFieldsFromRays();
+  vol->loadRaysFromFields(); // loadFieldsFromRays();
 
   const RadxField *field;
-  field = vol->getFieldFromRay(fieldName);
-  if (field == NULL) {
-    LOG(DEBUG) << "no RadxField found in volume";
-    throw "No data field with name " + fieldName;;
-  }
+  //  field = vol->getFieldFromRay(fieldName);
+  //  if (field == NULL) {
+  //    LOG(DEBUG) << "no RadxField found in volume";
+  //    throw "No data field with name " + fieldName;;
+  //  }
   
-
   //  get the ray for this field 
   const vector<RadxRay *>  &rays = vol->getRays();
   if (rays.size() > 1) {
@@ -598,8 +585,6 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
     LOG(DEBUG) << "ERROR - ray is NULL";
     throw "Ray is null";
   } 
-
-  
 
   const RadxGeoref *georef = ray->getGeoreference();
   if (georef == NULL) {
@@ -626,6 +611,7 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   // TODO: elevation changes with different rays/fields how to get the current one???
   float elevation = ray->getElevationDeg(); // doradeData.elevation; // fl32;
 
+  /*
   // TODO:  look up the dataField and get the associated values
   // look through DoradeRadxFile::_ddParms for a parameter_t type that has parameter_name that matches
   // the dataField.
@@ -655,12 +641,14 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   float parameter_bias = -1.0 * field->getOffset() * field->getScale(); // doradeData.parameter_bias; 
 
   int dgi_clip_gate = field->getNPoints(); // field->num_samples; // or number_cells
+*/
+
   short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
   int seds_nyquist_velocity = 0; // TODO: what is this value?
 
-  cerr << "sizeof(short) = " << sizeof(short);
-  if (sizeof(short) != 16) 
-    throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
+  //  cerr << "sizeof(short) = " << sizeof(short);
+  //if (sizeof(short) != 16) 
+  //  throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
   LOG(DEBUG) << "args: ";
   LOG(DEBUG) << "vert_velocity " << vert_velocity;
   LOG(DEBUG) <<   "ew_velocity " << ew_velocity;
@@ -669,40 +657,78 @@ vector<double> SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVo
   LOG(DEBUG) <<   "tilt " << tilt;
   LOG(DEBUG) <<   "elevation " << elevation;
   LOG(DEBUG) <<   "bad " << bad;
-  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
+  //  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
   LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
   LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
   LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
 
-  // TODO: convert the field data from Si16 to short
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  float *newData = new float[nGates];
+
+  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+
+  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+
+  //==========
 
   SoloFunctionsApi soloFunctionsApi;
 
-  short fakeData[3] = {0, 1, 2};  
-
-//field->getDataSi16(), 
-						     
+  /*						     
   soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
 						     ew_gndspd_corr, tilt, elevation,
 						     fakeData,
 						     bad, parameter_scale, parameter_bias, dgi_clip_gate,
 						     dds_radd_eff_unamb_vel, seds_nyquist_velocity,
 						     _boundaryMask);
-  
-  //LOG(DEBUG) << " result: " << result;
-  LOG(DEBUG) << " A few data values ";
-  for (int i=0; i< 10; i++) {
-      LOG(DEBUG) << field->getDoubleValue(i);
-  }
+  */
+  // perform the function ...
+  //  soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
+  //                             clip_gate, _boundaryMask);
 
-  // TODO: We are converting from short to double!!!  <=====
-  vector<double> newData; // (data, dgi_clip_gate+1);
-  //  for (vector<double>::iterator it = data.begin(); it != data.end(); ++it)
-  //  newData.push_back(*it * 2.0);
+  soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
+					ew_gndspd_corr, tilt, elevation,
+					data, newData, nGates,
+					bad, dgi_clip_gate,
+					dds_radd_eff_unamb_vel, seds_nyquist_velocity,
+					_boundaryMask);
+  
+
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
 
   LOG(DEBUG) << "exit ";
 
-  return newData;
+  return tempFieldName;
 }
 
 
