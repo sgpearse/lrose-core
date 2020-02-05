@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "SoloFunctionsModel.hh"
-#include "RemoveAcMotion.cc" // This comes from an external library
+//#include "RemoveAcMotion.cc" // This comes from an external library
 #include "BoundaryPointEditor.hh"
 
 

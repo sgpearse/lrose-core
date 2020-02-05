@@ -122,7 +122,7 @@ void SoloFunctionsApi::GetBoundaryMask(long *xpoints, long *ypoints, int npoints
 } 
 
 void SoloFunctionsApi::Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
-				 int dgi_clip_gate, bool *boundary_mask) {
+				 size_t dgi_clip_gate, bool *boundary_mask) {
   try {
     se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
   } catch(...) {

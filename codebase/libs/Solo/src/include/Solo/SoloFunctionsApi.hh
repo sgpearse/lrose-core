@@ -81,7 +81,7 @@ public:
   // boolean mask; The API performs the translation.
 
   void Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
-				   int dgi_clip_gate, bool *boundary_mask);
+				   size_t dgi_clip_gate, bool *boundary_mask);
 
   void RemoveAircraftMotion(float vert_velocity, float ew_velocity, float ns_velocity,
 			    float ew_gndspd_corr, float tilt, float elevation,

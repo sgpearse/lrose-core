@@ -28,7 +28,7 @@
 #include <stdio.h>
 
 void se_despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
-                  int dgi_clip_gate, bool *boundary_mask);
+                  size_t dgi_clip_gate, bool *boundary_mask);
 
 
 void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_velocity,
