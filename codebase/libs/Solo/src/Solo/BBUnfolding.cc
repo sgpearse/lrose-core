@@ -1,10 +1,14 @@
+#include <cmath>
+#include <vector>
+#include <numeric>
 
-# define NEW_ALLOC_SCHEME
+#include <Solo/GeneralDefinitions.hh>
 
+//# define NEW_ALLOC_SCHEME
 
-# define         BB_USE_FGG 0
-# define     BB_USE_AC_WIND 1
-# define  BB_USE_LOCAL_WIND 2
+//# define         BB_USE_FGG 0
+//# define     BB_USE_AC_WIND 1
+//# define  BB_USE_LOCAL_WIND 2
 
 
 /* c------------------------------------------------------------------------ 
@@ -211,6 +215,12 @@ int se_ac_surface_tweak(arg, cmds)
     return(1);
 }
 */
+
+// TODO: should the velocities be converted to ints? or keep as float?
+float running_average(std::vector<float> const& v) {
+  return 1.0 * std::accumulate(v.begin(), v.end(), 0.0) / v.size();
+}
+
 // c------------------------------------------------------------------------ 
 
 //int se_BB_ac_unfold(arg, cmds)	// #BB-unfolding# 
@@ -218,12 +228,182 @@ int se_ac_surface_tweak(arg, cmds)
 //  struct ui_command *cmds;	
 //{
 // BB_init_on is an enumeration
-void se_BB_ac_unfold(const float *data, float *newData, size_t nGates,
-		     float nyquist_velocity, int BB_init_on,
+void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
+		     float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			     float azimuth_angle_degrees, float elevation_angle_degrees,
+			  float ew_horiz_wind,
+			  float ns_horiz_wind,
+			  float vert_wind,
+			  int max_pos_folds, int max_neg_folds,
+			  size_t ngates_averaged,
 		     float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
     
-  //    struct ui_command *cmdq=cmds+1; // point to the first argument 
-    int ii, nn, mark, navg, first_cell=YES, pn, sn;
+    int ii, nn, mark, navg, pn, sn;
+    size_t nc;
+    int scaled_nyqv, scaled_nyqi, fold_count;
+    char *aa, *name;
+    //    short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
+    static short last_good_v0;
+    float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
+    double u, v, w, insitu_wind, folds;
+    double dazm, dele;
+    float bad;
+
+    nc = dgi_clip_gate;
+    bad = bad_data_value;
+
+    if (nyquist_velocity)
+      nyqv = nyquist_velocity;
+    else
+      nyqv = dds_radd_eff_unamb_vel;
+
+    scaled_nyqv = DD_SCALE(nyqv, scale, bias);
+    scaled_nyqi = 2*scaled_nyqv;
+    rcp_nyqi = 1./((float)scaled_nyqi);
+
+    
+	printf("Nyq. vel: %.1f; Initializing on the wind; Averaging %d cells\n"
+		  nyqv, seds->BB_avg_count);
+
+    u = ew_horiz_wind;
+    v = ns_horiz_wind;
+    w = vert_wind != -999 ? vert_wind : 0;
+    dazm = RADIANS(azimuth_angle_degrees);
+    dele = RADIANS(elevation_angle_degrees);
+    insitu_wind = cos(dele) * (u*sin(dazm) + v*cos(dazm)) + w*sin(dele);
+    v0 = DD_SCALE(insitu_wind, scale, bias);
+
+    se_BB_generic_unfolding(v0, data, newData, 
+                            v0, 
+			    nyqv, max_pos_folds, max_neg_folds,
+			    bad_data_value, clip_gate, bnd);
+
+
+}
+
+//
+// last_good_v0 must be managed externally; it is an in/out argument
+//
+void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGates,
+		     float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			     float azimuth_angle_degrees, float elevation_angle_degrees,
+                             int max_pos_folds, int max_neg_folds,
+			       size_t ngates_averaged,
+				  float *last_good_v0,
+		     float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
+    
+  int ii, nn, mark, navg;
+  bool first_cell=true;
+  int  pn, sn;
+    size_t nc;
+    int scaled_nyqv, scaled_nyqi, fold_count;
+    char *aa, *name;
+    //    short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
+    static short last_good_v0;  // TODO:  how to deal with this static variable?  Must be managed externally
+    float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
+    double u, v, w, insitu_wind, folds;
+    double dazm, dele;    
+    float bad;
+
+    nc = dgi_clip_gate;
+    bad = bad_data_value;
+
+    if (nyquist_velocity)
+      nyqv = nyquist_velocity;
+    else
+      nyqv = dds_radd_eff_unamb_vel;
+
+
+    scaled_nyqv = DD_SCALE(nyqv, scale, bias);
+    scaled_nyqi = 2*scaled_nyqv;
+    rcp_nyqi = 1./((float)scaled_nyqi);
+    printf("Nyq. vel: %.1f; Initializing on the first good gate; Averaging %d cells\n",
+	   nyqv, seds->BB_avg_count);
+
+    // initialize of the first good gate
+    // in the sweep 
+    if(seds->sweep_ray_count == 1)
+      v0 = last_good_v0 = bad;
+    else
+      v0 = last_good_v0;
+
+    if(v0 == bad) {		// find first good gate 
+      for(; *tt == bad && tt < zz; tt++);
+      if(tt == zz) return(1);
+      v0 = *tt;
+    }
+
+
+    se_BB_generic_unfolding(v0, data, newData, 
+                            nyqv, max_pos_folds, max_neg_folds,
+bad_data_value, clip_gate, bnd);
+
+}
+
+
+
+void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
+			     float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			     float azimuth_angle_degrees, float elevation_angle_degrees,
+                             float ew_wind, float ns_wind, float ud_wind,
+                             int max_pos_folds, int max_neg_folds,
+			    size_t ngates_averaged,
+		     float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
+    
+  int ii, nn, mark, navg;
+  bool first_cell=true;
+  int pn, sn;
+    size_t nc;
+    int scaled_nyqv, scaled_nyqi, fold_count;
+    char *aa, *name;
+    //    short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
+    static short last_good_v0;
+    float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
+    double u, v, w, insitu_wind, folds;
+    double  dazm, dele;
+    float bad;
+
+    nc = dgi_clip_gate;
+    bad = bad_data_value;
+
+    if (nyquist_velocity)
+      nyqv = nyquist_velocity;
+    else
+      nyqv = dds_radd_eff_unamb_vel;
+
+	printf("Nyq. vel: %.1f; Initializing on %s; Averaging %d cells\n"
+		  , nyqv, aa, seds->BB_avg_count);
+
+    // local wind 
+    u = seds->ew_wind;
+    v = seds->ns_wind;
+    w = seds->ud_wind;
+	
+    dazm = RADIANS(azimuth_angle_degrees);
+    dele = RADIANS(elevation_angle_degrees);
+    insitu_wind = cos(dele) * (u*sin(dazm) + v*cos(dazm)) + w*sin(dele);
+    v0 = DD_SCALE(insitu_wind, scale, bias);
+
+    se_BB_generic_unfolding(data, newData, nGates, v0, ngates_averaged,
+			    nyqv, max_pos_folds, max_neg_folds,
+			    bad_data_value, clip_gate, bnd);
+
+}
+
+//
+// float v0 = initial velocity = running average of velocity over ngates_averaged
+//          in/out argument;  the last running average calculation is returned.
+//          TODO: maybe just have a separate argument, that is returned?
+
+void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
+			  float *v0, size_t ngates_averaged, 
+			  float nyquist_velocity,
+			  int BB_max_pos_folds, int BB_max_neg_folds,
+			  float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
+    
+  int ii, nn, mark, navg;
+  bool first_cell=true;
+  int pn, sn;
     size_t nc;
     int scaled_nyqv, scaled_nyqi, fold_count;
     char *aa, *name;
@@ -232,99 +412,63 @@ void se_BB_ac_unfold(const float *data, float *newData, size_t nGates,
     float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
     double u, v, w, insitu_wind, folds;
     double dd_azimuth_angle(), dd_elevation_angle(), dazm, dele;
-    static struct running_avg_que *raq0, *raq1;
-    struct running_avg_que *se_return_ravgs();
-    struct que_val *qv0, *qv1;
-    //struct dd_general_info *dgi, *dd_window_dgi();
-    //struct dds_structs *dds;
-    //struct solo_edit_stuff *seds, *return_sed_stuff();
+    //static struct running_avg_que *raq0, *raq1;
+    //struct running_avg_que *se_return_ravgs();
+    //struct que_val *qv0, *qv1;
     
     float bad;
 
-    //seds = return_sed_stuff();	// solo editing struct 
-
-    //if(seds->finish_up) {
-    //	return(1);
-    //}
-    //seds->modified = YES;
-    //name = (cmdq++)->uc_text;
-    //sn = strlen(name);
-    //bnd = (short *) seds->boundary_mask;
-    //dgi = dd_window_dgi(seds->se_frame);
-    //dds = dgi->dds;
-
-    //if((pn = dd_find_field(dgi, name)) < 0) {
-    //	uii_printf("Source parameter %s not found for copy\n", name);
-    //	seds->punt = YES;
-    //	return(-1);
-    //}
     nc = dgi_clip_gate;
-    //ss = tt = (short *)dds->qdat_ptrs[pn];
-    //zz = ss +nc;
     ssIdx = 0;
     zzIdx = nc;
 
-    //bad = dds->parm[pn]->bad_data;
     bad = bad_data_value;
-    //scale = dds->parm[pn]->parameter_scale;
-    //bias = dds->parm[pn]->parameter_bias;
-    nyqv = nyquist_velocity ? nyquist_velocity
-	  : dds_radd_eff_unamb_vel;
+    //    nyqv = nyquist_velocity ? nyquist_velocity
+    //  : dds_radd_eff_unamb_vel;
+
+    nyqv = nyquist_velocity;
+
     scaled_nyqv = DD_SCALE(nyqv, scale, bias);
     scaled_nyqi = 2*scaled_nyqv;
     rcp_nyqi = 1./((float)scaled_nyqi);
 
-    if(seds->process_ray_count == 1) {
+
+    // two running average queues??
+    // raq0 and ??
+    // for running average queue, use a C++ vector
+    //
+
+    // TODO: how to initialize this ... we do not know which ray index we have;
+    // I could send an argument???? bool first_ray
+    // agh!  but we don't save state, so this running average is going
+    // to be tricky!
+    // Plus! we would need to calculate v0 on each call, for each ray!!! AGH!
+    // is sending the running average back and forth (in/out) equivalent?
+    //if(seds->process_ray_count == 1) {
 	//
-	// set up for two running average ques
+	/* set up for two running average ques
 	 
 	raq0 = se_return_ravgs(seds->BB_avg_count);
 	aa = BB_init_on == BB_USE_FGG ? "the first good gate"
 	      : "the wind";
 	printf("Nyq. vel: %.1f; Initializing on %s; Averaging %d cells\n"
 		  , nyqv, aa, seds->BB_avg_count);
-    }
-    rcp_qsize = raq0->rcp_num_vals;
+	*/
+	//}
+    std::vector<float> raq0(ngates_averaged, *v0);
+    rcp_qsize = ngates_averaged;
+    //    rcp_qsize = raq0->rcp_num_vals;
 
-    if(BB_init_on == BB_USE_FGG) { // initialize of the first good gate
-					  * in the sweep 
-	if(seds->sweep_ray_count == 1)
-	      v0 = last_good_v0 = bad;
-	else
-	      v0 = last_good_v0;
-
-	if(v0 == bad) {		// find first good gate 
-	    for(; *tt == bad && tt < zz; tt++);
-	    if(tt == zz) return(1);
-	    v0 = *tt;
-	}
-    }
-    else {
-	if(BB_init_on == BB_USE_AC_WIND) {
-	    u = dds->asib->ew_horiz_wind;
-	    v = dds->asib->ns_horiz_wind;
-	    w = dds->asib->vert_wind != -999 ? dds->asib->vert_wind : 0;
-	}
-	else {			// local wind 
-	    u = seds->ew_wind;
-	    v = seds->ns_wind;
-	    w = seds->ud_wind;
-	}
-	dazm = RADIANS(dd_azimuth_angle(dgi));
-	dele = RADIANS(dd_elevation_angle(dgi));
-	insitu_wind = cos(dele) * (u*sin(dazm) + v*cos(dazm)) + w*sin(dele);
-	v0 = DD_SCALE(insitu_wind, scale, bias);
-    }
-    raq0->sum = 0;
-    qv0 = raq0->at;
-    // initialize the running average queue
+    //    raq0->sum = 0;
+    // qv0 = raq0->at;
+    /* initialize the running average queue
      
     for(ii=0; ii < raq0->num_vals; ii++) {
 	raq0->sum += v0;
 	qv0->val = v0;
 	qv0 = qv0->next;
     }
-
+    */
     //
     // loop through the data
      
@@ -368,16 +512,22 @@ void se_BB_ac_unfold(const float *data, float *newData, size_t nGates,
       if (bnd[ssIdx] && !bad_data) {
       
 	vx = newData[ssIdx];
-	v4 = raq0->sum * rcp_qsize; // TODO: ???
+	//	v4 = raq0->sum * rcp_qsize; // TODO: Is this the average?
+        v4 = running_average(raq0);
+	//     rcp_nyqi = 1./((float)scaled_nyqi);
 	folds = (v4 -vx) * rcp_nyqi;
-	fold_count = folds = folds < 0 ? folds -0.5 : folds +0.5;
-
+	//fold_count = folds = folds < 0 ? folds -0.5 : folds +0.5;
+        if (folds < 0)
+          folds = folds - 0.5;
+        else
+          folds = folds + 0.5;
+        fold_count = folds;
 	if(fold_count) {
 	    if(fold_count > 0) {
-		if((nn=fold_count - seds->BB_max_pos_folds) > 0)
+	      if((nn=fold_count - BB_max_pos_folds) > 0)
 		      fold_count -= nn;
 	    }
-	    else if((nn=fold_count + seds->BB_max_neg_folds) < 0) 
+	    else if((nn=fold_count + BB_max_neg_folds) < 0) 
 		  fold_count -= nn;
 	}
 	vx += fold_count * scaled_nyqi;
@@ -390,15 +540,21 @@ void se_BB_ac_unfold(const float *data, float *newData, size_t nGates,
 	newData[ssIdx] = vx;
 
 	if(first_cell) {
-	    first_cell = NO;
+	    first_cell = false;
 	    last_good_v0 = vx;
 	}
 
       }
       ssIdx += 1;
     }
+
+    // return the running average
+    *v0 = avg1(raq0);
+    // raq0->clear();
+    delete raq0;
     
 }
+
 // c------------------------------------------------------------------------ 
 
 // TODO: does all of this go away and become script variables, passed 

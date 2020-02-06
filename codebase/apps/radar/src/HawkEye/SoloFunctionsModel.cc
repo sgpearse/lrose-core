@@ -727,6 +727,218 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
 }
 
 
+string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *vol,
+						int rayIdx, int sweepIdx,
+						float nyquist_velocity,
+						size_t clip_gate,
+						float bad_data_value,
+						string newFieldName) { 
+
+  // manage the last good v0, initialized from first good gate in a sweep;
+  // and perpetuated for each ray in the sweep
+
+  if (firstRayInSweep) {
+    // reset the running average?
+  }
+
+  float last_good_v0;
+
+  void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGates,
+				    float nyquist_velocity, float dds_radd_eff_unamb_vel,
+				    float azimuth_angle_degrees, float elevation_angle_degrees,
+				    int max_pos_folds, int max_neg_folds,
+				    size_t ngates_averaged,
+				    float bad_data_value, size_t dgi_clip_gate, bool *bnd);
+}
+
+
+string SoloFunctionsModel::UnfoldUsingLocalWind(string fieldName, RadxVol *vol,
+						int rayIdx, int sweepIdx,
+						float nyquist_velocity,
+						size_t clip_gate,
+						float bad_data_value,
+						string newFieldName) { 
+
+  // What is being returned? the name of the new field in the model that
+  // contains the results.
+
+  LOG(DEBUG) << "entry with fieldName ... ";
+  LOG(DEBUG) << fieldName;
+
+  // gather data from context -- most of the data are in a DoradeRadxFile object
+
+  // TODO: convert the context RadxVol to DoradeRadxFile and DoradeData format;
+  //RadxVol vol = context->_vol;
+  // make sure the radar angles have been calculated.
+
+  vol->loadRaysFromFields(); // loadFieldsFromRays();
+
+  const RadxField *field;
+  //  field = vol->getFieldFromRay(fieldName);
+  //  if (field == NULL) {
+  //    LOG(DEBUG) << "no RadxField found in volume";
+  //    throw "No data field with name " + fieldName;;
+  //  }
+  
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  const RadxGeoref *georef = ray->getGeoreference();
+  if (georef == NULL) {
+    LOG(DEBUG) << "ERROR - georef is NULL";
+    LOG(DEBUG) << "      trying to recover ...";
+    vol->setLocationFromStartRay();
+    georef = ray->getGeoreference();
+    if (georef == NULL) {
+      throw "Georef is null";
+    }
+  } 
+ 
+  float vert_velocity = georef->getVertVelocity();  // fl32
+  float ew_velocity = georef->getEwVelocity(); // fl32
+  float ns_velocity = georef->getNsVelocity(); // fl32;
+
+  float ew_gndspd_corr = 0.0; 
+  const RadxCfactors *cfactors = ray->getCfactors();
+  if (cfactors != NULL) {
+    ew_gndspd_corr = cfactors->getEwVelCorr(); // ?? _gndspd_corr; // fl32;
+  }
+ 
+  float tilt = georef->getTilt(); // fl32; 
+  // TODO: elevation changes with different rays/fields how to get the current one???
+  float elevation = ray->getElevationDeg(); // doradeData.elevation; // fl32;
+
+  //=======  get the appropriate azimuth angle
+
+double
+  dd_azimuth_angle(dgi)
+  struct dd_general_info *dgi;
+ {
+   double d_rot;
+
+   if(dgi->dds->radd->scan_mode == AIR) {
+     /* most aircraft data                                                                               
+      */
+     d_rot = FMOD360(DEGREES(dgi->dds->ra->azimuth)+360.);
+   }
+   else if(dgi->dds->radd->radar_type == AIR_LF ||
+	   dgi->dds->radd->radar_type == AIR_NOSE) {
+     /* this is meant to apply only to the P3 lower fuselage data */
+     d_rot = dgi->dds->ryib->azimuth;
+     if(dd_isnanf(d_rot))
+       d_rot = 0;
+     else
+       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr
+		       + dd_heading(dgi));
+   }
+   else {
+     d_rot = dgi->dds->ryib->azimuth;
+     if(dd_isnanf(d_rot))
+       d_rot = 0;
+     else
+       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr);
+   }
+   return(d_rot);
+ }
+
+ //=========
+
+  short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
+  int seds_nyquist_velocity = 0; // TODO: what is this value?
+
+  //  cerr << "sizeof(short) = " << sizeof(short);
+  //if (sizeof(short) != 16) 
+  //  throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
+  LOG(DEBUG) << "args: ";
+  LOG(DEBUG) << "vert_velocity " << vert_velocity;
+  LOG(DEBUG) <<   "ew_velocity " << ew_velocity;
+  LOG(DEBUG) <<   "ns_velocity " << ns_velocity;
+  LOG(DEBUG) <<   "ew_gndspd_corr " << ew_gndspd_corr;
+  LOG(DEBUG) <<   "tilt " << tilt;
+  LOG(DEBUG) <<   "elevation " << elevation;
+  //LOG(DEBUG) <<   "bad " << bad;
+  //  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
+  // LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
+  LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
+  LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
+
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  float *newData = new float[nGates];
+
+  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  //==========
+
+  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  /*						     
+  soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
+						     ew_gndspd_corr, tilt, elevation,
+						     fakeData,
+						     bad, parameter_scale, parameter_bias, dgi_clip_gate,
+						     dds_radd_eff_unamb_vel, seds_nyquist_velocity,
+						     _boundaryMask);
+  */
+  // perform the function ...
+  //  soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
+  //                             clip_gate, _boundaryMask);
+
+  soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
+					ew_gndspd_corr, tilt, elevation,
+					data, newData, nGates,
+					bad_data_value, clip_gate,
+					dds_radd_eff_unamb_vel, seds_nyquist_velocity,
+					_boundaryMask);
+  
+
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  LOG(DEBUG) << "exit ";
+
+  return tempFieldName;
+}
+
+
+
+
+
 
 vector<double> SoloFunctionsModel::RemoveAircraftMotion(vector<double> data, RadxVol *vol) { // SpreadSheetModel *context) {
 

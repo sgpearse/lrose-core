@@ -38,4 +38,6 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
                          float dds_radd_eff_unamb_vel,
                          float seds_nyquist_velocity, bool *bnd);
 
+float running_average(std::vector<float> const& v);
+
 #endif
