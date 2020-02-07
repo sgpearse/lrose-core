@@ -436,9 +436,9 @@ void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
 */
 
 //
-// float v0 = initial velocity = running average of velocity over ngates_averaged
-//          in/out argument;  the last running average calculation is returned.
-//          TODO: maybe just have a separate argument, that is returned?
+// float v0 is in/out argument  
+//          in:  initial velocity 
+//          out: last good v0; last good initial velocity found.
 
 void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
 			  float *v0, size_t ngates_averaged, 
@@ -455,7 +455,7 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
   int scaled_nyqv, scaled_nyqi, fold_count;
   char *aa, *name;
   //    short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
-  static short last_good_v0;
+  float last_good_v0;
   float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
   double u, v, w, insitu_wind, folds;
   //  double dd_azimuth_angle(), dd_elevation_angle(), dazm, dele;
@@ -593,7 +593,7 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
       }
       printf(" limited to %d\n", fold_count);
       vx += fold_count * scaled_nyqi;
-
+      printf("vx += fold_count(%d) * scaled_nyqi(%d) = %f\n", fold_count, scaled_nyqi, vx);
       // insert new velocity into running average queue
       //raq0->sum -= qv0->val;
       //raq0->sum += vx;
@@ -611,18 +611,14 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
       // the running average?
       if(first_cell) {
 	first_cell = false;
+        // return the last good v0
 	last_good_v0 = vx;
       }
 
     }
     ssIdx += 1;
   }
-
-  // return the running average
-  *v0 = sum * rcp_qsize; // avg1(raq0);
-  // raq0->clear();
-  //~raq0();
-    
+  *v0 = last_good_v0;
 }
 
 // c------------------------------------------------------------------------ 
