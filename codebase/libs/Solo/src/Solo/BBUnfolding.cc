@@ -606,9 +606,9 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
 
       newData[ssIdx] = vx;
 
-      // TODO: patch up this code, probably not working
-      // TODO: what is the difference between last_good_v0 and
-      // the running average?
+      // What is the difference between last_good_v0 and
+      // the running average?  last_good_v0 is actually the first
+      // good velocity (maybe unfolded) in this ray.
       if(first_cell) {
 	first_cell = false;
         // return the last good v0
