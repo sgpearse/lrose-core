@@ -18,6 +18,7 @@
 # define TWOPI 6.283185307
 # define DD_SCALE(x,scale,offset) ((x)*(scale)+(offset)+.5)
 # define DD_SCALE_TO_INT(x) ((x)+.5)
+# define RADIANS(x)  ((x)*0.017453292)
 
 // use DoradeData.hh radar_type_t or lidar_type_t
 /* Dorade radar types */

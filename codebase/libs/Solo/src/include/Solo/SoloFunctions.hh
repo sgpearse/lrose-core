@@ -40,10 +40,43 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
 
 // float running_average(std::vector<float> const& v);
 
+
+void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
+                          float nyquist_velocity, float dds_radd_eff_unamb_vel,
+                          float azimuth_angle_degrees, float elevation_angle_degrees,
+                          float ew_horiz_wind,
+                          float ns_horiz_wind,
+                          float vert_wind,
+                          int max_pos_folds, int max_neg_folds,
+                          size_t ngates_averaged,
+                          float bad_data_value, size_t dgi_clip_gate, bool *bnd);
+
+void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
+                             float nyquist_velocity, float dds_radd_eff_unamb_vel,
+                             float azimuth_angle_degrees, float elevation_angle_degrees,
+                             float ew_wind, float ns_wind, float ud_wind,
+                             int max_pos_folds, int max_neg_folds,
+                             size_t ngates_averaged,
+                             float bad_data_value, size_t dgi_clip_gate, bool *bnd);
+
+void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGates,
+                                  float nyquist_velocity, float dds_radd_eff_unamb_vel,
+                                  float azimuth_angle_degrees, float elevation_angle_degrees,
+                                  int max_pos_folds, int max_neg_folds,
+                                  size_t ngates_averaged,
+                                  float *last_good_v0,
+                                  float bad_data_value, size_t dgi_clip_gate, bool *bnd);
+
+
+
+
 void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
                           float *v0, size_t ngates_averaged,
                           float nyquist_velocity,
                           int BB_max_pos_folds, int BB_max_neg_folds,
                           float bad_data_value, size_t dgi_clip_gate, bool *bnd);
+
+
+
 
 #endif
