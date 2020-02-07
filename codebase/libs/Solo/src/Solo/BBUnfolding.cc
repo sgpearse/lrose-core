@@ -570,20 +570,28 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
       v4 = sum * rcp_qsize; // running_average(raq0);
       //     rcp_nyqi = 1./((float)scaled_nyqi);
       folds = (v4 - vx) * rcp_nyqi;
+      printf("v4 = %f, vx = %f, raw folds = %f ", v4, vx, folds);
       //fold_count = folds = folds < 0 ? folds -0.5 : folds +0.5;
       if (folds < 0)
 	folds = folds - 0.5;
       else
 	folds = folds + 0.5;
-      fold_count = folds;
+      fold_count = (int) folds;
+      printf("folds = %f, ==> fold_count = %d ", folds, fold_count);
+
       if(fold_count) {
 	if(fold_count > 0) {
-	  if((nn=fold_count - BB_max_pos_folds) > 0)
+          nn = fold_count - BB_max_pos_folds;
+	  if(nn > 0)
 	    fold_count -= nn;
 	}
-	else if((nn=fold_count + BB_max_neg_folds) < 0) 
-	  fold_count -= nn;
+	else {
+	  nn = fold_count + BB_max_neg_folds;
+          if(nn < 0) 
+	    fold_count -= nn; // subtracting a negative number
+	}
       }
+      printf(" limited to %d\n", fold_count);
       vx += fold_count * scaled_nyqi;
 
       // insert new velocity into running average queue
