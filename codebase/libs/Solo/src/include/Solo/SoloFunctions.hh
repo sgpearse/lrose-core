@@ -38,6 +38,12 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
                          float dds_radd_eff_unamb_vel,
                          float seds_nyquist_velocity, bool *bnd);
 
-float running_average(std::vector<float> const& v);
+// float running_average(std::vector<float> const& v);
+
+void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
+                          float *v0, size_t ngates_averaged,
+                          float nyquist_velocity,
+                          int BB_max_pos_folds, int BB_max_neg_folds,
+                          float bad_data_value, size_t dgi_clip_gate, bool *bnd);
 
 #endif
