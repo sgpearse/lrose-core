@@ -186,7 +186,7 @@ int DsTitan::_communicate(DsURL &url,
   
   int iret = 0;
   if (client.getReplyLen() >= 4 && ta_compressed(client.getReplyBuf())) {
-    unsigned int bufLen;
+    ui64 bufLen;
     void *bufPtr = ta_decompress(client.getReplyBuf(), &bufLen);
     iret = msg.disassemble(bufPtr, bufLen, *this);
     ta_compress_free(bufPtr);
