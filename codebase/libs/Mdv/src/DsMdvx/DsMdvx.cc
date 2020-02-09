@@ -1973,7 +1973,7 @@ int DsMdvx::convertMdv2Ncf(const string &url)
     return -1;
   }
   stat_struct_t &fileStat = ncfFile.getStat();
-  off_t fileLen = fileStat.st_size;
+  size_t fileLen = fileStat.st_size;
   
   // read in buffer
   
