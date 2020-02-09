@@ -725,7 +725,7 @@ int DsFCopyServer::_handlePut(Socket * clientSocket,
     // check for compression
 
     void *buf;
-    unsigned int len;
+    ui64 len;
     bool isCompressed;
 
     if (ta_compressed((void *) copyMsg.getFileBuf())) {
