@@ -106,9 +106,9 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
     //scaled_nyqi = 2*scaled_nyqv;
     //scaled_ac_vel = DD_SCALE(ac_vel, scale, bias);
 
-    scaled_nyqv = DD_SCALE_TO_INT(nyqv);
+    scaled_nyqv = DD_SCALE(nyqv);
     scaled_nyqi = 2*scaled_nyqv;
-    scaled_ac_vel = DD_SCALE_TO_INT(ac_vel);
+    scaled_ac_vel = DD_SCALE(ac_vel);
     //printf("scaled_ac_vel = %d\n", scaled_ac_vel);
     //printf("scaled_nyqi = %d\n", scaled_nyqi);
     

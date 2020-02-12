@@ -39,7 +39,10 @@ void se_remove_ac_motion(float vert_velocity, float ew_velocity, float ns_veloci
                          float seds_nyquist_velocity, bool *bnd);
 
 // float running_average(std::vector<float> const& v);
-
+bool is_data_bad(float data, float bad_data_value);
+// {
+//  return abs(newData[ssIdx] - bad) < 0.0001;
+//}
 
 void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
                           float nyquist_velocity, float dds_radd_eff_unamb_vel,
@@ -61,7 +64,7 @@ void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
 
 void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGates,
                                   float nyquist_velocity, float dds_radd_eff_unamb_vel,
-                                  float azimuth_angle_degrees, float elevation_angle_degrees,
+				  //                                  float azimuth_angle_degrees, float elevation_angle_degrees,
                                   int max_pos_folds, int max_neg_folds,
                                   size_t ngates_averaged,
                                   float *last_good_v0,

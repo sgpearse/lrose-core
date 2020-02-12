@@ -6,6 +6,12 @@
 #include <Solo/GeneralDefinitions.hh>
 #include <Solo/SoloFunctions.hh>
 
+
+bool is_data_bad(float data, float bad_data_value) {
+  return abs(data - bad_data_value) < 0.0001;
+  //  return abs(newData[ssIdx] - bad) < 0.0001;
+}
+
 //# define NEW_ALLOC_SCHEME
 
 //# define         BB_USE_FGG 0
@@ -281,7 +287,21 @@ void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
 			  int max_pos_folds, int max_neg_folds,
 			  size_t ngates_averaged,
 			  float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
-    
+
+
+  se_BB_unfold_local_wind(data, newData, nGates,
+			  nyquist_velocity, dds_radd_eff_unamb_vel,
+			  azimuth_angle_degrees, elevation_angle_degrees,
+			  ew_horiz_wind,
+			  ns_horiz_wind,
+			  vert_wind,
+			  max_pos_folds, max_neg_folds,
+			  ngates_averaged, 
+			  bad_data_value, dgi_clip_gate, bnd);
+
+  // I think the code is the same as local_wind ...
+
+  /*    
   int ii, nn, mark, navg, pn, sn;
   size_t nc;
   int scaled_nyqv, scaled_nyqi, fold_count;
@@ -306,7 +326,7 @@ void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
   else
     nyqv = dds_radd_eff_unamb_vel;
 
-  //scaled_nyqv = DD_SCALE_TO_INT(nyqv);
+  //scaled_nyqv = DD_SCALE(nyqv);
   //scaled_nyqi = 2*scaled_nyqv;
   //rcp_nyqi = 1./((float)scaled_nyqi);
 
@@ -320,7 +340,7 @@ void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
   dazm = RADIANS(azimuth_angle_degrees);
   dele = RADIANS(elevation_angle_degrees);
   insitu_wind = cos(dele) * (u*sin(dazm) + v*cos(dazm)) + w*sin(dele);
-  v0 = DD_SCALE_TO_INT(insitu_wind); // , scale, bias);
+  v0 = DD_SCALE(insitu_wind); // , scale, bias);
 
   se_BB_generic_unfold(data, newData, nGates,
 			  &v0, ngates_averaged,
@@ -328,14 +348,7 @@ void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
 			  max_pos_folds, max_neg_folds,
 			  bad_data_value, dgi_clip_gate, bnd);
 
-  /*
-    void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
-    float *v0, size_t ngates_averaged, 
-    float nyquist_velocity,
-    int BB_max_pos_folds, int BB_max_neg_folds,
-    float bad_data_value, size_t dgi_clip_gate, bool *bnd) {
   */
-
 }
 
 //
@@ -343,7 +356,7 @@ void se_BB_unfold_ac_wind(const float *data, float *newData, size_t nGates,
 //
 void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGates,
 				  float nyquist_velocity, float dds_radd_eff_unamb_vel,
-				  float azimuth_angle_degrees, float elevation_angle_degrees,
+				  //				  float azimuth_angle_degrees, float elevation_angle_degrees,
 				  int max_pos_folds, int max_neg_folds,
 				  size_t ngates_averaged,
 				  float *last_good_v0,
@@ -359,7 +372,7 @@ void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGat
   float nyqv, scale, bias, rcp_qsize, rcp_nyqi;
   double u, v, w, insitu_wind, folds;
   double dazm, dele;    
-  float bad;
+  //float bad;
   float v0;
 
   // TODO: validate arguments
@@ -376,11 +389,9 @@ void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGat
     nyqv = dds_radd_eff_unamb_vel;
 
 
-  //scaled_nyqv = DD_SCALE_TO_INT(nyqv); // , scale, bias);
+  //scaled_nyqv = DD_SCALE(nyqv); // , scale, bias);
   //scaled_nyqi = 2*scaled_nyqv;
   //rcp_nyqi = 1./((float)scaled_nyqi);
-  printf("Nyq. vel: %.1f; Initializing on the first good gate; Averaging %lu cells\n",
-	 nyqv, ngates_averaged);
 
   // TODO: figure out this v0, last_good_v0 stuff; probably should move to calling function
   // initialize of the first good gate
@@ -398,11 +409,12 @@ void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGat
   if ((dgi_clip_gate > 0) && (dgi_clip_gate < nGates))
     zzIdx = dgi_clip_gate;
 
-  if(v0 == bad) {		// find first good gate 
+  if(is_data_bad(v0, bad_data_value)) {		// find first good gate 
     //for(; *tt == bad && tt < zz; tt++);
     //if(tt == zz) return(1);
     //v0 = *tt;
-    while ((ttIdx < zzIdx) && ((data[ttIdx] - bad) < 0.0001)) { 
+    //    while ((ttIdx < zzIdx) && ((data[ttIdx] - bad) < 0.0001)) { 
+    while ((ttIdx < zzIdx) && (is_data_bad(data[ttIdx], bad_data_value))) { 
       ttIdx += 1;
     }
     if (ttIdx < zzIdx)
@@ -410,6 +422,9 @@ void se_BB_unfold_first_good_gate(const float *data, float *newData, size_t nGat
     else
       throw "ray contains only bad data";
   }
+
+  printf("Nyq. vel: %.1f; Initializing on the first good gate, v0=%.1f; Averaging %lu cells\n",
+	 nyqv, v0, ngates_averaged);
 
   se_BB_generic_unfold(data, newData, nGates,
 			  &v0, ngates_averaged,
@@ -457,16 +472,14 @@ void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
   if (ngates_averaged > nGates) throw "clip gate is greater than the number of gates in the ray";
 
 
-  nc = dgi_clip_gate;
-  bad = bad_data_value;
+  //nc = dgi_clip_gate;
+  //  bad = bad_data_value;
 
   if (nyquist_velocity)
     nyqv = nyquist_velocity;
   else
     nyqv = dds_radd_eff_unamb_vel;
 
-  printf("Nyq. vel: %.1f; Initializing on the wind; Averaging %lu cells\n",
-	 nyqv, ngates_averaged);
 
   // local wind 
   u = ew_wind;
@@ -476,7 +489,10 @@ void se_BB_unfold_local_wind(const float *data, float *newData, size_t nGates,
   dazm = RADIANS(azimuth_angle_degrees);
   dele = RADIANS(elevation_angle_degrees);
   insitu_wind = cos(dele) * (u*sin(dazm) + v*cos(dazm)) + w*sin(dele);
-  v0 = DD_SCALE_TO_INT(insitu_wind); // , scale, bias);
+  v0 = DD_SCALE(insitu_wind); // , scale, bias);
+
+  printf("Nyq. vel: %.1f; Initializing on the wind, v0=%.1f; Averaging %lu cells\n",
+	 nyqv, v0, ngates_averaged);
 
   se_BB_generic_unfold(data, newData, nGates, 
 			  &v0, ngates_averaged,
@@ -529,7 +545,7 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
 
   nyqv = nyquist_velocity;
 
-  scaled_nyqv = DD_SCALE_TO_INT(nyqv);
+  scaled_nyqv = DD_SCALE(nyqv);
   scaled_nyqi = 2*scaled_nyqv;
   rcp_nyqi = 1./((float)scaled_nyqi);  // 'rcp' means reciprocal
 
@@ -542,7 +558,7 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
   memcpy(newData, data, nGates*sizeof(float));
 
   while (ssIdx < zzIdx) {
-    bool bad_data = abs(newData[ssIdx] - bad) < 0.0001;
+    bool bad_data = is_data_bad(newData[ssIdx], bad);
     if (bnd[ssIdx] && !bad_data) {
       
       vx = newData[ssIdx];
@@ -709,9 +725,9 @@ int se_remove_ac_motion(arg, cmds)	// #remove-aircraft-motion#
     nyqv = seds->nyquist_velocity ? seds->nyquist_velocity
 	  : dds->radd->eff_unamb_vel;
 # endif
-    scaled_nyqv = DD_SCALE_TO_INT(nyqv, scale, bias);
+    scaled_nyqv = DD_SCALE(nyqv, scale, bias);
     scaled_nyqi = 2*scaled_nyqv;
-    scaled_ac_vel = DD_SCALE_TO_INT(ac_vel, scale, bias);
+    scaled_ac_vel = DD_SCALE(ac_vel, scale, bias);
     adjust = scaled_ac_vel % scaled_nyqi;
 
     if(abs(adjust) > scaled_nyqv) {
@@ -785,7 +801,7 @@ int se_remove_storm_motion(arg, cmds)	// #remove-storm-motion#
 
     scale = dds->parm[pn]->parameter_scale;
     bias = dds->parm[pn]->parameter_bias;
-    scaled_adjust = DD_SCALE_TO_INT(adjust, scale, bias);
+    scaled_adjust = DD_SCALE(adjust, scale, bias);
     bad = dds->parm[pn]->bad_data;
     nc = dgi->clip_gate +1;
     zz = ss +nc;
