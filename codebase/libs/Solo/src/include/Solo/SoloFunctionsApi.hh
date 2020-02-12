@@ -90,6 +90,32 @@ public:
 			    float dds_radd_eff_unamb_vel, float seds_nyquist_velocity,
 			    bool *boundary_mask);
 
+  void BBUnfoldFirstGoodGate(const float *data, float *newData, size_t nGates,
+				    float nyquist_velocity, float dds_radd_eff_unamb_vel,
+				    int max_pos_folds, int max_neg_folds,
+				    size_t ngates_averaged,
+				    float *last_good_v0,
+				    float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
+
+
+  void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
+			    float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			    float azimuth_angle_degrees, float elevation_angle_degrees,
+			    float ew_horiz_wind,
+			    float ns_horiz_wind,
+			    float vert_wind,
+			    int max_pos_folds, int max_neg_folds,
+			    size_t ngates_averaged,
+			    float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
+
+  void BBUnfoldLocalWind(const float *data, float *newData, size_t nGates,
+			       float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			       float azimuth_angle_degrees, float elevation_angle_degrees,
+			       float ew_wind, float ns_wind, float ud_wind,
+			       int max_pos_folds, int max_neg_folds,
+			       size_t ngates_averaged,
+			       float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
+
   void ZeroInsideBoundary(const float *data, bool *boundaryMask,
 			  float *newData, size_t nGates);
 

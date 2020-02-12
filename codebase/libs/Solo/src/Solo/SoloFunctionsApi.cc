@@ -157,6 +157,88 @@ void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_veloci
 
 }
 
+void BBUnfoldFirstGoodGate(const float *data, float *newData, size_t nGates,
+			   float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			   int max_pos_folds, int max_neg_folds,
+			   size_t ngates_averaged,
+			   float *last_good_v0,
+			   float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask) {
+  try {
+
+    /// All data are coming in scaled and biased
+    // last_good_v0 is in/out parameter                                              
+    se_BB_unfold_first_good_gate(data, newData, nGates,
+				 nyquist_velocity, dds_radd_eff_unamb_vel,
+				 max_pos_folds, max_neg_folds,
+				 ngates_averaged,
+				 last_good_v0,
+				 bad_data_value, dgi_clip_gate, boundary_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+
+}
+
+
+
+void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
+			  float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			  float azimuth_angle_degrees, float elevation_angle_degrees,
+			  float ew_horiz_wind,
+			  float ns_horiz_wind,
+			  float vert_wind,
+			  int max_pos_folds, int max_neg_folds,
+			  size_t ngates_averaged,
+			  float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask) {
+  try {
+
+    /// All data are coming in scaled and biased                                              
+
+    se_BB_unfold_local_wind(data, newData, nGates,
+			    nyquist_velocity, dds_radd_eff_unamb_vel,
+			    azimuth_angle_degrees, elevation_angle_degrees,
+			    ew_wind, ns_wind, ud_wind,
+			    max_pos_folds, max_neg_folds,
+			    ngates_averaged,
+			    bad_data_value, dgi_clip_gate, boundary_mask);
+
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+
+}
+
+
+void BBUnfoldLocalWind(const float *data, float *newData, size_t nGates,
+		       float nyquist_velocity, float dds_radd_eff_unamb_vel,
+		       float azimuth_angle_degrees, float elevation_angle_degrees,
+		       float ew_wind, float ns_wind, float ud_wind,
+		       int max_pos_folds, int max_neg_folds,
+		       size_t ngates_averaged,
+		       float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask) {
+  try {
+
+    /// All data are coming in scaled and biased                                              
+
+    se_BB_unfold_local_wind(data, newData, nGates,
+			    nyquist_velocity, dds_radd_eff_unamb_vel,
+			    azimuth_angle_degrees, elevation_angle_degrees,
+			    ew_wind, ns_wind, ud_wind,
+			    max_pos_folds, max_neg_folds,
+			    ngates_averaged,
+			    bad_data_value, dgi_clip_gate, boundary_mask);
+
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+
+}
+
+
+
 void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
 					  float *newData, size_t nGates) {
 

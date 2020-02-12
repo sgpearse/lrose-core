@@ -47,6 +47,63 @@ public:
 		   float bad_data_value,
 		   string newFieldName);
 
+  string BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
+			       int rayIdx, int sweepIdx,
+			       float nyquist_velocity,
+			       int max_pos_folds,
+			       int max_neg_folds,
+			       size_t ngates_averaged,
+			       size_t clip_gate,
+			       float bad_data_value,
+			       string newFieldName);
+
+
+  string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
+			      int rayIdx, int sweepIdx,
+			      float nyquist_velocity,
+			      int max_pos_folds,
+			      int max_neg_folds,
+			      size_t ngates_averaged,
+			      size_t clip_gate,
+			      float bad_data_value,
+			      string newFieldName);
+  /*
+const float *data, float *newData, size_t nGates,
+                            float nyquist_velocity, float dds_radd_eff_unamb_vel,
+                            float azimuth_angle_degrees, float elevation_angle_degrees,
+// these come from the platform (asib) information
+                            float ew_horiz_wind,
+                            float ns_horiz_wind,
+                            float vert_wind,
+
+                            int max_pos_folds, int max_neg_folds,
+                            size_t ngates_averaged,
+                            float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
+  */
+
+  string BBUnfoldLocalWind(string fieldName, RadxVol *vol,
+			   int rayIdx, int sweepIdx,
+			   float nyquist_velocity,
+			   float ew_wind, float ns_wind, float ud_wind,
+			   int max_pos_folds,
+			   int max_neg_folds,
+			   size_t ngates_averaged,
+			   size_t clip_gate,
+			   float bad_data_value,
+			   string newFieldName);
+  /*
+const float *data, float *newData, size_t nGates,
+			 float nyquist_velocity, float dds_radd_eff_unamb_vel,
+			 float azimuth_angle_degrees, float elevation_angle_degrees,
+// these come from the editor (from the script)
+			 float ew_wind, float ns_wind, float ud_wind,
+
+			 int max_pos_folds, int max_neg_folds,
+			 size_t ngates_averaged,
+			 float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
+  */
+
+
   void SetBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx);
   void SetBoundaryMaskOriginal(RadxVol *vol, int rayIdx, int sweepIdx);
   void CheckForDefaultMask(RadxVol *vol, int rayIdx, int sweepIdx);
