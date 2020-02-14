@@ -157,7 +157,7 @@ void SoloFunctionsApi::RemoveAircraftMotion(float vert_velocity, float ew_veloci
 
 }
 
-void BBUnfoldFirstGoodGate(const float *data, float *newData, size_t nGates,
+void SoloFunctionsApi::BBUnfoldFirstGoodGate(const float *data, float *newData, size_t nGates,
 			   float nyquist_velocity, float dds_radd_eff_unamb_vel,
 			   int max_pos_folds, int max_neg_folds,
 			   size_t ngates_averaged,
@@ -182,7 +182,7 @@ void BBUnfoldFirstGoodGate(const float *data, float *newData, size_t nGates,
 
 
 
-void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
+void SoloFunctionsApi::BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
 			  float nyquist_velocity, float dds_radd_eff_unamb_vel,
 			  float azimuth_angle_degrees, float elevation_angle_degrees,
 			  float ew_horiz_wind,
@@ -195,10 +195,10 @@ void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
 
     /// All data are coming in scaled and biased                                              
 
-    se_BB_unfold_local_wind(data, newData, nGates,
+    se_BB_unfold_ac_wind(data, newData, nGates,
 			    nyquist_velocity, dds_radd_eff_unamb_vel,
 			    azimuth_angle_degrees, elevation_angle_degrees,
-			    ew_wind, ns_wind, ud_wind,
+			    ew_horiz_wind, ns_horiz_wind, vert_wind,
 			    max_pos_folds, max_neg_folds,
 			    ngates_averaged,
 			    bad_data_value, dgi_clip_gate, boundary_mask);
@@ -211,7 +211,7 @@ void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
 }
 
 
-void BBUnfoldLocalWind(const float *data, float *newData, size_t nGates,
+void SoloFunctionsApi::BBUnfoldLocalWind(const float *data, float *newData, size_t nGates,
 		       float nyquist_velocity, float dds_radd_eff_unamb_vel,
 		       float azimuth_angle_degrees, float elevation_angle_degrees,
 		       float ew_wind, float ns_wind, float ud_wind,
@@ -256,3 +256,4 @@ void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
     } 
   }
 }
+

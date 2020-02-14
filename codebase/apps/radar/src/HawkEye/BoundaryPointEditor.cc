@@ -173,7 +173,7 @@ void BoundaryPointEditor::draw(WorldPlot worldPlot, QPainter &painter)
 		  drawPointBox(worldPlot, painter, points[i]);
 	}
 
-	cout << "pointBox.size=" << (6 * pointBoxScale) << endl;
+	// cout << "pointBox.size=" << (6 * pointBoxScale) << endl;
 }
 
 void BoundaryPointEditor::drawPointBox(WorldPlot worldPlot, QPainter &painter, Point point)
@@ -196,7 +196,7 @@ bool BoundaryPointEditor::updateScale(double xRange)
 
 void BoundaryPointEditor::clear()
 {
-	cout << "clear points" << endl;
+        // cout << "clear points" << endl;
 	points.clear();
 }
 

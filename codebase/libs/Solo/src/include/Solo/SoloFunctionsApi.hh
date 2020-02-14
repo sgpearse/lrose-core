@@ -97,7 +97,6 @@ public:
 				    float *last_good_v0,
 				    float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
 
-
   void BBUnfoldAircraftWind(const float *data, float *newData, size_t nGates,
 			    float nyquist_velocity, float dds_radd_eff_unamb_vel,
 			    float azimuth_angle_degrees, float elevation_angle_degrees,

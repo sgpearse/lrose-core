@@ -727,14 +727,14 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
 }
 
 
-string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *vol,
+string SoloFunctionsModel::BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
 						int rayIdx, int sweepIdx,
 						float nyquist_velocity,
 						int max_pos_folds,
 						int max_neg_folds,
 						size_t ngates_averaged,
 						size_t clip_gate,
-						float bad_data_value,
+						    float bad_data_value, // TODO: pull this from data file?
 						string newFieldName) { 
 
   // find the ray and data
@@ -746,12 +746,6 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
 
   LOG(DEBUG) << "entry with fieldName ... ";
   LOG(DEBUG) << fieldName;
-
-  // gather data from context -- most of the data are in a DoradeRadxFile object
-
-  // TODO: convert the context RadxVol to DoradeRadxFile and DoradeData format;
-  //RadxVol vol = context->_vol;
-  // make sure the radar angles have been calculated.
 
   vol->loadRaysFromFields(); // loadFieldsFromRays();
 
@@ -765,7 +759,7 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
   //  get the ray for this field 
   const vector<RadxRay *>  &rays = vol->getRays();
   if (rays.size() > 1) {
-    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+    LOG(DEBUG) <<  "WARNING - more than one ray; expected only one";
   }
   RadxRay *ray = rays.at(rayIdx);
   if (ray == NULL) {
@@ -773,24 +767,8 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
     throw "Ray is null";
   } 
 
-
-  short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
-  int seds_nyquist_velocity = 0; // TODO: what is this value?
-
-  //  cerr << "sizeof(short) = " << sizeof(short);
-  //if (sizeof(short) != 16) 
-  //  throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
-  LOG(DEBUG) << "args: ";
-  LOG(DEBUG) << "vert_wind " << vert_wind;
-  LOG(DEBUG) <<   "ew_wind " << ew_wind;
-  LOG(DEBUG) <<   "ns_wind " << ns_wind;
-  LOG(DEBUG) <<   "tilt " << tilt;
-  LOG(DEBUG) <<   "elevation " << elevation;
-  //LOG(DEBUG) <<   "bad " << bad;
-  // LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
-  LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
-  LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
-
+  float dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
+  int seds_nyquist_velocity = nyquist_velocity; //  what is this value? It is the nyquist velocity set by "one time only" commands
 
   // get the data (in) and create space for new data (out)  
   field = ray->getField(fieldName);
@@ -798,11 +776,11 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
 
   float *newData = new float[nGates];
 
+  // data, _boundaryMask, and newData should have all the same dimensions = nGates
   if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
     // verify dimensions on data in/out and boundary mask
     if (nGates > _boundaryMaskLength)
       throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-
   }
 
   cerr << "there are nGates " << nGates;
@@ -811,37 +789,49 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
   // manage the last good v0, initialized from first good gate in a sweep;
   // and perpetuated for each ray in the sweep
   static float last_good_v0;
+  float missingValue = field->getMissingFl32();
 
   bool firstRayInSweep = rayIdx == 0;
+  float last_good_v0_passable = missingValue;
   if (firstRayInSweep) {
     // reset the running average?
     last_good_v0 = missingValue;
   }
+ 
+  LOG(DEBUG) << "args: ";
+  LOG(DEBUG) << "nyquist_velocity=" << nyquist_velocity;
+  LOG(DEBUG) << "dds_radd_eff_unamb_vel=" << dds_radd_eff_unamb_vel;
+  LOG(DEBUG) << "ngates_averaged= " << ngates_averaged;
+  LOG(DEBUG) << "max_pos_folds=" << max_pos_folds;
+  LOG(DEBUG) << "max_neg_folds=" << max_neg_folds;
+  LOG(DEBUG) << "clip_gate=" << clip_gate;
+  LOG(DEBUG) << "bad_data_value=" << bad_data_value;
+  LOG(DEBUG) << "missingValue=" << missingValue;
+  LOG(DEBUG) << "last_good_v0=" << last_good_v0;
 
-
-  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-  soloFunctionsApi.se_BB_unfold_first_good_gate(data, newData, nGates,
+  soloFunctionsApi.BBUnfoldFirstGoodGate(data, newData, nGates,
 						nyquist_velocity, dds_radd_eff_unamb_vel,
 						max_pos_folds, max_neg_folds,
 						ngates_averaged,
-						&last_good_v0,
-						bad_data_value, dgi_clip_gate, bnd);
+						&last_good_v0_passable,
+						bad_data_value, clip_gate, _boundaryMask);
+
+  LOG(DEBUG) << "returning ... last_good_v0=" << last_good_v0;
 
   // insert new field into RadxVol                                                                             
-  cerr << "result = ";
-  for (int i=0; i<50; i++)
-    cerr << newData[i] << ", ";
-  cerr << endl;
+  LOG(DEBUG) << "result = ";
+  for (int i=0; i<10; i++)
+    LOG(DEBUG) << newData[i] << ", ";
 
-  Radx::fl32 missingValue = Radx::missingFl32; 
+  //Radx::fl32 missingValue = Radx::missingFl32; 
   bool isLocal = false;
-
+  string field_units = field->getUnits();
   //RadxField *newField = new RadxField(newFieldName, "m/s");
   //newField->copyMetaData(*field);
   //newField->addDataFl32(nGates, newData);
-  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+  RadxField *field1 = ray->addField(newFieldName, field_units, nGates, missingValue, newData, isLocal);
 
   string tempFieldName = field1->getName();
   tempFieldName.append("#");
@@ -851,24 +841,27 @@ string SoloFunctionsModel::UnfoldUsingFirstGoodGate(string fieldName, RadxVol *v
   return tempFieldName;
 
 }
+/*
+// this form of unfolding takes wind data from the script variables
+string SoloFunctionsModel::BBUnfoldLocalWind(string fieldName, RadxVol *vol,
+					     int rayIdx, int sweepIdx,
+					     float nyquist_velocity,
+					     float ew_wind, float ns_wind, float ud_wind,
+					     int max_pos_folds,
+					     int max_neg_folds,
+					     size_t ngates_averaged,
+					     size_t clip_gate,
+					     float bad_data_value,
+					     string newFieldName) {
 
 
-string SoloFunctionsModel::UnfoldUsingLocalWind(string fieldName, RadxVol *vol,
-						int rayIdx, int sweepIdx,
-						float nyquist_velocity,
-						size_t clip_gate,
-						float bad_data_value,
-						string newFieldName) { 
+  throw "BBUnfoldLocalWind not implemented yet";
 
   // What is being returned? the name of the new field in the model that
   // contains the results.
 
   LOG(DEBUG) << "entry with fieldName ... ";
   LOG(DEBUG) << fieldName;
-
-  // gather data from context -- most of the data are in a DoradeRadxFile object
-
-  // make sure the radar angles have been calculated.
 
   vol->loadRaysFromFields(); // loadFieldsFromRays();
 
@@ -877,7 +870,7 @@ string SoloFunctionsModel::UnfoldUsingLocalWind(string fieldName, RadxVol *vol,
   //  get the ray for this field 
   const vector<RadxRay *>  &rays = vol->getRays();
   if (rays.size() > 1) {
-    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+    LOG(DEBUG) <<  "WARNING - more than one ray; expected only one";
   }
   RadxRay *ray = rays.at(rayIdx);
   if (ray == NULL) {
@@ -910,39 +903,9 @@ string SoloFunctionsModel::UnfoldUsingLocalWind(string fieldName, RadxVol *vol,
   // TODO: elevation changes with different rays/fields how to get the current one???
   float elevation = ray->getElevationDeg(); // doradeData.elevation; // fl32;
 
-  /* TODO:
+  // TODO:
   //=======  get the appropriate azimuth angle
-  
-double
-  dd_azimuth_angle(dgi)
-  struct dd_general_info *dgi;
- {
-   double d_rot;
-
-   if(dgi->dds->radd->scan_mode == AIR) {
-     // most aircraft data                                                                               
-     d_rot = FMOD360(DEGREES(dgi->dds->ra->azimuth)+360.);
-   }
-   else if(dgi->dds->radd->radar_type == AIR_LF ||
-	   dgi->dds->radd->radar_type == AIR_NOSE) {
-     // this is meant to apply only to the P3 lower fuselage data 
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr
-		       + dd_heading(dgi));
-   }
-   else {
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr);
-   }
-   return(d_rot);
- }
-  */
+  double azimuth_degrees = dd_azimuth_angle(vol);
 
  //=========
 
@@ -1018,22 +981,24 @@ double
   return tempFieldName;
 }
 
-string SoloFunctionsModel::UnfoldUsingAircraftWind(string fieldName, RadxVol *vol,
+// this form of unfolding uses wind information embedded in the data file (RadxVol)
+string SoloFunctionsModel::BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
 						int rayIdx, int sweepIdx,
 						float nyquist_velocity,
+						int max_pos_folds,
+						int max_neg_folds,
+						size_t ngates_averaged,
 						size_t clip_gate,
 						float bad_data_value,
-						string newFieldName) { 
+						string newFieldName) {
+
+  throw "BBUnfoldAircraftWind not implemented yet";
 
   // What is being returned? the name of the new field in the model that
   // contains the results.
 
   LOG(DEBUG) << "entry with fieldName ... ";
   LOG(DEBUG) << fieldName;
-
-  // gather data from context -- most of the data are in a DoradeRadxFile object
-
-  // make sure the radar angles have been calculated.
 
   vol->loadRaysFromFields(); // loadFieldsFromRays();
 
@@ -1092,40 +1057,11 @@ string SoloFunctionsModel::UnfoldUsingAircraftWind(string fieldName, RadxVol *vo
   //  float tilt = georef->getTilt(); 
   // TODO: elevation changes with different rays/fields how to get the current one???
   float elevation = ray->getElevationDeg(); 
-
-  /* TODO:
-  //=======  get the appropriate azimuth angle
   
-double
-  dd_azimuth_angle(dgi)
-  struct dd_general_info *dgi;
- {
-   double d_rot;
-
-   if(dgi->dds->radd->scan_mode == AIR) {
-     // most aircraft data                                                                               
-     d_rot = FMOD360(DEGREES(dgi->dds->ra->azimuth)+360.);
-   }
-   else if(dgi->dds->radd->radar_type == AIR_LF ||
-	   dgi->dds->radd->radar_type == AIR_NOSE) {
-     // this is meant to apply only to the P3 lower fuselage data 
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr
-		       + dd_heading(dgi));
-   }
-   else {
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr);
-   }
-   return(d_rot);
- }
-  */
+  
+  /// TODO:
+  //=======  get the appropriate azimuth angle
+  double azimuth_angle_degrees = dd_azimuth_angle(vol);
 
  //=========
 
@@ -1170,24 +1106,19 @@ double
   // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-  /*						     
-  soloFunctionsApi.RemoveAircraftMotion(vert_velocity, ew_velocity, ns_velocity,
-						     ew_gndspd_corr, tilt, elevation,
-						     fakeData,
-						     bad, parameter_scale, parameter_bias, dgi_clip_gate,
-						     dds_radd_eff_unamb_vel, seds_nyquist_velocity,
-						     _boundaryMask);
-  */
   // perform the function ...
   //  soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
   //                             clip_gate, _boundaryMask);
 
   soloFunctionsApi.BBUnfoldAircraftWind(data, newData, nGates,
-					vert_velocity, ew_velocity, ns_velocity,
-					ew_gndspd_corr, tilt, elevation,
-					
+					nyquist_velocity, seds_nyquist_velocity,
+					azimuth_angle_degrees, elevation_angle_degrees,
+					ew_horiz_wind,
+					ns_horiz_wind,
+					vert_wind,
+					max_pos_folds, max_neg_folds,
+					ngates_averaged,
 					bad_data_value, clip_gate,
-					dds_radd_eff_unamb_vel, seds_nyquist_velocity,
 					_boundaryMask);
   
 
@@ -1210,7 +1141,146 @@ double
 
   return tempFieldName;
 }
+*/
 
+/*
+double
+dd_heading(dgi)
+  struct dd_general_info *dgi;
+{
+  double d=dgi->dds->asib->heading;
+  if(dd_isnanf(d))
+    return((double)0);
+  else
+    return(d +dgi->dds->cfac->heading_corr);
+}
+
+double
+dd_pitch(dgi)
+  struct dd_general_info *dgi;
+{
+  double d=dgi->dds->asib->pitch;
+  if(dd_isnanf(d))
+    return((double)0);
+  else
+    return(d +dgi->dds->cfac->pitch_corr);
+}
+
+
+double
+dd_roll(dgi)
+  struct dd_general_info *dgi;
+{
+  double d=dgi->dds->asib->roll;
+  if(dd_isnanf(d))
+    return((double)0);
+  else
+    return(d +dgi->dds->cfac->roll_corr);
+}
+
+double SoloFunctionsApi::dd_azimuth_angle() {
+
+  //                                                                                                                           
+  //=======  get the appropriate azimuth angle                                                                                 
+
+double
+  dd_azimuth_angle(dgi)
+  struct dd_general_info *dgi;
+ {
+   double d_rot;
+
+   //if(dgi->dds->radd->scan_mode == AIR) {                                                                                    
+   if (scan_mode == AIR) {  // what is RadxVol equivalent?                                                                     
+     // most aircraft data                                                                                                     
+     d_rot = FMOD360(DEGREES(dgi->dds->ra->azimuth)+360.);
+   }
+   else if(dgi->dds->radd->radar_type == AIR_LF ||
+           dgi->dds->radd->radar_type == AIR_NOSE) {
+     // this is meant to apply only to the P3 lower fuselage data                                                              
+     d_rot = dgi->dds->ryib->azimuth;
+     if(dd_isnanf(d_rot))
+       d_rot = 0;
+     else
+       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr
+                       + dd_heading(dgi));
+   }
+   else {
+     d_rot = dgi->dds->ryib->azimuth;
+     if(dd_isnanf(d_rot))
+       d_rot = 0;
+     else
+       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr);
+   }
+   return(d_rot);
+ }
+  
+   }
+
+double SoloFunctionsApi::dd_elevation_angle() {
+                                                                                                                             
+double                                                                                                                         
+  dd_elevation_angle(dgi)                                                                                                      
+  struct dd_general_info *dgi;                                                                                                 
+ {                                                                                                                             
+   int mark;                                                                                                                   
+   double d, d_rot;                                                                                                            
+   double AzmR, ElR, PitchR, RollR, z;                                                                                         
+                                                                                                                               
+   if(dgi->dds->radd->scan_mode == AIR) {                                                                                      
+     // most aircraft data    
+  d_rot = DEGREES(dgi->dds->ra->elevation);
+}
+ else if(dgi->dds->radd->radar_type == AIR_LF) {
+   // this is meant to apply only to the P3 lower fuselage data.                                                             
+   // the elevation angle is recorded relative to the aircraft                                                               
+   // but the antenna is trying to maintain a constant elevation                                                             
+   // relative to the earth                                                                                                  
+                                                                                                                           
+   // This code courtesy of Bob Hueftle MRD/NOAA                                                                             
+    
+   d = dgi->dds->ryib->elevation;
+
+   if(dd_isnanf(d)) {
+     d_rot = 0;
+   }
+   else {
+     ElR = RADIANS(dgi->dds->ryib->elevation
+		   + dgi->dds->cfac->elevation_corr);
+
+     AzmR = RADIANS(dgi->dds->ryib->azimuth
+		    + dgi->dds->cfac->azimuth_corr);
+     PitchR = RADIANS(dd_pitch(dgi));
+     RollR = RADIANS(dd_roll(dgi));
+
+     z = cos(AzmR)*cos(ElR)*sin(PitchR)
+       + sin(ElR)*cos(PitchR)*cos(RollR)
+       - sin(AzmR)*cos(ElR)*cos(PitchR)*sin(RollR);
+
+     if(z > 1.) z = 1.;
+     else if(z < -1.) z = -1.;
+     d_rot = DEGREES(asin(z));
+   }
+ }
+ else {
+   switch(dgi->dds->radd->scan_mode) {
+
+   case TAR:
+   case VER:
+   default:
+     d = dgi->dds->ryib->elevation;
+
+     if(dd_isnanf(d)) {
+       d_rot = 0;
+     }
+     else {
+       d_rot = d + dgi->dds->cfac->elevation_corr;
+     }
+     break;
+   }
+ }
+return(d_rot);
+}
+*/
 
 
 

@@ -79,6 +79,29 @@ QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field, float ny
   return QString::fromStdString(tempFieldName);
 }
 
+
+QString  SoloFunctionsController::BB_UNFOLDING_FIRST_GOOD_GATE(QString field, float nyquist, 
+							       int max_pos_folds,
+							       int max_neg_folds,
+							       size_t ngates_averaged,
+							       float bad_data,
+							       size_t clip_gate) {
+
+  string tempFieldName = soloFunctionsModel.BBUnfoldFirstGoodGate(field.toStdString(), _data,
+								 _currentRayIdx, _currentSweepIdx,
+								 nyquist,
+								 max_pos_folds,
+								 max_neg_folds,
+								 ngates_averaged,
+								 clip_gate,
+								 bad_data,
+								 field.toStdString());
+
+  // returns name of new field in RadxVol                                                                                       
+  return QString::fromStdString(tempFieldName);
+}
+
+
 /*
 // How to return a vector
 QString  SoloFunctionsController::REMOVE_AIRCRAFT_MOTION(QString field) { 

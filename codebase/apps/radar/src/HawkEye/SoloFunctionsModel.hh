@@ -57,7 +57,7 @@ public:
 			       float bad_data_value,
 			       string newFieldName);
 
-
+  /*
   string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
 			      int rayIdx, int sweepIdx,
 			      float nyquist_velocity,
@@ -67,6 +67,8 @@ public:
 			      size_t clip_gate,
 			      float bad_data_value,
 			      string newFieldName);
+
+  */
   /*
 const float *data, float *newData, size_t nGates,
                             float nyquist_velocity, float dds_radd_eff_unamb_vel,
@@ -80,7 +82,7 @@ const float *data, float *newData, size_t nGates,
                             size_t ngates_averaged,
                             float bad_data_value, size_t dgi_clip_gate, bool *boundary_mask);
   */
-
+  /*
   string BBUnfoldLocalWind(string fieldName, RadxVol *vol,
 			   int rayIdx, int sweepIdx,
 			   float nyquist_velocity,
@@ -91,6 +93,7 @@ const float *data, float *newData, size_t nGates,
 			   size_t clip_gate,
 			   float bad_data_value,
 			   string newFieldName);
+  */
   /*
 const float *data, float *newData, size_t nGates,
 			 float nyquist_velocity, float dds_radd_eff_unamb_vel,
