@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     QCoreApplication::setAttribute(Qt::AA_DontUseNativeMenuBar);    
 
     app = new QApplication(argc, argv);
-    app->setWindowIcon(QIcon("://HawkEyeCycloneIcon.icns"));
+    app->setWindowIcon(QIcon("://HawkEyeElleIcon.icns"));
     //app->setWindowIcon(QIcon(":/radar.HawkEye.png"));
     LOG(DEBUG_VERBOSE) << "After setting Window Icon\n";
     HawkEye *Prog;

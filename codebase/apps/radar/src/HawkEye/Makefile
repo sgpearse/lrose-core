@@ -1,14 +1,14 @@
 # *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=* 
-# ** Copyright UCAR (c) 1990 - 2016                                         
-# ** University Corporation for Atmospheric Research (UCAR)                 
-# ** National Center for Atmospheric Research (NCAR)                        
-# ** Boulder, Colorado, USA                                                 
+# ** Copyright UCAR (c) 1990 - 2016                             
+# ** University Corporation for Atmospheric Research (UCAR)     
+# ** National Center for Atmospheric Research (NCAR)            
+# ** Boulder, Colorado, USA                                     
 # ** BSD licence applies - redistribution and use in source and binary      
 # ** forms, with or without modification, are permitted provided that       
-# ** the following conditions are met:                                      
-# ** 1) If the software is modified to produce derivative works,            
-# ** such modified software should be clearly marked, so as not             
-# ** to confuse it with the version available from UCAR.                    
+# ** the following conditions are met:                          
+# ** 1) If the software is modified to produce derivative works,
+# ** such modified software should be clearly marked, so as not 
+# ** to confuse it with the version available from UCAR.        
 # ** 2) Redistributions of source code must retain the above copyright      
 # ** notice, this list of conditions and the following disclaimer.          
 # ** 3) Redistributions in binary form must reproduce the above copyright   
@@ -16,7 +16,7 @@
 # ** documentation and/or other materials provided with the distribution.   
 # ** 4) Neither the name of UCAR nor the names of its contributors,         
 # ** if any, may be used to endorse or promote products derived from        
-# ** this software without specific prior written permission.               
+# ** this software without specific prior written permission.   
 # ** DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS  
 # ** OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED      
 # ** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.    
@@ -241,13 +241,46 @@ hawkeye_app:
 	rsync -r HawkEye.app HawkEye_bkg_test/.
 	hdiutil create -volname HawkEye_Installer4 -srcfolder /Users/brenda/git/lrose-core/codebase/apps/radar/src/HawkEye/HawkEye_bkg_test -ov -format UDZO HawkEye_test4.dmg
 
-
 # rm -r HawkEye_staging/HawkEye.app
 # mkdir -p HawkEye_staging
 # cp arrow.pdf HawkEye_staging/.background
 # ln -s /Applications HawkEye_staging/Applications
 # rsync -r HawkEye.app HawkEye_staging/.
 	hdiutil create -volname HawkEye_Installer -srcfolder /Users/brenda/git/lrose-core/codebase/apps/radar/src/HawkEye/HawkEye.app  -ov -format UDZO HawkEye_Cyclone.dmg
+
+
+
+DMG_BASE_DIR = /Users/brenda
+hawkeye_elle:
+	# pulled from circleci.yml
+	echo "building HawkEye.dmg"
+	# cd /private/tmp/workarea/$SOURCE_DIR/apps/radar/src/HawkEye
+	# pwd
+	make clean
+	/usr/local/Cellar/qt/5.13.1/bin/qmake -o Makefile.qmake
+	echo " ...  make from_qmake"
+	make -f Makefile.qmake
+	echo " ... after qmake"
+	mkdir -p HawkEye.app/Contents/Frameworks
+	echo " ... after mkdir"
+	cp /usr/lib/libexpat.1.dylib HawkEye.app/Contents/Frameworks/.
+	cp /usr/lib/libbz2.1.0.dylib HawkEye.app/Contents/Frameworks/.
+	cp /usr/lib/libz.1.dylib     HawkEye.app/Contents/Frameworks/.
+	cp /usr/lib/libSystem.B.dylib HawkEye.app/Contents/Frameworks/.
+	mkdir -p HawkEye.app/Contents/MacOS/../share
+	# cp -r /private/tmp/workarea/$SOURCE_DIR/share/color_scales HawkEye-Elle.app/Contents/MacOS/../share/.
+	cp -r ~/git/lrose-displays/color_scales HawkEye.app/Contents/MacOS/../share/.
+	echo " ... before calling macdeployqt"
+	# macdeployqt HawkEye.app -dmg -always-overwrite
+	/usr/local/Cellar/qt/5.13.1/bin/macdeployqt HawkEye.app -dmg -always-overwrite -codesign="${CERT_NAME}"
+	echo " .. before calling hdiutil"
+	hdiutil create -volname HawkEye_Elle -srcfolder /Users/brenda/git/lrose-core/codebase/apps/radar/src/HawkEye/HawkEye.app -ov -format UDZO HawkEye_Elle.dmg
+	# hdiutil create -volname HawkEye-Elle_Installer -srcfolder /private/tmp/workarea/$SOURCE_DIR/apps/radar/src/HawkEye/HawkEye-Elle.app -ov -format UDZO HawkEye-Elle.dmg
+	echo " ... after dmg build"
+	# cp HawkEye.dmg /private/tmp/workspace_macos/releases/lrose-cyclone
+	echo " ... done  building HawkEye"
+#         hdiutil create -volname HawkEye_Installer -srcfolder /Users/brenda/git/lrose-core/codebase/apps/radar/src/HawkEye/HawkEye.app  -ov -format UDZO HawkEye_Elle.dmg
+
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

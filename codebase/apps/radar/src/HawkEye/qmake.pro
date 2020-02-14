@@ -6,7 +6,7 @@ QT += qml
 
 TEMPLATE = app
 TARGET = HawkEye
-ICON = HawkEyeCycloneIcon.icns 
+ICON = HawkEyeElleIcon.icns 
 
 CONFIG += qt
 CONFIG += debug
@@ -169,4 +169,4 @@ LIBS += -framework QtWidgets
 LIBS += -framework QtScript
 LIBS += -framework QtQml
 
-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.13
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
