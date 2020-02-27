@@ -683,12 +683,6 @@ int DsMdvx::_readVolumeRemote(const DsURL &url)
     return -1;
   }
 
-  if (_convertFormatOnRead(url.getURLStr())) {
-    _errStr += "ERROR - DsMdvx::_readVolumeRemote.\n";
-    TaStr::AddStr(_errStr, "  Converting format after read");
-    return -1;
-  }
-
   return 0;
 
 }
@@ -758,12 +752,6 @@ int DsMdvx::_readVsectionRemote(const DsURL &url)
   if (msg.getSubType() != DsMdvxMsg::MDVP_READ_VSECTION) {
     _errStr += "ERROR - DsMdvx::_readVsectionRemote.\n";
     TaStr::AddInt(_errStr, "  Incorrect return subType: ", msg.getSubType());
-    return -1;
-  }
-  
-  if (_convertFormatOnRead(url.getURLStr())) {
-    _errStr += "ERROR - DsMdvx::_readVsectionRemote.\n";
-    TaStr::AddStr(_errStr, "  Converting format after read");
     return -1;
   }
   
@@ -1026,11 +1014,6 @@ int DsMdvx::writeToPath(const string &output_url)
 {
 
   clearErrStr();
-  
-  if (_convertFormatOnWrite(output_url)) {
-    _errStr += "ERROR - COMM - DsMdvx::writeToPath.\n";
-    return -1;
-  }
   
   // resolve server details
 
@@ -1376,62 +1359,3 @@ int DsMdvx::_resolveTimeListUrl(DsURL &url, bool *contact_server)
 
 }
 
-#ifdef JUNK
-
-////////////////////////////////////////////////
-// write to specified directory, locally
-// returns 0 on success, -1 on failure
-
-int DsMdvx::_writeToDirLocal(const string &url)
-  
-{
-  
-  if (_debug) {
-    cerr << "WRITE TO DIR" << endl;
-    printWriteOptions(cerr);
-    cerr << "  current format: " << format2Str(_internalFormat) << endl;
-    cerr << "  write format: " << format2Str(_writeFormat) << endl;
-  }
-
-  if (_internalFormat == FORMAT_NCF && _writeFormat == FORMAT_NCF) {
-    // NCF to NCF - apply constraints
-    if(_constrainNcfAndWrite(url)) {
-      _errStr += "ERROR - DsMdvx::_writeToDirLocal\n";
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-
-  if (_internalFormat == FORMAT_NCF && _writeFormat == FORMAT_MDV) {
-    // convert NCF to MDV and write
-    if (_convertNcfToMdvAndWrite(url)) {
-      _errStr += "ERROR - DsMdvx::_writeToDirLocal\n";
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-
-  if (_internalFormat == FORMAT_MDV && _writeFormat == FORMAT_NCF) {
-    // convert MDV to NCF and write
-    if (_convertMdvToNcfAndWrite(url)) {
-      _errStr += "ERROR - DsMdvx::_writeToDirLocal\n";
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-
-  // MDV to MDV
-
-  if (_writeAsMdv(url)) {
-    _errStr += "ERROR - DsMdvx::_writeToDirLocal\n";
-    return -1;
-  }
-
-  return 0;
-
-}
-
-#endif
