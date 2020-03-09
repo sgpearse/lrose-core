@@ -39,8 +39,6 @@ LOC_LDFLAGS =
 LOC_LIBS = \
 	-ltoolsa -lpthread -ldataport -lbz2 -lm
 
-MODULE_TYPE=program
-
 TARGET_FILE = test_procmap
 
 HDRS =
@@ -54,7 +52,7 @@ SRCS = \
 # general targets
 #
 
-include $(RAP_MAKE_INC_DIR)/rap_make_targets
+include $(RAP_MAKE_INC_DIR)/rap_make_c_targets
 
 #
 # local targets
