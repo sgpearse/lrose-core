@@ -449,7 +449,7 @@ void se_copy_bad_flags(const float *data, size_t nGates,
 
 /* c------------------------------------------------------------------------ */
 
-void se_flag_glitches(const float *data, float *newData, size_t nGates,
+void se_flag_glitches(float deglitch_threshold, const float *data, float *newData, size_t nGates,
 			 float bad, size_t dgi_clip_gate,
 			 bool *boundary_mask, bool *bad_flag_mask) 
 // #flag-glitches# 
@@ -469,42 +469,22 @@ void se_flag_glitches(const float *data, float *newData, size_t nGates,
   static int que_size = 0;
   static int *que, *qctr;
 
-  struct solo_edit_stuff *seds, *return_sed_stuff();
-  struct dd_general_info *dgi, *dd_window_dgi();
-  struct dds_structs *dds;
 
   short *ss;
-  unsigned short *bnd, *flag;
+  bool *bnd, *flag;
   /* boundary mask is set to 1 if the corresponding cell satisfies                                  
    * conditions of the boundaries                                                                   
    */
 
-  seds = return_sed_stuff();  /* solo editing struct */
-  if(seds->finish_up) {
-    return(1);
-  }
-  seds->modified = YES;
-  bnd = seds->boundary_mask;
-  seds->bad_flag_mask = flag = seds->bad_flag_mask_array;
-  dgi = dd_window_dgi(seds->se_frame);
-  dds = dgi->dds;
+  bnd = boundary_mask;
+  flag = bad_flag_mask;
   name = (cmdq++)->uc_text;
   mm = strlen(name);
 
-  if((fn = dd_find_field(dgi, name)) < 0) {
-    uii_printf("Field to be deglitched: %s not found\n", name);
-    seds->punt = YES;
-    return(-1);
-  }
-# ifdef NEW_ALLOC_SCHEME
-  ss = (short *)dds->qdat_ptrs[fn];
-# else
-  ss = (short *)((char *)dds->rdat[fn] +sizeof(struct paramdata_d));
-# endif
-  scaled_thr = DD_SCALE(seds->deglitch_threshold
-			, dds->parm[fn]->parameter_scale
-			, dds->parm[fn]->parameter_bias);
-  bad = dds->parm[fn]->bad_data;
+  ss = data;
+
+  scaled_thr = deglitch_threshold;
+
   if( seds->deglitch_radius < 1 )
     { seds->deglitch_radius = 3; }
   navg = seds->deglitch_radius *2 +1;
