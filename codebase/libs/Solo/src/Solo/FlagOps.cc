@@ -62,78 +62,25 @@ void se_do_clear_bad_flags_array(bool *bad_flag_mask, size_t nn)
 void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const float *data, size_t nGates,
 		      float bad, size_t dgi_clip_gate, bool *boundary_mask, bool *bad_flag_mask)
 {
-  //int below;
-  //struct ui_command *cmdq=cmds+1; /* point to the first argument */
-  //struct solo_edit_stuff *seds, *return_sed_stuff();
-  //struct dd_general_info *dgi, *dd_window_dgi();
-  //struct dds_structs *dds;
-    //char *name, *dst_name, *where;
-    //float f_thr1, f_thr2;
-
   size_t nc; 
-  //int nd, nchar, bad, thr_bad, fn, fgg;
-    //int gg, ii, jj, kk, nn, scaled_thr1, scaled_thr2, mark, fthr;
-    //short *anchor, *ss, *zz; // , *thr=NULL;
     const float *zz;
     const float *thr;
     bool *bnd, *flag; // was unsigned short
 
 
-    //name = (cmdq++)->uc_text;
-    //nchar = strlen(name);
-    //where = (cmdq++)->uc_text;
-    //f_thr1 = (cmdq++)->uc_v.us_v_float;
-    //if(cmdq->uc_ctype != UTT_END)
-    //  f_thr2 = cmdq->uc_v.us_v_float;
-
-    //seds = return_sed_stuff();
-    //if(seds->finish_up) {
-    //	return(1);
-    //}
-    //seds->modified = YES;
-    // which frame is active; i.e. which frame to apply command
-    //dgi = dd_window_dgi(seds->se_frame);
-    //dds = dgi->dds;
     nc = dgi_clip_gate+1;
-    // fgg = seds_first_good_gate; // not used??
     bnd = boundary_mask;
     flag = bad_flag_mask;
-    //seds->bad_flag_mask = flag = seds->bad_flag_mask_array;
-    //
-    // find the thr field; the data are sent as an argument
-    //
-    //if((fn = dd_find_field(dgi, name)) < 0) {
-    // thr field not found
-    //
-    // uii_printf("Set bad flags field: %s not found\n", name);
-    // seds->punt = YES;
-    // return(-1);
-    //}
-    // fn is an index for the data field
+
     // thr is a pointer to the data
-    //# ifdef NEW_ALLOC_SCHEME
-    //thr = (short *)dds->qdat_ptrs[fn];
-    //# else
-    //thr = (short *)((char *)dds->rdat[fn] + sizeof(struct paramdata_d));
-    //# endif
     thr = data;
-    //thr_bad = bad; // dds->parm[fn]->bad_data;
     zz = thr +nc;
-    //    scaled_thr1 = DD_SCALE(f_thr1, dds->parm[fn]->parameter_scale
-    //		  , dds->parm[fn]->parameter_bias);
-    //scaled_thr2 = DD_SCALE(f_thr2, dds->parm[fn]->parameter_scale
-    //		  , dds->parm[fn]->parameter_bias);
-    //bad = dds->parm[fn]->bad_data;
     se_do_clear_bad_flags_array(bad_flag_mask, nc);
    
-    /*
-     * loop through the data
-     */
-
     if(strncmp(where, "below", 3) == 0) {
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
-	      *flag = false; // continue;
+	       continue;
 	    if(*thr < scaled_thr1) {
 		*flag = true;
 	    }
@@ -142,7 +89,7 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
     else if(strncmp(where, "above", 3) == 0) {
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
-	      *flag = false; // continue;
+	      continue;
 	    if(*thr > scaled_thr1) {
 		*flag = true;
 	    }
@@ -151,13 +98,12 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
     else {			/* between */
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
-	      *flag = false; // continue;
+	      continue;
 	    if(*thr >= scaled_thr1 && *thr <= scaled_thr2) {
 		*flag = true;
 	    }
 	}
     }
-    //    return(fn);
 }  
 /* c------------------------------------------------------------------------ */
 
@@ -444,7 +390,7 @@ void se_copy_bad_flags(const float *data, size_t nGates,
 //
 void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
 		      int deglitch_min_bins,  // aka deglitch_min_gates
-		      const float *data, float *newData, size_t nGates,
+		      const float *data, size_t nGates,
 		      float bad, size_t dgi_clip_gate,
 		      bool *boundary_mask, bool *bad_flag_mask) 
 // #flag-glitches# 
@@ -474,11 +420,7 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
 
   bnd = boundary_mask;
   flag = bad_flag_mask;
-  //name = (cmdq++)->uc_text;
-  //mm = strlen(name);
-
   ss = data;
-
   scaled_thr = deglitch_threshold;
 
   if( deglitch_radius < 1 )
@@ -496,20 +438,21 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
 
   
   //if(seds->process_ray_count == 1) { // TODO: I don't know what this means; process_ray_count???
-    //                                                                                            
-    // set up                                                                                     
-    //
-    if( navg > que_size ) {
-      if( que_size )
-	{ free( que ); }
-      que = (float *)malloc( navg * sizeof( float ));
-      que_size = navg;
-    }
-    //}
+  //                                                                                            
+  // set up                                                                                     
+  //
+  if( navg > que_size ) {
+    if( que_size )
+      { free( que ); }
+    que = (float *)malloc( navg * sizeof( float ));
+    que_size = navg;
+  }
+  //}
   
 
   nc = dgi_clip_gate +1;
 
+  // TODO: I don't think this code works ...
   // ndx_ss is an index ( offset into data vector )
   // navg must be number in the running average of good bins
   //
@@ -518,7 +461,11 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
     // move the cell index to the first                                                            
     // gate inside the next boundary                                                               
     //
-    for(; ndx_ss < nc && !(*(bnd + ndx_ss)); ndx_ss++ );
+    //for(; ndx_ss < nc && !(*(bnd + ndx_ss)); ndx_ss++ );
+    while (ndx_ss < nc && !(*(bnd + ndx_ss))) {
+      ndx_ss++;
+    }
+
     //                                                                                            
     // set up the queue                                                                           
     //
@@ -556,7 +503,8 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
 	  good_bins--;
 	  *qctr = bad;
 	  // ii = ndx_ss - half;
-	  *(flag + ndx_ss - half) = 1; // flag this gate 
+          // TODO: I think this marks the wrong position; maybe remove "- half" ???
+	  *(flag + ndx_ss - half) = true; // flag this gate 
 	}
       }
       ndx_qend = ++ndx_qend % que_size;

@@ -79,10 +79,37 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
                           int BB_max_pos_folds, int BB_max_neg_folds,
                           float bad_data_value, size_t dgi_clip_gate, bool *bnd);
 
+// Bad flag operations
+
+void se_do_clear_bad_flags_array(bool *bad_flag_mask, size_t nn);
+
+void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const float *data, 
+		      size_t nGates,
+                      float bad, size_t dgi_clip_gate, bool *boundary_mask, bool *bad_flag_mask);
+
+void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
+                         float bad, size_t dgi_clip_gate,
+                         bool *boundary_mask, bool *bad_flag_mask);
+
+void se_flagged_add(float f_const, bool multiply, const float *data, float *newData, size_t nGates,
+		    float bad, size_t dgi_clip_gate,
+		    bool *boundary_mask, bool *bad_flag_mask);
+
+void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
+                        char *logical_operator, const float *data, size_t nGates,
+			float bad, size_t dgi_clip_gate,
+			bool *boundary_mask, bool *bad_flag_mask);
+
+void se_clear_bad_flags(bool complement, size_t nGates,
+                        bool *bad_flag_mask);
+
+void se_copy_bad_flags(const float *data, size_t nGates,
+		       float bad, size_t dgi_clip_gate,
+		       bool *boundary_mask, bool *bad_flag_mask);
 
 void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
                       int deglitch_min_bins,  // aka deglitch_min_gates                              
-                      const float *data, float *newData, size_t nGates,
+                      const float *data, size_t nGates,
                       float bad, size_t dgi_clip_gate,
                       bool *boundary_mask, bool *bad_flag_mask);
 
