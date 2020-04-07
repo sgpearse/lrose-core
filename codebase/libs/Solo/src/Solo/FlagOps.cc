@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 // Bad flags can be set using values in one data field,
 // then applied to another data field.
@@ -38,7 +42,7 @@
 void se_do_clear_bad_flags_array(bool *bad_flag_mask, size_t nn)
 {
 
-  memset(bad_flag_mask, 0, nn * sizeof(bool)); 
+  memset(bad_flag_mask, false, nn * sizeof(bool)); 
   // (nn > 0 ? nn : seds->max_gates) * sizeof(*seds->bad_flag_mask_array));
 }
 /* c------------------------------------------------------------------------ */
@@ -70,8 +74,8 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
   //int nd, nchar, bad, thr_bad, fn, fgg;
     //int gg, ii, jj, kk, nn, scaled_thr1, scaled_thr2, mark, fthr;
     //short *anchor, *ss, *zz; // , *thr=NULL;
-    float *zz;
-    float *thr;
+    const float *zz;
+    const float *thr;
     bool *bnd, *flag; // was unsigned short
 
 
@@ -120,7 +124,7 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
     //scaled_thr2 = DD_SCALE(f_thr2, dds->parm[fn]->parameter_scale
     //		  , dds->parm[fn]->parameter_bias);
     //bad = dds->parm[fn]->bad_data;
-    se_do_clear_bad_flags_array(nc, bad_flag_mask);
+    se_do_clear_bad_flags_array(bad_flag_mask, nc);
    
     /*
      * loop through the data
@@ -166,18 +170,17 @@ void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
 			 float bad, size_t dgi_clip_gate,
 			 bool *boundary_mask, bool *bad_flag_mask)
 {
-  //size_t  nc; //  nd, fn;
-  //int ii, nn, mark;
-  //float *ss, *zz, *orig;
+    size_t  nc;
+    float *ss, *zz;
+    const float *orig;
     bool *bnd, *flag;
 
-    //nc = clip_gate+1;
+    nc = dgi_clip_gate+1;
     bnd = boundary_mask;
     flag = bad_flag_mask;
-    //orig = data + nc;
-    //ss = newData;
-    //nc = dgi_clip_gate;
-    //zz = ss + nc;
+    orig = data;
+    ss = newData;
+    zz = ss + nc;
     
     /*
      * loop through the data
@@ -189,19 +192,6 @@ void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
       else 
 	*ss = *orig;
     }
-
-    /* or using index ...
-    size_t endIndex = dgi_clip_gate;
-    if (endIndex > nGates)
-      endIndex = nGates;
-    for (size_t index = 0; index < endIndex; index++) {
-      if (bnd[index] && flag[index])
-	newData[index] = bad;
-      else
-	newData[index] = data[index];
-
-    }
-    */
 }  
 /* c------------------------------------------------------------------------ */
 
@@ -219,7 +209,8 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     size_t nc;
     //  bad, fn;
     int gg, ii, jj, kk, nn, scaled_const, mark;
-    float *ss, *zz, *orig;
+    float *ss, *zz;
+    const float *orig;
     bool *bnd, *flag;
 
     //f_const = (cmdq++)->uc_v.us_v_float;
@@ -267,9 +258,10 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
   // #xor-bad-flags#
   //
 
-    size_t nc; // , nchar, bad, fn;
-    int gg, ii, jj, kk, nn; // , scaled_thr1, scaled_thr2, mark;
-    float *ss, *zz, *thr=NULL;
+    size_t nc; 
+    int gg, ii, jj, kk, nn;
+    const float *zz;
+    const float *thr;
     bool *bnd, *flag;
 
     nc = dgi_clip_gate+1;
@@ -364,7 +356,7 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		    *flag ^= *thr >= scaled_thr1 && *thr <= scaled_thr2;
 		}
 	    }
-	}v
+	}
 	else {			/* or */
 	    for(; thr < zz; thr++,bnd++,flag++) {
 		if(!(*bnd))
@@ -401,7 +393,7 @@ void se_clear_bad_flags(bool complement, size_t nGates,
 }  
 /* c------------------------------------------------------------------------ */
 
-// bad_flag_mask In/Out parameter; flags outside boundary are NOT changed.
+// NOTE: bad_flag_mask In/Out parameter; flags outside boundary are NOT changed.
 //
 void se_copy_bad_flags(const float *data, size_t nGates,
 			 float bad, size_t dgi_clip_gate,
@@ -417,12 +409,11 @@ void se_copy_bad_flags(const float *data, size_t nGates,
     size_t nc;
     //  nd, nchar, bad, thr_bad, fn, fgg;
     int gg, ii, jj, kk, nn, scaled_thr1, scaled_thr2, mark;
-    short *anchor, *ss, *zz, *thr=NULL;
+    const float *zz, *thr;
     bool *bnd, *flag;
 
-
     nc = dgi_clip_gate+1;
-    fgg = seds->first_good_gate;
+    //fgg = seds->first_good_gate;
     bnd = boundary_mask;
     flag = bad_flag_mask;
     /*
@@ -430,8 +421,8 @@ void se_copy_bad_flags(const float *data, size_t nGates,
      */
     thr = data; // ??? (short *)((char *)dds->rdat[fn] + sizeof(struct paramdata_d));
 
-    thr_bad = bad; // dds->parm[fn]->bad_data;
-    zz = thr +nc;
+    //thr_bad = bad; // dds->parm[fn]->bad_data;
+    zz = thr + nc;
     //bad = dds->parm[fn]->bad_data;
 
     /*
@@ -449,9 +440,13 @@ void se_copy_bad_flags(const float *data, size_t nGates,
 
 /* c------------------------------------------------------------------------ */
 
-void se_flag_glitches(float deglitch_threshold, const float *data, float *newData, size_t nGates,
-			 float bad, size_t dgi_clip_gate,
-			 bool *boundary_mask, bool *bad_flag_mask) 
+// sets bad flag mask
+//
+void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
+		      int deglitch_min_bins,  // aka deglitch_min_gates
+		      const float *data, float *newData, size_t nGates,
+		      float bad, size_t dgi_clip_gate,
+		      bool *boundary_mask, bool *bad_flag_mask) 
 // #flag-glitches# 
 {
   /* routine to remove discountinuities (freckles) from the data                                    
@@ -460,17 +455,18 @@ void se_flag_glitches(float deglitch_threshold, const float *data, float *newDat
    * but switches to a trailing average once enough good points                                     
    * have been encountered                                                                          
    */
-  struct ui_command *cmdq=cmds+1; /* point to the first argument */
-  int fn, ii, jj, kk, mm, nn, mark, navg;
-  int nc, ndx_ss, bad, scaled_thr;
+  //struct ui_command *cmdq=cmds+1; /* point to the first argument */
+  int jj, kk, mm, nn, navg; // mark, ;
+  size_t nc, ndx_ss;
+  float scaled_thr;
   int ndx_qend, ndx_qctr, min_bins, good_bins, half, sum, ival;
   double rcp_ngts, davg, diff;
-  char *name;
+  //char *name;
+  //vector<int> que;
   static int que_size = 0;
-  static int *que, *qctr;
+  static float *que, *qctr;
 
-
-  short *ss;
+  const float *ss;
   bool *bnd, *flag;
   /* boundary mask is set to 1 if the corresponding cell satisfies                                  
    * conditions of the boundaries                                                                   
@@ -478,55 +474,62 @@ void se_flag_glitches(float deglitch_threshold, const float *data, float *newDat
 
   bnd = boundary_mask;
   flag = bad_flag_mask;
-  name = (cmdq++)->uc_text;
-  mm = strlen(name);
+  //name = (cmdq++)->uc_text;
+  //mm = strlen(name);
 
   ss = data;
 
   scaled_thr = deglitch_threshold;
 
-  if( seds->deglitch_radius < 1 )
-    { seds->deglitch_radius = 3; }
-  navg = seds->deglitch_radius *2 +1;
+  if( deglitch_radius < 1 )
+    { deglitch_radius = 3; }
+  navg = deglitch_radius *2 +1;
   half = navg/2;
 
-  if( seds->deglitch_min_bins > 0 ) {
-    if( seds->deglitch_min_bins > navg )
-      { seds->deglitch_min_bins = navg; }
-    min_bins = seds->deglitch_min_bins;
+  if( deglitch_min_bins > 0 ) {
+    if( deglitch_min_bins > navg )
+      { deglitch_min_bins = navg; }
+    min_bins = deglitch_min_bins;
   }
   else
-    { seds->deglitch_min_bins = min_bins = navg; }
+    { deglitch_min_bins = min_bins = navg; }
 
-  if(seds->process_ray_count == 1) {
-    /*                                                                                            
-     * set up                                                                                     
-     */
+  
+  //if(seds->process_ray_count == 1) { // TODO: I don't know what this means; process_ray_count???
+    //                                                                                            
+    // set up                                                                                     
+    //
     if( navg > que_size ) {
       if( que_size )
 	{ free( que ); }
-      que = (int *)malloc( navg * sizeof( int ));
+      que = (float *)malloc( navg * sizeof( float ));
       que_size = navg;
     }
-  }
-  nc = dgi->clip_gate +1;
+    //}
+  
 
+  nc = dgi_clip_gate +1;
+
+  // ndx_ss is an index ( offset into data vector )
+  // navg must be number in the running average of good bins
+  //
   for( ndx_ss = 0; ndx_ss < nc; ) {
-    /*                                                                                             
-     * move the cell index to the first                                                            
-     * gate inside the next boundary                                                               
-     */
+    //                                                                                             
+    // move the cell index to the first                                                            
+    // gate inside the next boundary                                                               
+    //
     for(; ndx_ss < nc && !(*(bnd + ndx_ss)); ndx_ss++ );
-    /*                                                                                            
-     * set up the queue                                                                           
-     */
+    //                                                                                            
+    // set up the queue                                                                           
+    //
     ndx_qend = 0;
     good_bins = 0;
     sum = 0;
 
-    /* and start looking for the good gates count to equal or                                     
-     * exceed the min_bins and the center bin not be bad                                          
-     */
+    // and start looking for the good gates count to equal or                                     
+    // exceed the min_bins and the center bin not be bad                                          
+    //
+    // ndx_qend points to next empty spot in que
 
     for(mm = 0; ndx_ss < nc && *(bnd+ndx_ss); ndx_ss++ ) {
       if( ++mm > navg ) {  /* after the que is full */
@@ -538,23 +541,22 @@ void se_flag_glitches(float deglitch_threshold, const float *data, float *newDat
       *(que + ndx_qend) = ival;
       if( ival != bad )
 	{ sum += ival; good_bins++; }
-      else
-	{ mark = 0; }
 
+      // ndx_qctr is the index to the center of the queue 
       ndx_qctr = (ndx_qend - half + navg ) % que_size;
       qctr = que + ndx_qctr;
 
       if( good_bins >= min_bins && *qctr != bad ) {
-	/*                                                                                      
-	 * do a test                                                                            
-	 */
+	//                                                                                      
+	// do a test                                                                            
+	//
 	davg = (double)(sum - *qctr)/(double)(good_bins -1);
-	if(( diff = FABS( davg - *qctr)) > scaled_thr ) {
+	if(( diff = fabs( davg - *qctr)) > scaled_thr ) {
 	  sum -= *qctr;
 	  good_bins--;
 	  *qctr = bad;
-	  ii = ndx_ss - half;
-	  *(flag + ndx_ss - half) = 1; /* flag this gate */
+	  // ii = ndx_ss - half;
+	  *(flag + ndx_ss - half) = 1; // flag this gate 
 	}
       }
       ndx_qend = ++ndx_qend % que_size;

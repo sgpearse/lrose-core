@@ -80,6 +80,10 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
                           float bad_data_value, size_t dgi_clip_gate, bool *bnd);
 
 
-
+void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
+                      int deglitch_min_bins,  // aka deglitch_min_gates                              
+                      const float *data, float *newData, size_t nGates,
+                      float bad, size_t dgi_clip_gate,
+                      bool *boundary_mask, bool *bad_flag_mask);
 
 #endif
