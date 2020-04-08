@@ -180,6 +180,8 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     zz = ss +nc;
     orig = data;
  
+    memcpy(newData, data, nGates*sizeof(float));
+ 
     //
     // loop through the data
     //
@@ -187,7 +189,7 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     if(multiply) { // strstr(cmds->uc_text, "d-m")) { // multiply 
       for(; ss < zz; ss++,bnd++,flag++,orig++) {
 	if(*bnd && *ss != bad && *flag) {
-	  *ss *= f_const;
+	  *ss = *orig * f_const;
 	} else
 	  *ss = *orig;
       }
@@ -195,7 +197,7 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     else {			// add 
       for(; ss < zz; ss++,bnd++,flag++,orig++) {
 	if(*bnd && *ss != bad && *flag) {
-	  *ss += f_const;
+	  *ss = *orig + f_const;
 	} else
 	  *ss = *orig;
       }
