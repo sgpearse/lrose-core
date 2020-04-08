@@ -33,7 +33,7 @@
  * 
  */
 
-
+// TODO: how to report errors?
 
 
 
@@ -67,8 +67,11 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
     const float *thr;
     bool *bnd, *flag; // was unsigned short
 
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate+1;
 
-    nc = dgi_clip_gate+1;
     bnd = boundary_mask;
     flag = bad_flag_mask;
 
@@ -121,7 +124,11 @@ void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
     const float *orig;
     bool *bnd, *flag;
 
-    nc = dgi_clip_gate+1;
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate+1;
+
     bnd = boundary_mask;
     flag = bad_flag_mask;
     orig = data;
@@ -162,7 +169,11 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     //f_const = (cmdq++)->uc_v.us_v_float;
     //name = (cmdq++)->uc_text;
 
-    nc = dgi_clip_gate+1;
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate+1;
+
     bnd = boundary_mask;
     flag = bad_flag_mask;
     ss = newData;
@@ -210,7 +221,11 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
     const float *thr;
     bool *bnd, *flag;
 
-    nc = dgi_clip_gate+1;
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate+1;
+
     bnd = boundary_mask;
     flag = bad_flag_mask;
     thr = data;
@@ -358,7 +373,11 @@ void se_copy_bad_flags(const float *data, size_t nGates,
     const float *zz, *thr;
     bool *bnd, *flag;
 
-    nc = dgi_clip_gate+1;
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate+1;
+
     //fgg = seds->first_good_gate;
     bnd = boundary_mask;
     flag = bad_flag_mask;
@@ -450,7 +469,10 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
   //}
   
 
-  nc = dgi_clip_gate +1;
+    if (dgi_clip_gate >= nGates)
+      nc = nGates;
+    else 
+      nc = dgi_clip_gate +1;
 
   // TODO: I don't think this code works ...
   // ndx_ss is an index ( offset into data vector )
