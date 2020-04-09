@@ -342,9 +342,9 @@ void se_clear_bad_flags(bool complement, size_t nGates,
   size_t nn;
   bool *flag;
 
+  flag = bad_flag_mask;
 
     if(complement) {
-      flag = bad_flag_mask;
       nn = nGates;
       for(; nn--; flag++) {
 	*flag = *flag ? 0 : 1;
@@ -367,7 +367,7 @@ void se_copy_bad_flags(const float *data, size_t nGates,
      * gates in the test field
      */
 
-    char *name, *where;
+    // char *name, *where;
 
     size_t nc;
     //  nd, nchar, bad, thr_bad, fn, fgg;
