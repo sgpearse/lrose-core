@@ -257,3 +257,131 @@ void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
   }
 }
 
+//
+// Bad flag operations
+//
+
+//
+// parameters:
+// in    data
+// in/out bad_flag_mask
+// new variable is bad_flag_mask
+void SoloFunctionsApi::SetBadFlags(char *where, float scaled_thr1, float scaled_thr2,
+				   const float *data, size_t nGates,
+				   float bad, size_t dgi_clip_gate,
+				   bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_set_bad_flags(where, scaled_thr1, scaled_thr2,
+		     data, newData, nGates, 
+		     bad, dgi_clip_gate,
+		     boundary_mask, bad_flag_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+//
+// parameters:
+// in   data
+// in   bad_flag_mask
+// in/out newData 
+void SoloFunctionsApi::AssertBadFlags(const float *data, float *newData, size_t nGates,
+				      float bad, size_t dgi_clip_gate,
+				      bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_assert_bad_flags(data, newData, nGates,
+			bad, dgi_clip_gate,
+			boundary_mask, bad_flag_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+//
+// Add or multiply a constant to every data value marked bad;
+// return result in newData array.
+// if multiply is true, multiply the constant
+// if multiply is false, add the constant
+
+// parameters:
+// in      data
+// in/out  newData
+// in      bad_flag_mask
+void SoloFunctionsApi::FlaggedAdd(float f_const, bool multiply, 
+				  const float *data, float *newData, size_t nGates,
+				  float bad, size_t dgi_clip_gate,
+				  bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_flagged_add(f_const, multiply,
+		   data, newData, nGates,
+		   bad, dgi_clip_gate,
+		   boundary_mask, bad_flag_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+//
+// Apply logical expression to every data value marked bad;
+// return result in newData array.
+// if multiply is true, multiply the constant
+// if multiply is false, add the constant
+
+// parameters:
+// in      data
+// in/out  newData
+// in      bad_flag_mask
+void SoloFunctionsApi::BadFlagsLogic(float scaled_thr1, float scaled_thr2, char *where,
+                        char *logical_operator, const float *data, size_t nGates,
+                        float bad, size_t dgi_clip_gate,
+                        bool *boundary_mask, bool *bad_flag_mask)   try {
+    se_bad_flags_logic(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+void SoloFunctionsApi::se_clear_bad_flags(bool complement, size_t nGates,
+					  bool *bad_flag_mask) {
+  try {
+    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+void SoloFunctionsApi::se_copy_bad_flags(const float *data, size_t nGates,
+                       float bad, size_t dgi_clip_gate,
+					 bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+void SoloFunctionsApi::se_flag_glitches(float deglitch_threshold, int deglitch_radius,
+                      int deglitch_min_bins,  // aka deglitch_min_gates                                  
+                      const float *data, size_t nGates,
+                      float bad, size_t dgi_clip_gate,
+					bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+void SoloFunctionsApi::Despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
+				 size_t dgi_clip_gate, bool *boundary_mask) {
+  try {
+    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}

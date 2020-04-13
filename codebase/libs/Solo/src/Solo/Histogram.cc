@@ -26,8 +26,49 @@ void se_histo_init();
 int  se_histog_setup();
 */
 
-/* c------------------------------------------------------------------------ */
+// from solo_editor_structs (aka seds) ...
+/* histogram stuff */
+# define      H_BIN_MAX 100
+# define         H_BINS 0x01
+# define        H_AREAS 0x02
+# define          H_REG 0x04
+# define        H_IRREG 0x08
 
+double histo_start_time;
+double histo_stop_time;
+struct se_pairs *h_pairs;
+
+int histo_key;
+int histo_num_bins;
+int histo_output_key;
+int histo_output_lines;
+
+int low_count;
+int medium_count;
+int high_count;
+int histo_missing_count;
+int num_irreg_bins;
+int *counts_array;          /* low, high and between are tacked                                   
+			     * onto the end of this array */
+float *areas_array;         /* same here */
+float low_area;
+float high_area;
+float histo_low;
+float histo_high;
+float histo_increment;
+float histo_missing_area;
+float histo_sum;
+float histo_sum_sq;
+
+char histogram_field[12];
+char histo_directory[128];
+char histo_filename[88];
+char histo_comment[88];
+struct solo_str_mgmt *h_output;  // <<== this seems to be a giant string that
+                                 //  accummulates all the text for a histogram
+
+/* c------------------------------------------------------------------------ */
+// write the histogram information to a file/stream
 int se_histo_output()
 {
    struct solo_str_mgmt *ssm;
@@ -35,16 +76,16 @@ int se_histo_output()
    char str[256], mess[256];
 
    seds = return_sed_stuff();	/* solo editing struct */
-   se_print_ssm_strings(seds->h_output);
+   se_print_ssm_strings(seds_h_output);  // <<== yep, here it is  ... the flush of text to a file?
 
-   if(seds->histo_output_key == SE_HST_COPY) {
+   if(seds_histo_output_key == SE_HST_COPY) {
       if(!histo_stream) {
-	 slash_path(str, seds->histo_directory);
-	 strcat(str, seds->histo_filename);
-	 if(strlen(seds->histo_comment)) {
+	 slash_path(str, seds_histo_directory);
+	 strcat(str, seds_histo_filename);
+	 if(strlen(seds_histo_comment)) {
 	    strcat(str, ".");
-	    se_fix_comment(seds->histo_comment);
-	    strcat(str, seds->histo_comment);
+	    se_fix_comment(seds_histo_comment);
+	    strcat(str, seds_histo_comment);
 	 }
 	 if(!(histo_stream = fopen(str, "w"))) {
 	    sprintf(mess, "Could not open histogram file : %s\n"
@@ -56,13 +97,13 @@ int se_histo_output()
       else {
 	 fprintf(histo_stream, "\n\n");
       }
-      ssm = seds->h_output;
+      ssm = seds_h_output;
 
       for(; ssm; ssm=ssm->next) {
 	 fprintf(histo_stream, "%s", ssm->at);
       }
    }
-   if(seds->histo_flush && histo_stream) {
+   if(seds_histo_flush && histo_stream) {
       fflush(histo_stream);
    }
    return(1);
@@ -81,35 +122,24 @@ void se_histo_fin_irreg_areas()
     struct solo_edit_stuff *seds, *return_sed_stuff();
 
     seds = return_sed_stuff();	/* solo editing struct */
-    f_inc = seds->histo_increment;
+    f_inc = seds_histo_increment;
 
-    pair = seds->h_pairs;
-
-# ifdef obsolete
-    f_val = seds->histo_low;
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=seds->histo_increment) {
-	uii_printf("%8.1f %8.1f\n", f_val, *(seds->areas_array+ii) * SQM2KM);
-    }
-# endif
+    pair = seds_h_pairs;
 
     for(; pair; pair=pair->next) {
-	f_val = seds->histo_low + .5*f_inc;
+	f_val = seds_histo_low + .5*f_inc;
 	pair->f_sum = 0;
-	for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=f_inc) {
+	for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=f_inc) {
 	    if(f_val < pair->f_low)
 		  continue;
 	    if(f_val > pair->f_high)
 		  break;
-	    pair->f_sum += *(seds->areas_array+ii) * SQM2KM;
+	    pair->f_sum += *(seds_areas_array+ii) * SQM2KM;
 	}	
 	f_sum += pair->f_sum;
-# ifdef obsolete
-	uii_printf("From %6.1f to %6.1f: %8.1f sq.km.\n"
-		  , pair->f_low, pair->f_high, f_sum);
-# endif
     }
     ssm = se_pop_spair_string();
-    pair = seds->h_pairs;
+    pair = seds_h_pairs;
     f_min = f_max = pair->f_sum;
 
     for(; pair; pair=pair->next) {
@@ -122,22 +152,22 @@ void se_histo_fin_irreg_areas()
 	if(pair->f_sum < f_min)
 	      f_min = pair->f_sum;
     }
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "      Low area: %8.1f sq.km.\n", seds->low_area * SQM2KM);
-    se_append_string(&seds->h_output, ssm);
+	    "      Low area: %8.1f sq.km.\n", seds_low_area * SQM2KM);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "     High area: %8.1f sq.km.\n", seds->high_area * SQM2KM);
-    se_append_string(&seds->h_output, ssm);
+	    "     High area: %8.1f sq.km.\n", seds_high_area * SQM2KM);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "Histogram area: %8.1f sq.km.\n", f_sum);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
     
     f_inc = (f_max -f_min)/50.;
     rcp_inc = 1./f_inc;;
@@ -151,7 +181,7 @@ void se_histo_fin_irreg_areas()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     memset(str, ' ', sizeof(str));
     for(f_val=f_min,c=e; f_val <= f_max; f_val += 10*f_inc, c+=10) {
@@ -160,9 +190,9 @@ void se_histo_fin_irreg_areas()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    pair = seds->h_pairs;
+    pair = seds_h_pairs;
 
     for(; pair; pair=pair->next) {
 	ssm = se_pop_spair_string();
@@ -175,7 +205,7 @@ void se_histo_fin_irreg_areas()
 	    { nn = 1; }
 	for(; nn--; *c++ = H);
 	*c++ = '\n'; *c++ = '\0';
-	se_append_string(&seds->h_output, ssm);
+	se_append_string(&seds_h_output, ssm);
     }
     return;
 }
@@ -194,25 +224,21 @@ void se_histo_fin_irreg_counts()
 
     seds = return_sed_stuff();	/* solo editing struct */
 
-    pair = seds->h_pairs;
-    f_inc = seds->histo_increment;
+    pair = seds_h_pairs;
+    f_inc = seds_histo_increment;
 
     for(; pair; pair=pair->next) {
-	f_val = seds->histo_low + 0.5 * f_inc;
+	f_val = seds_histo_low + 0.5 * f_inc;
 	pair->sum = 0;
-	for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=f_inc) {
+	for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=f_inc) {
 	    if(f_val < pair->f_low)
 		  continue;
 	    if(f_val > pair->f_high)
 		  break;
-	    pair->sum += *(seds->counts_array+ii);
+	    pair->sum += *(seds_counts_array+ii);
 	}	
-# ifdef obsolete
-	uii_printf("From %6.1f to %6.1f: %8.1f sq.km.\n"
-		  , pair->f_low, pair->f_high, f_sum);
-# endif
     }
-    pair = seds->h_pairs;
+    pair = seds_h_pairs;
 
     min = max = pair->sum;
     for(; pair; pair=pair->next) {
@@ -226,7 +252,7 @@ void se_histo_fin_irreg_counts()
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	"  Mode: %8.2f\n", f_mode);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     f_inc = (max -min)/50.;
     if(f_inc < 1./50.) {
@@ -243,7 +269,7 @@ void se_histo_fin_irreg_counts()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     memset(str, ' ', sizeof(str));
     for(ii=min,c=e+1; ii <= max; ii += 10*f_inc +.5, c+=10) {
@@ -252,8 +278,8 @@ void se_histo_fin_irreg_counts()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
-    pair = seds->h_pairs;
+    se_append_string(&seds_h_output, ssm);
+    pair = seds_h_pairs;
     
     for(; pair; pair=pair->next) {
 	ssm = se_pop_spair_string();
@@ -265,7 +291,7 @@ void se_histo_fin_irreg_counts()
 	    { nn = 1; }
 	for(; nn--; *c++ = H);
 	*c++ = '\n'; *c++ = '\0';
-	se_append_string(&seds->h_output, ssm);
+	se_append_string(&seds_h_output, ssm);
     }
     return;
 }
@@ -287,79 +313,72 @@ void se_histo_fin_areas(name)
 
     seds = return_sed_stuff();	/* solo editing struct */
 
-    se_push_all_ssms(&seds->h_output);
+    se_push_all_ssms(&seds_h_output);
 
     ssm = se_pop_spair_string();
-    b = (H_IRREG SET_IN seds->histo_key) ? "irregular intervals of " :
+    b = (H_IRREG SET_IN seds_histo_key) ? "irregular intervals of " :
 	  "regular intervals of ";
     sprintf(ssm->at, "Areas Histogram in %s%s\n"
-	    , b, seds->histogram_field);
-    se_append_string(&seds->h_output, ssm);
+	    , b, seds_histogram_field);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string(); a = ssm->at;
-    dts.time_stamp = seds->histo_start_time;
+    dts.time_stamp = seds_histo_start_time;
     sprintf(a, "From %s to ",  dts_print(d_unstamp_time(&dts)));
     a += strlen(a);
-    dts.time_stamp = seds->histo_stop_time;
+    dts.time_stamp = seds_histo_stop_time;
     sprintf(a, "%s for %s at %.1f deg.\n"
-	    , dts_print(d_unstamp_time(&dts)), seds->histo_radar_name
-	    , seds->histo_fixed_angle);
+	    , dts_print(d_unstamp_time(&dts)), seds_histo_radar_name
+	    , seds_histo_fixed_angle);
 
-    se_append_string(&seds->h_output, ssm);
-
-    ssm = se_pop_spair_string();
-    sprintf(ssm->at,
-	    "       Missing: %8d gates\n", seds->histo_missing_count);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "   Points below:%8d gates\n", seds->low_count);
-    se_append_string(&seds->h_output, ssm);
+	    "       Missing: %8d gates\n", seds_histo_missing_count);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "   Points above:%8d gates\n", seds->high_count);
-    se_append_string(&seds->h_output, ssm);
+	    "   Points below:%8d gates\n", seds_low_count);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "Points between: %8d gates\n", seds->medium_count);
-    se_append_string(&seds->h_output, ssm);
+	    "   Points above:%8d gates\n", seds_high_count);
+    se_append_string(&seds_h_output, ssm);
 
-# ifdef obsolete
-    nn = seds->low_count + seds->high_count +seds->medium_count;
-    f_mean = seds->histo_sum/nn;
-    f_sdev = sqrt((((double)nn*seds->histo_sum_sq -f_mean*f_mean)
-			   /((double)nn*(nn-1))));
-# else
-    nn = seds->medium_count;
-    f_mean = seds->histo_sum/nn;
-    f_sdev = sqrt((((double)seds->histo_sum_sq -nn*f_mean*f_mean)
+    ssm = se_pop_spair_string();
+    sprintf(ssm->at,
+	    "Points between: %8d gates\n", seds_medium_count);
+    se_append_string(&seds_h_output, ssm);
+
+    nn = seds_medium_count;
+    f_mean = seds_histo_sum/nn;
+    f_sdev = sqrt((((double)seds_histo_sum_sq -nn*f_mean*f_mean)
 			   /((double)(nn-1))));
-# endif
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "  Mean: %7.1f\n", f_mean);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "  Sdev: %7.1f\n", f_sdev);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     if(nn <= 1) {
 	mark = 0;
 	return;
     }
 
-    f_inc = seds->histo_increment;
-    f_mode = f_val = seds->histo_low + 0.5 * f_inc;
-    f_min = f_max = *seds->areas_array;
+    f_inc = seds_histo_increment;
+    f_mode = f_val = seds_histo_low + 0.5 * f_inc;
+    f_min = f_max = *seds_areas_array;
     f_sum = 0;
 
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=f_inc) {
-	f = *(seds->areas_array+ii);
+    for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=f_inc) {
+	f = *(seds_areas_array+ii);
 	f_sum += f;
 
 	if(f > f_max) {
@@ -372,9 +391,9 @@ void se_histo_fin_areas(name)
     }
 
     f_sum2 = 0;
-    f_val = seds->histo_low + 0.5 * f_inc;
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=f_inc) {
-	f = *(seds->areas_array+ii);
+    f_val = seds_histo_low + 0.5 * f_inc;
+    for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=f_inc) {
+	f = *(seds_areas_array+ii);
 	if((f_sum2 += f) >= .5*f_sum) {
 	    f_median = f_val;
 	    break;
@@ -383,32 +402,32 @@ void se_histo_fin_areas(name)
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "Median: %7.1f\n", f_median);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    if(H_IRREG SET_IN seds->histo_key) {
+    if(H_IRREG SET_IN seds_histo_key) {
 	se_histo_fin_irreg_areas();
 	return;
     }
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	"  Mode: %7.1f\n", f_mode);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "      Low area: %8.1f sq.km.\n", seds->low_area * SQM2KM);
-    se_append_string(&seds->h_output, ssm);
+	    "      Low area: %8.1f sq.km.\n", seds_low_area * SQM2KM);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "     High area: %8.1f sq.km.\n", seds->high_area * SQM2KM);
-    se_append_string(&seds->h_output, ssm);
+	    "     High area: %8.1f sq.km.\n", seds_high_area * SQM2KM);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "Histogram area: %8.1f sq.km.      Volume: %.6f\n"
 	    , f_sum * SQM2KM, areaXval * .001 * 1.e-6 );
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
     
     f_inc = (f_max -f_min)/50.;
     rcp_inc = 1./f_inc;;
@@ -422,7 +441,7 @@ void se_histo_fin_areas(name)
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     memset(str, ' ', sizeof(str));
     for(f_val=f_min,c=e; f_val <= f_max; f_val += 10*f_inc, c+=10) {
@@ -431,20 +450,20 @@ void se_histo_fin_areas(name)
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    f_val = seds->histo_low + 0.5 * seds->histo_increment;
+    f_val = seds_histo_low + 0.5 * seds_histo_increment;
 
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=seds->histo_increment) {
-	nn = (*(seds->areas_array+ii) -f_min)/f_inc;
+    for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=seds_histo_increment) {
+	nn = (*(seds_areas_array+ii) -f_min)/f_inc;
 	sprintf(str, "%7.1f ", f_val); c = str +strlen(str);
-	if( nn <= 0 && *(seds->areas_array+ii) > 0 )
+	if( nn <= 0 && *(seds_areas_array+ii) > 0 )
 	    { nn = 1; }
 	for(; nn--; *c++ = H);
 	*c++ = '\n'; *c++ = '\0';
 	ssm = se_pop_spair_string();
 	strcpy(ssm->at, str);
-	se_append_string(&seds->h_output, ssm);
+	se_append_string(&seds_h_output, ssm);
     }
     return;
 }
@@ -465,87 +484,73 @@ void se_histo_fin_counts()
 
     seds = return_sed_stuff();	/* solo editing struct */
 
-    se_push_all_ssms(&seds->h_output);
-
-# ifdef obsolete
-    f_val = seds->histo_low + 0.5 * seds->histo_increment;
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=seds->histo_increment) {
-	uii_printf("%7.1f %7d counts\n", f_val, *(seds->counts_array+ii));
-    }
-# endif
+    se_push_all_ssms(&seds_h_output);
 
     ssm = se_pop_spair_string();
-    b = (H_IRREG SET_IN seds->histo_key) ? "irregular intervals of " :
+    b = (H_IRREG SET_IN seds_histo_key) ? "irregular intervals of " :
 	  "regular intervals of ";
     sprintf(ssm->at, "Counts Histogram in %s%s\n"
-	    , b, seds->histogram_field);
-    se_append_string(&seds->h_output, ssm);
+	    , b, seds_histogram_field);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string(); a = ssm->at;
-    dts.time_stamp = seds->histo_start_time;
+    dts.time_stamp = seds_histo_start_time;
     sprintf(a, "From %s to ",  dts_print(d_unstamp_time(&dts)));
     a += strlen(a);
-    dts.time_stamp = seds->histo_stop_time;
+    dts.time_stamp = seds_histo_stop_time;
     sprintf(a, "%s for %s at %.1f deg.\n"
-	    , dts_print(d_unstamp_time(&dts)), seds->histo_radar_name
-	    , seds->histo_fixed_angle);
+	    , dts_print(d_unstamp_time(&dts)), seds_histo_radar_name
+	    , seds_histo_fixed_angle);
 
-    se_append_string(&seds->h_output, ssm);
-
-    ssm = se_pop_spair_string();
-    sprintf(ssm->at,
-	    "       Missing: %8d gates\n", seds->histo_missing_count);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "   Points below:%8d gates\n", seds->low_count);
-    se_append_string(&seds->h_output, ssm);
+	    "       Missing: %8d gates\n", seds_histo_missing_count);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "   Points above:%8d gates\n", seds->high_count);
-    se_append_string(&seds->h_output, ssm);
+	    "   Points below:%8d gates\n", seds_low_count);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
-	    "Points between: %8d gates\n", seds->medium_count);
-    se_append_string(&seds->h_output, ssm);
+	    "   Points above:%8d gates\n", seds_high_count);
+    se_append_string(&seds_h_output, ssm);
 
-# ifdef obsolete
-    nn = seds->low_count + seds->high_count +seds->medium_count;
-    f_mean = seds->histo_sum/nn;
-    f_sdev = sqrt((((double)nn*seds->histo_sum_sq -f_mean*f_mean)
-			   /((double)nn*(nn-1))));
-# else
-    nn = seds->medium_count;
-    f_mean = seds->histo_sum/nn;
-    f_sdev = sqrt((((double)seds->histo_sum_sq -nn*f_mean*f_mean)
+    ssm = se_pop_spair_string();
+    sprintf(ssm->at,
+	    "Points between: %8d gates\n", seds_medium_count);
+    se_append_string(&seds_h_output, ssm);
+
+    nn = seds_medium_count;
+    f_mean = seds_histo_sum/nn;
+    f_sdev = sqrt((((double)seds_histo_sum_sq -nn*f_mean*f_mean)
 			   /((double)(nn-1))));
-# endif
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "  Mean: %8.2f\n", f_mean);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "  Sdev: %8.2f\n", f_sdev);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     if(nn <= 1) {
 	mark = 0;
 	return;
     }
 
-    f_mode = f_val = seds->histo_low + 0.5 * seds->histo_increment;
-    min = max = *seds->counts_array;
-    nn = seds->medium_count;
+    f_mode = f_val = seds_histo_low + 0.5 * seds_histo_increment;
+    min = max = *seds_counts_array;
+    nn = seds_medium_count;
     f_sum = ff_sum = kk = mm = med = 0;
 
 
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=seds->histo_increment) {
-	kk = *(seds->counts_array+ii);
+    for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=seds_histo_increment) {
+	kk = *(seds_counts_array+ii);
 	f_sum += f_val*kk;
 	ff_sum += f_val*f_val*kk;
 
@@ -563,18 +568,18 @@ void se_histo_fin_counts()
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	    "Median: %8.2f\n", f_median);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    if(H_IRREG SET_IN seds->histo_key) {
+    if(H_IRREG SET_IN seds_histo_key) {
 	se_histo_fin_irreg_counts();
 	return;
     }
     ssm = se_pop_spair_string();
     sprintf(ssm->at,
 	"  Mode: %8.2f\n", f_mode);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    f_val = seds->histo_low + 0.5 * seds->histo_increment;
+    f_val = seds_histo_low + 0.5 * seds_histo_increment;
     f_inc = (max -min)/50.;
     rcp_inc = 1./f_inc;;
     sprintf(str, "%8.2f ", f_val); e = str +strlen(str);
@@ -587,7 +592,7 @@ void se_histo_fin_counts()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
     memset(str, ' ', sizeof(str));
     for(ii=min,c=e; ii <= max; ii += 10*f_inc +.5, c+=10) {
@@ -596,18 +601,18 @@ void se_histo_fin_counts()
     *c++ = '\n'; *c++ = '\0';
     ssm = se_pop_spair_string();
     strcpy(ssm->at, str);
-    se_append_string(&seds->h_output, ssm);
+    se_append_string(&seds_h_output, ssm);
 
-    for(ii=0; ii < seds->histo_num_bins; ii++, f_val+=seds->histo_increment) {
-	nn = (*(seds->counts_array+ii) -min)/f_inc;
+    for(ii=0; ii < seds_histo_num_bins; ii++, f_val+=seds_histo_increment) {
+	nn = (*(seds_counts_array+ii) -min)/f_inc;
 	sprintf(str, "%8.2f ", f_val); c = str +strlen(str);
-	if( nn <= 0 && *(seds->counts_array+ii) > 0 )
+	if( nn <= 0 && *(seds_counts_array+ii) > 0 )
 	    { nn = 1; }
 	for(; nn--; *c++ = H);
 	*c++ = '\n'; *c++ = '\0';
 	ssm = se_pop_spair_string();
 	strcpy(ssm->at, str);
-	se_append_string(&seds->h_output, ssm);
+	se_append_string(&seds_h_output, ssm);
     }
 
     return;
@@ -620,53 +625,53 @@ void se_histo_init(seds)
     int nb;
     struct se_pairs *pair;
 
-    seds->low_count =
-	  seds->medium_count =
-		seds->high_count =
-		      seds->histo_sum =
-			    seds->histo_sum_sq = 0;
+    seds_low_count =
+	  seds_medium_count =
+		seds_high_count =
+		      seds_histo_sum =
+			    seds_histo_sum_sq = 0;
 
-    if(!(H_AREAS SET_IN seds->histo_key || H_BINS SET_IN seds->histo_key)) {
-	seds->histo_key |= H_BINS;
+    if(!(H_AREAS SET_IN seds_histo_key || H_BINS SET_IN seds_histo_key)) {
+	seds_histo_key |= H_BINS;
     }
 
-    if(H_IRREG SET_IN seds->histo_key) { /* find min and max */
+    if(H_IRREG SET_IN seds_histo_key) { /* find min and max */
 	nb = H_BIN_MAX;
-	pair = seds->h_pairs;
-	seds->histo_low = pair->f_low;
-	seds->histo_high = pair->f_high;
+	pair = seds_h_pairs;
+	seds_histo_low = pair->f_low;
+	seds_histo_high = pair->f_high;
 
 	for(pair=pair->next; pair; pair=pair->next) {
-	    if(pair->f_low < seds->histo_low)
-		  seds->histo_low = pair->f_low;
-	    if(pair->f_high > seds->histo_high)
-		  seds->histo_high = pair->f_high;
+	    if(pair->f_low < seds_histo_low)
+		  seds_histo_low = pair->f_low;
+	    if(pair->f_high > seds_histo_high)
+		  seds_histo_high = pair->f_high;
 	}
-	seds->histo_increment = (seds->histo_high -seds->histo_low)/nb;
+	seds_histo_increment = (seds_histo_high -seds_histo_low)/nb;
     }
     else {
-	nb = (seds->histo_high -seds->histo_low)/seds->histo_increment;
+	nb = (seds_histo_high -seds_histo_low)/seds_histo_increment;
     }
 
-    if(H_AREAS SET_IN seds->histo_key) {	/* set up for areas */
-	if(nb != seds->histo_num_bins) {
-	    if(seds->areas_array)
-		  free(seds->areas_array);
-	    seds->areas_array = (float *)malloc((nb+1)*sizeof(float));
+    if(H_AREAS SET_IN seds_histo_key) {	/* set up for areas */
+	if(nb != seds_histo_num_bins) {
+	    if(seds_areas_array)
+		  free(seds_areas_array);
+	    seds_areas_array = (float *)malloc((nb+1)*sizeof(float));
 	}
-	memset(seds->areas_array, 0, (nb+1)*sizeof(float));
-	seds->low_area = seds->high_area = 0;
+	memset(seds_areas_array, 0, (nb+1)*sizeof(float));
+	seds_low_area = seds_high_area = 0;
     }
     else {			/* counts! */
-	if(nb != seds->histo_num_bins) {
-	    if(seds->counts_array)
-		  free(seds->counts_array);
-	    seds->counts_array = (int *)malloc((nb+1)*sizeof(int));
+	if(nb != seds_histo_num_bins) {
+	    if(seds_counts_array)
+		  free(seds_counts_array);
+	    seds_counts_array = (int *)malloc((nb+1)*sizeof(int));
 	}
-	memset(seds->counts_array, 0, (nb+1)*sizeof(int));
+	memset(seds_counts_array, 0, (nb+1)*sizeof(int));
     }
-    seds->histo_num_bins = nb;
-    seds->histo_missing_count = 0;
+    seds_histo_num_bins = nb;
+    seds_histo_missing_count = 0;
     return;
 }
 /* c------------------------------------------------------------------------ */
@@ -688,7 +693,8 @@ int se_histo_ray(char *histogram_field,
     float *bad;
     int  mark;
     int nc, ndx_ss;
-    double d, dr, r1, r2;
+    double d; // dr, 
+    double r1, r2;
     struct dd_ray_sector *ddrc, *dd_ray_coverage();
     float rcp_inc;
     float scale, rcp_scale, bias, area, *rr;
@@ -711,11 +717,21 @@ int se_histo_ray(char *histogram_field,
      */
 
     name = histogram_field;
-    //    if(seds->process_ray_count == 1) {
+
+    if(seds->finish_up) {
+        if(H_BINS SET_IN seds->histo_key)
+              se_histo_fin_counts(name);
+	else
+              se_histo_fin_areas(name);
+        se_histo_output();
+        return(1);
+    }
+
+    //    if(seds_process_ray_count == 1) {
     //   	first_time = YES;
     //    }
     // TODO: how to do this?? 
-    if(seds->use_boundary && seds->boundary_exists && !seds->num_segments) {
+    if(seds_use_boundary && seds_boundary_exists && !seds_num_segments) {
 	return(1);		/* ray does not intersect the boundary */
     }
     sn = strlen(name);
@@ -727,35 +743,35 @@ int se_histo_ray(char *histogram_field,
     //rcp_scale = 1./scale;
     //bias = dds->parm[pn]->parameter_bias;
 
-    // TODO: what is this???
-    rr = dds->celv->dist_cells;
-    dr = *(rr+1) - (*rr);
+    // Q: what is this?  Distance from radar to cell, n, in meters
+    rr = dds->celv->dist_cells; // use RadxGeom?
+    // dr = *(rr+1) - (*rr); // distance between first and second cell in meters
 
     if(first_time) {
 	first_time = NO;
 	// TODO: hmm, how to keep track of this ... histogram start_time, fixed_angle, etc. ?
-	seds->histo_start_time = dgi->time;
-	seds->histo_fixed_angle = dgi->dds->swib->fixed_angle;
-	strcpy(seds->histo_radar_name
+	seds_histo_start_time = dgi->time;
+	seds_histo_fixed_angle = dgi->dds->swib->fixed_angle;
+	strcpy(seds_histo_radar_name
 	       , dd_radar_namec(dgi->dds->radd->radar_name));
 	/*
 	 * set up for this run
 	 * create a file name from the first ray
 	 */
-	if(!(*seds->histo_directory)) {
-	    strcpy(seds->histo_directory, seds->sfic->directory_text);
+	if(!(*seds_histo_directory)) {
+	    strcpy(seds_histo_directory, seds_sfic->directory_text);
 	}
-	dd_file_name("hgm", (long)seds->histo_start_time
-		     , seds->histo_radar_name, 0, seds->histo_filename);
+	dd_file_name("hgm", (long)seds_histo_start_time
+		     , seds_histo_radar_name, 0, seds_histo_filename);
 	se_histo_init(seds);  // <<<=== TODO
 	areaXval = 0;
     }
-    scaled_low = DD_SCALE(seds->histo_low, scale, bias);
-    scaled_high = DD_SCALE(seds->histo_high, scale, bias);
-    scaled_inc = DD_SCALE(seds->histo_increment, scale, bias);
+    scaled_low = DD_SCALE(seds_histo_low, scale, bias);
+    scaled_high = DD_SCALE(seds_histo_high, scale, bias);
+    scaled_inc = DD_SCALE(seds_histo_increment, scale, bias);
     rcp_inc = 1./scaled_inc;
     nc = dgi_clip_gate +1;
-    seds->histo_stop_time = dgi->time;
+    seds_histo_stop_time = dgi->time;
 
     /*
      * loop through the data
@@ -767,36 +783,28 @@ int se_histo_ray(char *histogram_field,
 	      continue;
 
 	if((xx = *(ss+ndx_ss)) == bad ) {
-	    seds->histo_missing_count++;
+	    seds_histo_missing_count++;
 	    continue;
 	}
 
-	if(H_BINS SET_IN seds->histo_key) {
+	if(H_BINS SET_IN seds_histo_key) {
 	    if(xx < scaled_low) {
-		seds->low_count++;
+		seds_low_count++;
 	    }
 	    else if(xx >= scaled_high) {
-		seds->high_count++;
+		seds_high_count++;
 	    }
 	    else {
-		seds->medium_count++;
+		seds_medium_count++;
 		kk = (xx-scaled_low)*rcp_inc;
-		//# ifdef obsolete
-		//		if(kk < 0 || kk >= seds->histo_num_bins) {
-		//		   mark = 0;
-		//		}
-		//# endif
-		(*(seds->counts_array+kk))++;
+		(*(seds_counts_array+kk))++;
 		d = DD_UNSCALE(xx, rcp_scale, bias);
-		seds->histo_sum += d;
-		seds->histo_sum_sq += d*d;
+		seds_histo_sum += d;
+		seds_histo_sum_sq += d*d;
 	    }
 	}
 	else {			/* areas! */
 	    if(ndx_ss) {
-	      //# ifdef obsolete
-	      //		dr = *(rr+ndx_ss) -(*(rr+ndx_ss-1));
-	      //# endif
 		r1 = *(rr+ndx_ss-1);
 		r2 = *(rr+ndx_ss);
 	    }
@@ -805,29 +813,25 @@ int se_histo_ray(char *histogram_field,
 		r2 = *rr;
 	    }
 	    ddrc = dd_ray_coverage
-		  (dgi, dgi->source_rat, seds->sweep_ray_count, 0);
-	    //# ifdef obsolete
-	    //	    area = fabs(ddrc->sector) * PIOVR360 *
-	    //		  (2.* (*(rr+ndx_ss))*dr +SQ(dr));
-	    //# endif
+		  (dgi, dgi->source_rat, seds_sweep_ray_count, 0);
 	    area = fabs(ddrc->sector) * PIOVR360 * ( SQ(r2) - SQ(r1) );
 		
 	    if(xx < scaled_low) {
-		seds->low_count++;
-		seds->low_area += area;
+		seds_low_count++;
+		seds_low_area += area;
 	    }
 	    else if(xx >= scaled_high) {
-		seds->high_count++;
-		seds->high_area += area;
+		seds_high_count++;
+		seds_high_area += area;
 	    }
 	    else {
-		seds->medium_count++;
+		seds_medium_count++;
 		areaXval += area * DD_UNSCALE( xx, rcp_scale, bias );
 		kk = (xx-scaled_low)*rcp_inc;
-		*(seds->areas_array+kk) += area;
+		*(seds_areas_array+kk) += area;
 		d = DD_UNSCALE(xx, rcp_scale, bias);
-		seds->histo_sum += d;
-		seds->histo_sum_sq += d*d;
+		seds_histo_sum += d;
+		seds_histo_sum_sq += d*d;
 	    }
 	}
     }
@@ -874,62 +878,62 @@ int se_histog_setup(arg, cmds)
 
     if(strncmp(cmds->uc_text, "area-histogram", 9) == 0 ||
        strncmp(cmds->uc_text, "count-histogram", 9) == 0) {
-	strcpy(seds->histogram_field, cmdq->uc_text);
-	seds->num_irreg_bins = 0;
-	for(hp=seds->h_pairs; hp;) { /* free irreg pairs if any */
+	strcpy(seds_histogram_field, cmdq->uc_text);
+	seds_num_irreg_bins = 0;
+	for(hp=seds_h_pairs; hp;) { /* free irreg pairs if any */
 	    hpn = hp->next;
 	    free(hp);
 	    hp = hpn;
 	}	      
-	seds->h_pairs = NULL;
-	seds->histo_key = strncmp(cmds->uc_text, "area-histogram", 9) == 0
+	seds_h_pairs = NULL;
+	seds_histo_key = strncmp(cmds->uc_text, "area-histogram", 9) == 0
 	      ? H_AREAS : H_BINS;
     }
     else if(strncmp(cmds->uc_text, "irregular-histogram-bin", 11) == 0) {
-	seds->histo_key |= H_IRREG;
-	seds->num_irreg_bins++;
+	seds_histo_key |= H_IRREG;
+	seds_num_irreg_bins++;
 	hp = (struct se_pairs *)malloc(sizeof(struct se_pairs));
 	memset(hp, 0, sizeof(struct se_pairs));
-	if(!seds->h_pairs) {
-	    seds->h_pairs = hp;
+	if(!seds_h_pairs) {
+	    seds_h_pairs = hp;
 	}
 	else {
-	    seds->h_pairs->last->next = hp;
+	    seds_h_pairs->last->next = hp;
 	}
-	seds->h_pairs->last = hp;
+	seds_h_pairs->last = hp;
 	hp->f_low = (cmdq++)->uc_v.us_v_float;
 	hp->f_high = (cmdq++)->uc_v.us_v_float;
     }
     else if(strncmp(cmds->uc_text, "regular-histogram-parameters", 11) == 0) {
-	seds->histo_key |= H_REG;
-	seds->histo_low = (cmdq++)->uc_v.us_v_float;
-	seds->histo_high = (cmdq++)->uc_v.us_v_float;
-	seds->histo_increment = (cmdq++)->uc_v.us_v_float;
+	seds_histo_key |= H_REG;
+	seds_histo_low = (cmdq++)->uc_v.us_v_float;
+	seds_histo_high = (cmdq++)->uc_v.us_v_float;
+	seds_histo_increment = (cmdq++)->uc_v.us_v_float;
     }
     else if(strncmp(cmds->uc_text, "histogram-comment", 15) == 0) {
-	se_unquote_string(seds->histo_comment, cmdq->uc_text);
-	seds->histo_output_key = SE_HST_COPY;
+	se_unquote_string(seds_histo_comment, cmdq->uc_text);
+	seds_histo_output_key = SE_HST_COPY;
     }
     else if(strncmp(cmds->uc_text, "histogram-directory", 15) == 0 ||
 	    strncmp(cmds->uc_text, "xy-directory", 6) == 0) {
-	se_unquote_string(seds->histo_directory, cmdq->uc_text);
-	seds->histo_output_key = SE_HST_COPY;
+	se_unquote_string(seds_histo_directory, cmdq->uc_text);
+	seds_histo_output_key = SE_HST_COPY;
     }
     else if(strncmp(cmds->uc_text, "histogram-flush", 15) == 0) {
-       seds->histo_flush = YES;
+       seds_histo_flush = YES;
     }
     else if(strncmp(cmds->uc_text, "new-histogram-file", 11) == 0) {
 	if(histo_stream) {
 	    fclose(histo_stream);
 	    histo_stream = NULL;
 	}
-	seds->histo_output_key = SE_HST_COPY;
+	seds_histo_output_key = SE_HST_COPY;
     }
     else if(strncmp(cmds->uc_text, "append-histogram-to-file", 11) == 0) {
-	seds->histo_output_key = SE_HST_COPY;
+	seds_histo_output_key = SE_HST_COPY;
     }
     else if(strncmp(cmds->uc_text, "dont-append-histogram-to-file", 11) == 0) {
-	seds->histo_output_key = SE_HST_NOCOPY;
+	seds_histo_output_key = SE_HST_NOCOPY;
     }
     else if(strncmp(cmds->uc_text, "map-boundary", 7) == 0) {
        skip = 1;
@@ -977,15 +981,15 @@ int se_histog_setup(arg, cmds)
 	}
 	/* code for these routines is in "se_bnd.c"
 	 */
-	absorb_zmap_pts( &seds->top_zmap_list, bb );
+	absorb_zmap_pts( &seds_top_zmap_list, bb );
     }
     else if(strncmp(cmds->uc_text, "show-site-values", 7) == 0) {
-	if( !seds->top_zmap_list ) {
+	if( !seds_top_zmap_list ) {
 	    uii_printf( "No zmap lists exist!\n" );
 	    return(1);
 	}
-	if( !seds->curr_zmap_list ) {
-	    seds->curr_zmap_list = seds->top_zmap_list;
+	if( !seds_curr_zmap_list ) {
+	    seds_curr_zmap_list = seds_top_zmap_list;
 	}
 	bb = (cmdq++)->uc_text;	/* field name */
 	if(cmdq->uc_ctype == UTT_END ) {
@@ -1000,19 +1004,16 @@ int se_histog_setup(arg, cmds)
 	    else
 		{ ww = 0; }
 	}
-# ifdef obsolte
-	ww = (cmdq++)->uc_v.us_v_float -1; /* frame number */
-# endif
 	list_zmap_values( bb, ww );
     }
     else if(strncmp(cmds->uc_text, "select-site-list", 7) == 0) {
 	bb = (cmdq++)->uc_text;	/* field name */
-	for( zmpc = seds->top_zmap_list; zmpc ; zmpc = zmpc->next_list ) {
+	for( zmpc = seds_top_zmap_list; zmpc ; zmpc = zmpc->next_list ) {
 	    if( !strcmp( zmpc->list_id, bb ))
 		{ break; }
 	}
 	if( zmpc ) {
-	    seds->curr_zmap_list = zmpc;
+	    seds_curr_zmap_list = zmpc;
 	}
 	else {
 	    uii_printf( "zmap-list: %s cannot be found!\n", bb );
@@ -1049,50 +1050,34 @@ int se_xy_stuff(arg, cmds)
     nd = strlen(dst_name);
 
     seds = return_sed_stuff();
-    dgi = dd_window_dgi(seds->se_frame);
+    dgi = dd_window_dgi(seds_se_frame);
     dds = dgi->dds;
 
-    if(seds->finish_up) {
+    if(seds_finish_up) {
        if(strncmp(cmds->uc_text, "xy-listing", 3) == 0) { 
-# ifdef obsolete
-
-	  /* dump end time and close file
-	   */
-	  dts.time_stamp = seds->histo_stop_time;
-	  fprintf(x_y_stream, "#xy-stop-time: ");
-	  d_unstamp_time(&dts);
-	  fprintf(x_y_stream, "%02d%02d%02d%02d%02d%02d\n"
-		  , dts.year -1900
-		  , dts.month
-		  , dts.day
-		  , dts.hour
-		  , dts.minute
-		  , dts.second
-		  );
-# endif
 	  fclose(x_y_stream);
        }
        return(1);
     }
 
-    if(seds->process_ray_count == 1) {
+    if(seds_process_ray_count == 1) {
        if(strncmp(cmds->uc_text, "xy-listing", 3) == 0) { 
 
 	  /* open file and write headers
 	   */
-	  dts.time_stamp = seds->histo_start_time = dgi->time;
-	  strcpy(seds->histo_radar_name
+	  dts.time_stamp = seds_histo_start_time = dgi->time;
+	  strcpy(seds_histo_radar_name
 		 , dd_radar_namec(dgi->dds->radd->radar_name));
-	  if(!(*seds->histo_directory)) {
-	     strcpy(seds->histo_directory, seds->sfic->directory_text);
+	  if(!(*seds_histo_directory)) {
+	     strcpy(seds_histo_directory, seds_sfic->directory_text);
 	  }
-	  slash_path(str, seds->histo_directory);
-	  dd_file_name("xyp", (long)seds->histo_start_time
-		       , seds->histo_radar_name, 0, str+strlen(str));
-	  if(strlen(seds->histo_comment)) {
+	  slash_path(str, seds_histo_directory);
+	  dd_file_name("xyp", (long)seds_histo_start_time
+		       , seds_histo_radar_name, 0, str+strlen(str));
+	  if(strlen(seds_histo_comment)) {
 	     strcat(str, ".");
-	     se_fix_comment(seds->histo_comment);
-	     strcat(str, seds->histo_comment);
+	     se_fix_comment(seds_histo_comment);
+	     strcat(str, seds_histo_comment);
 	  }
 	  /* tack on the variable names
 	   */
@@ -1101,38 +1086,23 @@ int se_xy_stuff(arg, cmds)
 	  if(!(x_y_stream = fopen(str, "w"))) {
 	     uii_printf("Could not open xy-listing file : %s\n"
 		       , str);
-	     seds->punt = YES;
+	     seds_punt = YES;
 	     return(0);
 	  }
-# ifdef obsolete
-	  fprintf(x_y_stream, "#xy-radar: %s\n", seds->histo_radar_name);
-	  fprintf(x_y_stream, "#xy-start-time: ");
-	  d_unstamp_time(&dts);
-	  fprintf(x_y_stream, "%02d%02d%02d%02d%02d%02d\n"
-		  , dts.year -1900
-		  , dts.month
-		  , dts.day
-		  , dts.hour
-		  , dts.minute
-		  , dts.second
-		  );
-	  fprintf(x_y_stream, "#xfield: %s\n", src_name);
-	  fprintf(x_y_stream, "#yfield: %s\n", dst_name);
-# endif
        }
     }
-    seds->histo_stop_time = dgi->time;
+    seds_histo_stop_time = dgi->time;
     nc = dds->celv->number_cells;
-    bnd = seds->boundary_mask;
+    bnd = seds_boundary_mask;
 
     if((fns = dd_find_field(dgi, src_name)) < 0) {
 	uii_printf("Source parameter %s not found for xy-listing\n", src_name);
-	seds->punt = YES;
+	seds_punt = YES;
 	return(-1);
     }
     if((fnd = dd_find_field(dgi, dst_name)) < 0) {
 	uii_printf("Source parameter %s not found for xy-listing\n", dst_name);
-	seds->punt = YES;
+	seds_punt = YES;
 	return(-1);
     }
     rcp_scale = 1./dgi->dds->parm[fns]->parameter_scale;

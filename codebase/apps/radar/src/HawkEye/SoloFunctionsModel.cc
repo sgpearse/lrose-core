@@ -841,6 +841,163 @@ string SoloFunctionsModel::BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
   return tempFieldName;
 
 }
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
+				     int rayIdx, int sweepIdx,
+				     float constant,
+				     size_t clip_gate,
+				     float bad_data_value,
+				     string newFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  float *newData = new float[nGates];
+
+  // data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+
+  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  bool multiply = false;
+  soloFunctionsApi.FlaggedAdd(constant, multiply, data,  newData, nGates, 
+			      bad_data_value, clip_gate, _boundaryMask,
+			      bad_flag_mask);  // TODO: where are we getting the bad_flag_mask?
+  // TODO: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+}
+
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
+				       int rayIdx, int sweepIdx,
+				       float lower_threshold, float upper_threshold,
+				       size_t clip_gate,
+				       float bad_data_value,
+				       string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // TODO: newData becomes in/out bad_flag_mask
+  float *newData = new float[nGates];
+
+  // data, _boundaryMask, and newData should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+
+  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  bool multiply = false;
+  soloFunctionsApi.SetBadFlags(where, lower_threshold, upper_threshold, 
+			       data, nGates, 
+			       bad_data_value, clip_gate,
+			       _boundaryMask, bad_flag_mask);
+  // TODO: where are we getting the bad_flag_mask?
+  // TODO: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << newData[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingFl32; 
+  bool isLocal = false;
+
+  //RadxField *newField = new RadxField(newFieldName, "m/s");
+  //newField->copyMetaData(*field);
+  //newField->addDataFl32(nGates, newData);
+  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+}
+
 /*
 // this form of unfolding takes wind data from the script variables
 string SoloFunctionsModel::BBUnfoldLocalWind(string fieldName, RadxVol *vol,
