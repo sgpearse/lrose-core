@@ -841,7 +841,7 @@ string SoloFunctionsModel::BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
   return tempFieldName;
 
 }
-
+/*
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
 				     int rayIdx, int sweepIdx,
@@ -917,11 +917,145 @@ string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
 
   return tempFieldName;
 }
+*/
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
+					    int rayIdx, int sweepIdx,
+					    float lower_threshold, 
+					    size_t clip_gate,
+					    float bad_data_value,
+					    string badFlagMaskFieldName) {
 
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  // TODO: I suppose the boolean mask should probably be kept as a Si08? or a UI08?
+  bool *bad_flag_mask = new bool[nGates];
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  soloFunctionsApi.SetBadFlagsAbove(lower_threshold,  
+			       data, nGates, 
+			       bad_data_value, clip_gate,
+			       _boundaryMask, bad_flag_mask);
+  // Q: where are we getting the bad_flag_mask? create it here.
+  // Q: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+  // Yes, the bad_flag_mask is a boolean variable like any other field vector.
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << bad_flag_mask[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  badFlagMaskFieldName.append("_BAD");
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+
+
+  /*----
+
+  string where = "above";
+  float upper_threshold = 0;
+  
+  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
+		     where, lower_threshold, upper_threshold,
+		     clip_gate, bad_data_value,
+		     badFlagMaskFieldName);
+  */
+}
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::SetBadFlagsBelow(string fieldName,  RadxVol *vol,
+					    int rayIdx, int sweepIdx,
+					    float lower_threshold, 
+					    size_t clip_gate,
+					    float bad_data_value,
+					    string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  string where = "below";
+  float upper_threshold = 0;
+  /*
+  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
+		     where, lower_threshold, upper_threshold,
+		     clip_gate, bad_data_value,
+		     badFlagMaskFieldName);
+  */
+  return "Oh No!";
+}
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
+					      int rayIdx, int sweepIdx,
+					      float lower_threshold,
+					      float upper_threshold, 
+					      size_t clip_gate,
+					      float bad_data_value,
+					      string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  string where = "between";
+  /*
+  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
+		     where, lower_threshold, upper_threshold,
+		     clip_gate, bad_data_value,
+		     badFlagMaskFieldName);
+  */
+  return "Oops";
+}
 
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
 				       int rayIdx, int sweepIdx,
+				       string where,
 				       float lower_threshold, float upper_threshold,
 				       size_t clip_gate,
 				       float bad_data_value,
@@ -949,49 +1083,49 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
   field = ray->getField(fieldName);
   size_t nGates = ray->getNGates(); 
 
-  // TODO: newData becomes in/out bad_flag_mask
-  float *newData = new float[nGates];
+  // create bad_flag_mask for return 
+  bool *bad_flag_mask = new bool[nGates];
 
   // data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-
-  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
+  if (_boundaryMaskSet) {
     // verify dimensions on data in/out and boundary mask
     if (nGates > _boundaryMaskLength)
       throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-
   }
 
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
-  
+  /*
   // perform the function ...
-  bool multiply = false;
-  soloFunctionsApi.SetBadFlags(where, lower_threshold, upper_threshold, 
+  soloFunctionsApi.SetBadFlags(where.c_str(), lower_threshold, upper_threshold, 
 			       data, nGates, 
 			       bad_data_value, clip_gate,
 			       _boundaryMask, bad_flag_mask);
-  // TODO: where are we getting the bad_flag_mask?
-  // TODO: is bad_flag_mask a variable/vector from the environment? or 
+  // Q: where are we getting the bad_flag_mask? create it here.
+  // Q: is bad_flag_mask a variable/vector from the environment? or 
   // is it held internally, like the boundary mask?
   // I guess it depends on how we use use?  If we never need to return the mask plus 
   // something else, then the mask can be a variable just like any other data vector?
-
-  // insert new field into RadxVol                                                                             
+  // Yes, the bad_flag_mask is a boolean variable like any other field vector.
+  // insert new field into RadxVol                                                                      */
   cerr << "result = ";
   for (int i=0; i<50; i++)
-    cerr << newData[i] << ", ";
+    cerr << bad_flag_mask[i] << ", ";
   cerr << endl;
 
-  Radx::fl32 missingValue = Radx::missingFl32; 
+  Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
+  badFlagMaskFieldName.append("_BAD");
   //RadxField *newField = new RadxField(newFieldName, "m/s");
   //newField->copyMetaData(*field);
   //newField->addDataFl32(nGates, newData);
-  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 1.0, 0.0, isLocal);
 
+  // get the name that was actually inserted ...
   string tempFieldName = field1->getName();
   tempFieldName.append("#");
 

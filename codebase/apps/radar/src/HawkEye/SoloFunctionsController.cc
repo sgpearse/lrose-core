@@ -190,7 +190,7 @@ QString SoloFunctionsController::DESPECKLE(QString field, size_t speckle_length,
 
   return QString::fromStdString(tempFieldName); // QString("zero middle result");
 }
-
+/*
 // return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::FLAGGED_ADD(QString field, float constant, float bad_data,
 					     size_t clip_gate, QString bad_flag_field) { 
@@ -276,34 +276,40 @@ QString SoloFunctionsController::COPY_BAD_FLAGS(QString field, float constant, f
 					   size_t clip_gate) { 
   return QString::fromStdString("empty");
 } 
-
+*/
 
 /*
 
   CLIP = 35;
   BAD_DATA_VALUE = -9E+35;
-  CLEAR-BAD-FLAGS(BAD_FLAG_MASK)
-  BAD-FLAG-MASK = SET-BAD-FLAGS-BETWEEN(VE, -1., 1., BAD_DATA_VALUE, CLIP,  BAD_FLAG_MASK)
+  CLEAR_BAD_FLAGS(BAD_FLAG_MASK)
+
+  // SET ==> overwriting existing values; create
+  BAD_FLAG_MASK = SET_BAD_FLAGS_BETWEEN(VE, -1., 1., BAD_DATA_VALUE, CLIP)
+  COPY_BAD_FLAGS ... ???
+
+  // AND/OR/XOR ==> use existing values to determine new values; update
   BAD_FLAG_MASK = AND_BAD_FLAGS_ABOVE(DZ, 35., BAD_DATA_VALUE, CLIP,  BAD_FLAG_MASK)
-  VE2 = ASSERT-BAD-FLAGS(VE, BAD_DATA_VALUE, CLIP, BAD_FLAG_MASK)
-  DZ2 = ASSERT-BAD-FLAGS(DZ, BAD_DATA_VALUE, CLIP, BAD-FLAG-MASK)
+  VE2 = ASSERT_BAD_FLAGS(VE, BAD_DATA_VALUE, CLIP, BAD_FLAG_MASK)
+  DZ2 = ASSERT_BAD_FLAGS(DZ, BAD_DATA_VALUE, CLIP, BAD_FLAG_MASK)
 
 */
 
 
 // return the name of the field in which the result is stored in the RadxVol
-QString SoloFunctionsController::SET_BAD_FLAGS(QString field, float constant, float bad_data,
+QString SoloFunctionsController::SET_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
 					   size_t clip_gate) { 
-  // updated bad_flag_field is returned in tempFieldName
-  string tempFieldName = soloFunctionsModel.SetBadFlags(field.toStdString(), _data,
-						       _currentRayIdx, _currentSweepIdx,
-						       constant,
-						       clip_gate,
-						       bad_data,
-						       bad_flag_field.toStdString());
+  // last arg is field name, which will be used to create  bad_flag_field returned in tempFieldName
+  string tempFieldName = soloFunctionsModel.SetBadFlagsAbove(field.toStdString(), _data,
+							     _currentRayIdx, _currentSweepIdx,
+							     constant,
+							     clip_gate,
+							     bad_data,
+							     field.toStdString());
   return QString::fromStdString(tempFieldName);
 } 
 
+/*
 // return the name of the field in which the result is stored in the RadxVol
 QString SoloFunctionsController::FLAG_FRECKLES(QString field, float constant, float bad_data,
 					   size_t clip_gate) { 
@@ -315,7 +321,7 @@ QString SoloFunctionsController::FLAG_GLITCHES(QString field, float constant, fl
 					   size_t clip_gate) { 
   return QString::fromStdString("empty");
 } 
-
+*/
 
 
 void SoloFunctionsController::applyBoundary() {

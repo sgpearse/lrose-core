@@ -57,6 +57,37 @@ public:
 			       float bad_data_value,
 			       string newFieldName);
 
+
+  string SetBadFlagsAbove(string fieldName,  RadxVol *vol,
+			  int rayIdx, int sweepIdx,
+			  float lower_threshold,
+			  size_t clip_gate,
+			  float bad_data_value,
+			  string badFlagMaskFieldName);
+
+  string SetBadFlagsBelow(string fieldName,  RadxVol *vol,
+			  int rayIdx, int sweepIdx,
+			  float lower_threshold,
+			  size_t clip_gate,
+			  float bad_data_value,
+			  string badFlagMaskFieldName);
+
+  string SetBadFlagsBetween(string fieldName,  RadxVol *vol,
+			  int rayIdx, int sweepIdx,
+			  float lower_threshold,
+			  float upper_threshold,
+			  size_t clip_gate,
+			  float bad_data_value,
+			  string badFlagMaskFieldName);
+
+  string SetBadFlags(string fieldName,  RadxVol *vol,
+		     int rayIdx, int sweepIdx,
+                     string where,
+		     float lower_threshold, float upper_threshold,
+		     size_t clip_gate,
+		     float bad_data_value,
+		     string badFlagMaskFieldName);
+
   /*
   string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
 			      int rayIdx, int sweepIdx,

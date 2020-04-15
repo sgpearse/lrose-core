@@ -21,6 +21,8 @@
 # define DD_SCALE(x) ((x))
 # define RADIANS(x)  ((x)*0.017453292)
 
+enum Where {ABOVE, BELOW, BETWEEN};
+
 // use DoradeData.hh radar_type_t or lidar_type_t
 /* Dorade radar types */
 /*

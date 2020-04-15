@@ -2221,8 +2221,12 @@ void PolarManager::_locationClicked(double xkm, double ykm,
   //  _fields[ii]->setDialogText("----");
   //}
   
-  for (size_t ifield = 0; ifield < ray->getNFields(); ifield++) {
-    const RadxField *field = ray->getField(ifield);
+  vector<RadxField *> flds = ray->getFields();
+  for (size_t ifield = 0; ifield < flds.size(); ifield++) {
+    const RadxField *field = flds[ifield];
+
+    //  for (size_t ifield = 0; ifield < ray->getNFields(); ifield++) {
+    //const RadxField *field = ray->getField(ifield);
     const string fieldName = field->getName();
     if (fieldName.size() == 0) {
       continue;

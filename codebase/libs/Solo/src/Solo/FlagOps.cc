@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <Solo/GeneralDefinitions.hh>
 
 // Bad flags can be set using values in one data field,
 // then applied to another data field.
@@ -59,7 +60,7 @@ void se_do_clear_bad_flags_array(bool *bad_flag_mask, size_t nn)
 // bad_flags_mask send preallocated space, same size as data
 //                returns boolean array: 
 //                  true if data value meets bad flag criteria AND in inside boundary mask
-void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const float *data, size_t nGates,
+void se_set_bad_flags(Where where, float scaled_thr1, float scaled_thr2, const float *data, size_t nGates,
 		      float bad, size_t dgi_clip_gate, bool *boundary_mask, bool *bad_flag_mask)
 {
   size_t nc; 
@@ -80,7 +81,8 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
     zz = thr +nc;
     se_do_clear_bad_flags_array(bad_flag_mask, nc);
    
-    if(strncmp(where, "below", 3) == 0) {
+    switch(where) {
+    case BELOW: 
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
 	       continue;
@@ -88,8 +90,8 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
 		*flag = true;
 	    }
 	}
-    }
-    else if(strncmp(where, "above", 3) == 0) {
+	break;
+    case ABOVE: 
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
 	      continue;
@@ -97,8 +99,8 @@ void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const f
 		*flag = true;
 	    }
 	}
-    }
-    else {			/* between */
+	break;
+    default:		/* between */
 	for(; thr < zz; thr++,bnd++,flag++) {
 	    if(!(*bnd) || *thr == bad)
 	      continue;

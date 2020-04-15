@@ -26,11 +26,8 @@
 #define SOLOFUNCTIONSAPI_H
 
 #include <stdio.h>
-//#include <vector>
-//#include <iostream>
 
-//#include <Solo/PointInSpace.hh>
-//#include <Solo/OneBoundary.hh>
+// #include <Solo/SoloFunctionsApiDefinitions.hh>
 
 using namespace std;
 
@@ -117,6 +114,22 @@ public:
 
   void ZeroInsideBoundary(const float *data, bool *boundaryMask,
 			  float *newData, size_t nGates);
+
+  void SetBadFlagsAbove(float scaled_thr1,
+		   const float *data, size_t nGates,
+		   float bad, size_t dgi_clip_gate,
+		   bool *boundary_mask, bool *bad_flag_mask);
+
+  void SetBadFlagsBelow(float scaled_thr1,
+		   const float *data, size_t nGates,
+		   float bad, size_t dgi_clip_gate,
+		   bool *boundary_mask, bool *bad_flag_mask);
+
+  void SetBadFlagsBetween(float scaled_thr1, float scaled_thr2,
+		   const float *data, size_t nGates,
+		   float bad, size_t dgi_clip_gate,
+		   bool *boundary_mask, bool *bad_flag_mask);
+
 
 
 private:

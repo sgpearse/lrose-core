@@ -42,6 +42,12 @@ public:
 						   size_t ngates_averaged,
 						   float bad_data, size_t clip_gate); // return the name of the new field that contains the result
 
+
+  // return the name of the new field that contains the bad flag mask
+  Q_INVOKABLE QString SET_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
+				  size_t clip_gate);
+
+
   //  Q_INVOKABLE QString  REMOVE_AIRCRAFT_MOTION(QString field); //  { return field+"_trump"; }
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }
   Q_INVOKABLE QVector<double> add(QVector<double> v, QVector<double> v2) {

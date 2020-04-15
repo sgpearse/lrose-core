@@ -26,6 +26,7 @@
 #define SOLOFUNCTIONS_H
 
 #include <stdio.h>
+#include <Solo/GeneralDefinitions.hh>
 
 void se_despeckle(const float *data, float *newData, size_t nGates, float bad, int a_speckle,
                   size_t dgi_clip_gate, bool *boundary_mask);
@@ -83,7 +84,7 @@ void se_BB_generic_unfold(const float *data, float *newData, size_t nGates,
 
 void se_do_clear_bad_flags_array(bool *bad_flag_mask, size_t nn);
 
-void se_set_bad_flags(char *where, float scaled_thr1, float scaled_thr2, const float *data, 
+void se_set_bad_flags(Where where, float scaled_thr1, float scaled_thr2, const float *data, 
 		      size_t nGates,
                       float bad, size_t dgi_clip_gate, bool *boundary_mask, bool *bad_flag_mask);
 

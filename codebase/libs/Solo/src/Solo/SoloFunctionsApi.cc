@@ -3,7 +3,7 @@
 #include <Solo/BoundaryPointMap.hh>
 #include <Solo/PointInSpace.hh>
 #include <Solo/SoloFunctions.hh>
-
+#include <Solo/GeneralDefinitions.hh>
 
 //void SoloFunctionsApi::CreateBoundary() {
 //
@@ -266,21 +266,65 @@ void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
 // in    data
 // in/out bad_flag_mask
 // new variable is bad_flag_mask
-void SoloFunctionsApi::SetBadFlags(char *where, float scaled_thr1, float scaled_thr2,
+void SoloFunctionsApi::SetBadFlagsAbove(float scaled_thr1, 
 				   const float *data, size_t nGates,
 				   float bad, size_t dgi_clip_gate,
 				   bool *boundary_mask, bool *bad_flag_mask) {
   try {
+    float scaled_thr2 = 0.0;
+    enum Where where = ABOVE; 
     se_set_bad_flags(where, scaled_thr1, scaled_thr2,
-		     data, newData, nGates, 
+		     data, nGates, 
 		     bad, dgi_clip_gate,
 		     boundary_mask, bad_flag_mask);
+ 
   } catch(...) {
     throw "Something bad happened during script evaluation";
   }
 }
 
+//
+// parameters:
+// in    data
+// in/out bad_flag_mask
+// new variable is bad_flag_mask
+void SoloFunctionsApi::SetBadFlagsBelow(float scaled_thr1, 
+				   const float *data, size_t nGates,
+				   float bad, size_t dgi_clip_gate,
+				   bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    float scaled_thr2 = 0.0;
+    se_set_bad_flags(BELOW, scaled_thr1, scaled_thr2,
+		     data, nGates, 
+		     bad, dgi_clip_gate,
+		     boundary_mask, bad_flag_mask);
+ 
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
 
+//
+// parameters:
+// in    data
+// in/out bad_flag_mask
+// new variable is bad_flag_mask
+void SoloFunctionsApi::SetBadFlagsBetween(float scaled_thr1, float scaled_thr2,
+				   const float *data, size_t nGates,
+				   float bad, size_t dgi_clip_gate,
+				   bool *boundary_mask, bool *bad_flag_mask) {
+  try {
+    se_set_bad_flags(BETWEEN, scaled_thr1, scaled_thr2,
+		     data, nGates, 
+		     bad, dgi_clip_gate,
+		     boundary_mask, bad_flag_mask);
+ 
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+/*
 //
 // parameters:
 // in   data
@@ -385,3 +429,4 @@ void SoloFunctionsApi::Despeckle(const float *data, float *newData, size_t nGate
     throw "Something bad happened during script evaluation";
   }
 }
+*/
