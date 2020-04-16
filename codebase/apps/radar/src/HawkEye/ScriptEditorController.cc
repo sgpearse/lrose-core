@@ -187,6 +187,7 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("ZERO_INSIDE_BOUNDARY", myExt.property("ZERO_INSIDE_BOUNDARY"));
   engine.globalObject().setProperty("add", myExt.property("add"));
   engine.globalObject().setProperty("DESPECKLE", myExt.property("DESPECKLE"));
+  engine.globalObject().setProperty("SET_BAD_FLAGS_ABOVE", myExt.property("SET_BAD_FLAGS_ABOVE"));
 
   // print the context ...
   // printQJSEngineContext();
