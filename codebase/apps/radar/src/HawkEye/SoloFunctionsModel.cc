@@ -1158,8 +1158,6 @@ string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
 					      int rayIdx, int sweepIdx,
-					      float lower_threshold,
-					      float upper_threshold,
 					      size_t clip_gate,
 					      float bad_data_value,
 					      string badFlagMaskFieldName) {
@@ -1210,8 +1208,8 @@ string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
   
   // perform the function ...
   soloFunctionsApi.AssertBadFlags(data, newData, nGates,
-				      bad_data_value, clip_gate,
-				      _boundaryMask, bad_flag_mask);
+				  bad_data_value, clip_gate,
+				  _boundaryMask, bad_flag_mask);
 
   // NOTE: we are adding a new data field! NOT a new mask!!! 
 
@@ -1232,11 +1230,8 @@ string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
 }
 
 // return the temporary name for the new field in the volume
-string SoloFunctionsModel::ClearBadFlags(string fieldName,  RadxVol *vol,
-					      int rayIdx, int sweepIdx,
-					      size_t clip_gate,
-					      float bad_data_value,
-					      string badFlagMaskFieldName) {
+string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *vol,
+					 int rayIdx, int sweepIdx) {
 
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
@@ -1298,11 +1293,8 @@ string SoloFunctionsModel::ClearBadFlags(string fieldName,  RadxVol *vol,
 
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::ComplementBadFlags(string fieldName,  RadxVol *vol,
-					      int rayIdx, int sweepIdx,
-					      size_t clip_gate,
-					      float bad_data_value,
-					      string badFlagMaskFieldName) {
-
+					      int rayIdx, int sweepIdx) {
+			
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
 
@@ -1333,7 +1325,7 @@ string SoloFunctionsModel::ComplementBadFlags(string fieldName,  RadxVol *vol,
   size_t nGatesMask = ray->getNGates(); 
   if (nGatesMask != nGates)
       throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
-  const bool *bad_flag_mask = (bool *) badDataField->getDataSi08(); 
+  const bool *bad_flag_mask = (bool *) badDataField->getDataSi08();   // TODO: HERE <<== need this???
 
 
   // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates

@@ -188,6 +188,11 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("add", myExt.property("add"));
   engine.globalObject().setProperty("DESPECKLE", myExt.property("DESPECKLE"));
   engine.globalObject().setProperty("SET_BAD_FLAGS_ABOVE", myExt.property("SET_BAD_FLAGS_ABOVE"));
+  engine.globalObject().setProperty("SET_BAD_FLAGS_BELOW", myExt.property("SET_BAD_FLAGS_BELOW"));
+  engine.globalObject().setProperty("SET_BAD_FLAGS_BETWEEN", myExt.property("SET_BAD_FLAGS_BETWEEN"));
+  engine.globalObject().setProperty("COMPLEMENT_BAD_FLAGS", myExt.property("COMPLEMENT_BAD_FLAGS"));
+  engine.globalObject().setProperty("CLEAR_BAD_FLAGS", myExt.property("CLEAR_BAD_FLAGS"));
+  engine.globalObject().setProperty("ASSERT_BAD_FLAGS", myExt.property("ASSERT_BAD_FLAGS"));
 
   // print the context ...
   // printQJSEngineContext();

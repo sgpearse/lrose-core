@@ -11,7 +11,7 @@ ABS(<field>)
 AND_BAD_FLAGS with <field> <where> <real> )
 APPEND_HISTOGRAM_TO_FILE
 AREA_HISTOGRAM( <field> )
-ASSERT_BAD_FLAGS( <field> )
+ASSERT_BAD_FLAGS( <field> <bad mask> )
 A_SPECKLE ( <integer> gates)
 BB_GATES_AVERAGED( <integer> gates )
 BB_MAX_NEG_FOLDS( <integer> )
@@ -21,8 +21,8 @@ BB_UNFOLDING(<field>)
 BB_USE_AC_WIND
 BB_USE_FIRST_GOOD_GATE
 BB_USE_LOCAL_WIND
-CLEAR_BAD_FLAGS
-COMPLEMENT_BAD_FLAGS
+CLEAR_BAD_FLAGS (<bad mask>)
+COMPLEMENT_BAD_FLAGS (<bad mask>)
 COPY_BAD_FLAGS from <field> )
 COUNT_HISTOGRAM on <field> )
 DEGLITCH_MIN_GATES ( <integer> )
