@@ -88,6 +88,27 @@ public:
 		     float bad_data_value,
 		     string badFlagMaskFieldName);
 
+
+  string AssertBadFlags(string fieldName,  RadxVol *vol,
+			int rayIdx, int sweepIdx,
+			float lower_threshold,
+			float upper_threshold,
+			size_t clip_gate,
+			float bad_data_value,
+			string badFlagMaskFieldName);
+
+  string ClearBadFlags(string fieldName,  RadxVol *vol,
+		       int rayIdx, int sweepIdx,
+		       size_t clip_gate,
+		       float bad_data_value,
+		       string badFlagMaskFieldName);
+
+  string ComplementBadFlags(string fieldName,  RadxVol *vol,
+			    int rayIdx, int sweepIdx,
+			    size_t clip_gate,
+			    float bad_data_value,
+			    string badFlagMaskFieldName);
+
   /*
   string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
 			      int rayIdx, int sweepIdx,

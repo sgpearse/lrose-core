@@ -130,6 +130,17 @@ public:
 		   float bad, size_t dgi_clip_gate,
 		   bool *boundary_mask, bool *bad_flag_mask);
 
+  void AssertBadFlags(const float *data, float *newData, size_t nGates,
+		   float bad, size_t dgi_clip_gate,
+		   bool *boundary_mask, const bool *bad_flag_mask);
+
+  // This just creates a new mask with all false
+  void ClearBadFlags(bool *bad_flag_mask, size_t nGates);
+
+  // bad_flag_mask:   in parameter
+  // complement_mask: out parameter
+  void ComplementBadFlags(const bool *bad_flag_mask, bool *complement_mask, size_t nGates);
+
 
 
 private:

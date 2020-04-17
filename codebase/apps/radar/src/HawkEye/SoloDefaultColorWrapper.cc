@@ -350,6 +350,13 @@ SiiPalette(const string &palette_name,
   ColorMapForUsualParm["AIQ"] = colorMap; //"p_aiq";
   //_paletteNameToColorTable["p_aiq"] = colorMap; //"carbone17";
 
+  // for bad flag masks
+  colorMap = constructColorMap(0.0, 100.0, "number.colors");
+  colorMap.setName("numbers");
+  colorMap.setUnits("units");
+  ColorMapForUsualParm["BFM"] = colorMap;
+
+
 }
 
 

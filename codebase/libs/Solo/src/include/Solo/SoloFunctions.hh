@@ -90,19 +90,22 @@ void se_set_bad_flags(Where where, float scaled_thr1, float scaled_thr2, const f
 
 void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
                          float bad, size_t dgi_clip_gate,
-                         bool *boundary_mask, bool *bad_flag_mask);
+                         bool *boundary_mask, const bool *bad_flag_mask);
 
 void se_flagged_add(float f_const, bool multiply, const float *data, float *newData, size_t nGates,
 		    float bad, size_t dgi_clip_gate,
-		    bool *boundary_mask, bool *bad_flag_mask);
+		    bool *boundary_mask, const bool *bad_flag_mask,
+		    bool *updated_bad_flag_mask);
 
 void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
                         char *logical_operator, const float *data, size_t nGates,
 			float bad, size_t dgi_clip_gate,
-			bool *boundary_mask, bool *bad_flag_mask);
+			bool *boundary_mask, const bool *bad_flag_mask,
+			bool *updated_bad_flag_mask);
 
-void se_clear_bad_flags(bool complement, size_t nGates,
-                        bool *bad_flag_mask);
+void se_clear_bad_flags(bool complement,
+                        const bool *bad_flag_mask,
+                        bool *complement_mask, size_t nGates);
 
 void se_copy_bad_flags(const float *data, size_t nGates,
 		       float bad, size_t dgi_clip_gate,

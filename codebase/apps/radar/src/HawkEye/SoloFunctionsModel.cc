@@ -949,7 +949,6 @@ string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
-  // TODO: I suppose the boolean mask should probably be kept as a Si08? or a UI08?
   bool *bad_flag_mask = new bool[nGates];
 
   // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
@@ -985,6 +984,7 @@ string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
   bool isLocal = false;
 
   badFlagMaskFieldName.append("_BAD");
+  // I suppose the boolean mask should probably be kept as a Si08
   RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
 				    (Radx::si08 *) bad_flag_mask, 
 				    1.0, 0.0, isLocal);
@@ -994,18 +994,6 @@ string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
   tempFieldName.append("#");
 
   return tempFieldName;
-
-
-  /*----
-
-  string where = "above";
-  float upper_threshold = 0;
-  
-  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
-		     where, lower_threshold, upper_threshold,
-		     clip_gate, bad_data_value,
-		     badFlagMaskFieldName);
-  */
 }
 
 // return the temporary name for the new field in the volume
@@ -1019,22 +1007,78 @@ string SoloFunctionsModel::SetBadFlagsBelow(string fieldName,  RadxVol *vol,
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
 
-  string where = "below";
-  float upper_threshold = 0;
-  /*
-  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
-		     where, lower_threshold, upper_threshold,
-		     clip_gate, bad_data_value,
-		     badFlagMaskFieldName);
-  */
-  return "Oh No!";
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  bool *bad_flag_mask = new bool[nGates];
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  soloFunctionsApi.SetBadFlagsBelow(lower_threshold,  
+			       data, nGates, 
+			       bad_data_value, clip_gate,
+			       _boundaryMask, bad_flag_mask);
+  // Q: where are we getting the bad_flag_mask? create it here.
+  // Q: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+  // Yes, the bad_flag_mask is a boolean variable like any other field vector.
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << bad_flag_mask[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  badFlagMaskFieldName.append("_BAD");
+  // I suppose the boolean mask should probably be kept as a Si08
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
 }
 
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
 					      int rayIdx, int sweepIdx,
 					      float lower_threshold,
-					      float upper_threshold, 
+					      float upper_threshold,
 					      size_t clip_gate,
 					      float bad_data_value,
 					      string badFlagMaskFieldName) {
@@ -1042,15 +1086,288 @@ string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
 
-  string where = "between";
-  /*
-  return SetBadFlags(fieldName, vol, rayIdx, sweepIdx,
-		     where, lower_threshold, upper_threshold,
-		     clip_gate, bad_data_value,
-		     badFlagMaskFieldName);
-  */
-  return "Oops";
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  bool *bad_flag_mask = new bool[nGates];
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  soloFunctionsApi.SetBadFlagsBetween(lower_threshold, upper_threshold,  
+				      data, nGates,
+				      bad_data_value, clip_gate,
+				      _boundaryMask, bad_flag_mask);
+  // Q: where are we getting the bad_flag_mask? create it here.
+  // Q: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+  // Yes, the bad_flag_mask is a boolean variable like any other field vector.
+  // insert new field into RadxVol                                                                             
+  cerr << "result = ";
+  for (int i=0; i<50; i++)
+    cerr << bad_flag_mask[i] << ", ";
+  cerr << endl;
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  badFlagMaskFieldName.append("_BAD");
+  // I suppose the boolean mask should probably be kept as a Si08
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
 }
+
+// ---- ASSERT CLEAR COMPLEMENT ----
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
+					      int rayIdx, int sweepIdx,
+					      float lower_threshold,
+					      float upper_threshold,
+					      size_t clip_gate,
+					      float bad_data_value,
+					      string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create newData for return 
+  float *newData = new float[nGates];
+
+  // get the bad flag mask data
+  RadxField *badDataField = ray->getField(badFlagMaskFieldName);
+  size_t nGatesMask = ray->getNGates(); 
+  if (nGatesMask != nGates)
+      throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
+  const bool *bad_flag_mask = (bool *) badDataField->getDataSi08(); 
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  soloFunctionsApi.AssertBadFlags(data, newData, nGates,
+				      bad_data_value, clip_gate,
+				      _boundaryMask, bad_flag_mask);
+
+  // NOTE: we are adding a new data field! NOT a new mask!!! 
+
+  string field_units = field->getUnits();
+  Radx::fl32 missingValue = field->getMissingFl32();
+  bool isLocal = false;
+
+  RadxField *field1 = ray->addField(fieldName, field_units, nGates, 
+				    missingValue, newData, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  LOG(DEBUG) << "exit ";
+
+  return tempFieldName;
+}
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::ClearBadFlags(string fieldName,  RadxVol *vol,
+					      int rayIdx, int sweepIdx,
+					      size_t clip_gate,
+					      float bad_data_value,
+					      string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  bool *bad_flag_mask = new bool[nGates];
+
+  // data, _boundaryMask, and bad flag mask should all have the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // TODO: is this function really useful? aren't we just creating a new field with
+  // all false values?
+  // perform the function ...
+  soloFunctionsApi.ClearBadFlags(bad_flag_mask, nGates);
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  //badFlagMaskFieldName.append("_BAD");
+  // I suppose the boolean mask should probably be kept as a Si08
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+}
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::ComplementBadFlags(string fieldName,  RadxVol *vol,
+					      int rayIdx, int sweepIdx,
+					      size_t clip_gate,
+					      float bad_data_value,
+					      string badFlagMaskFieldName) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = ray->getField(fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  bool *complement_bad_flag_mask = new bool[nGates];
+
+  // get the bad flag mask data
+  RadxField *badDataField = ray->getField(badFlagMaskFieldName);
+  size_t nGatesMask = ray->getNGates(); 
+  if (nGatesMask != nGates)
+      throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
+  const bool *bad_flag_mask = (bool *) badDataField->getDataSi08(); 
+
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  //const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  soloFunctionsApi.ComplementBadFlags(bad_flag_mask, complement_bad_flag_mask, nGatesMask);
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  badFlagMaskFieldName.append("_COMP");
+  // I suppose the boolean mask should probably be kept as a Si08
+  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) bad_flag_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+}
+
+// ----
 
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
@@ -1131,449 +1448,6 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
 
   return tempFieldName;
 }
-
-/*
-// this form of unfolding takes wind data from the script variables
-string SoloFunctionsModel::BBUnfoldLocalWind(string fieldName, RadxVol *vol,
-					     int rayIdx, int sweepIdx,
-					     float nyquist_velocity,
-					     float ew_wind, float ns_wind, float ud_wind,
-					     int max_pos_folds,
-					     int max_neg_folds,
-					     size_t ngates_averaged,
-					     size_t clip_gate,
-					     float bad_data_value,
-					     string newFieldName) {
-
-
-  throw "BBUnfoldLocalWind not implemented yet";
-
-  // What is being returned? the name of the new field in the model that
-  // contains the results.
-
-  LOG(DEBUG) << "entry with fieldName ... ";
-  LOG(DEBUG) << fieldName;
-
-  vol->loadRaysFromFields(); // loadFieldsFromRays();
-
-  const RadxField *field;
-  
-  //  get the ray for this field 
-  const vector<RadxRay *>  &rays = vol->getRays();
-  if (rays.size() > 1) {
-    LOG(DEBUG) <<  "WARNING - more than one ray; expected only one";
-  }
-  RadxRay *ray = rays.at(rayIdx);
-  if (ray == NULL) {
-    LOG(DEBUG) << "ERROR - ray is NULL";
-    throw "Ray is null";
-  } 
-
-  const RadxGeoref *georef = ray->getGeoreference();
-  if (georef == NULL) {
-    LOG(DEBUG) << "ERROR - georef is NULL";
-    LOG(DEBUG) << "      trying to recover ...";
-    vol->setLocationFromStartRay();
-    georef = ray->getGeoreference();
-    if (georef == NULL) {
-      throw "Georef is null";
-    }
-  } 
- 
-  float vert_velocity = georef->getVertVelocity();  // fl32
-  float ew_velocity = georef->getEwVelocity(); // fl32
-  float ns_velocity = georef->getNsVelocity(); // fl32;
-
-  float ew_gndspd_corr = 0.0; 
-  const RadxCfactors *cfactors = ray->getCfactors();
-  if (cfactors != NULL) {
-    ew_gndspd_corr = cfactors->getEwVelCorr(); // ?? _gndspd_corr; // fl32;
-  }
- 
-  float tilt = georef->getTilt(); // fl32; 
-  // TODO: elevation changes with different rays/fields how to get the current one???
-  float elevation = ray->getElevationDeg(); // doradeData.elevation; // fl32;
-
-  // TODO:
-  //=======  get the appropriate azimuth angle
-  double azimuth_degrees = dd_azimuth_angle(vol);
-
- //=========
-
-  short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
-  int seds_nyquist_velocity = 0; // TODO: what is this value?
-
-  //  cerr << "sizeof(short) = " << sizeof(short);
-  //if (sizeof(short) != 16) 
-  //  throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
-  LOG(DEBUG) << "args: ";
-  LOG(DEBUG) << "vert_velocity " << vert_velocity;
-  LOG(DEBUG) <<   "ew_velocity " << ew_velocity;
-  LOG(DEBUG) <<   "ns_velocity " << ns_velocity;
-  LOG(DEBUG) <<   "ew_gndspd_corr " << ew_gndspd_corr;
-  LOG(DEBUG) <<   "tilt " << tilt;
-  LOG(DEBUG) <<   "elevation " << elevation;
-  //LOG(DEBUG) <<   "bad " << bad;
-  //  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
-  // LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
-  LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
-  LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
-
-
-  // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
-  size_t nGates = ray->getNGates(); 
-
-  float *newData = new float[nGates];
-
-  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
-    // verify dimensions on data in/out and boundary mask
-    if (nGates > _boundaryMaskLength)
-      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-
-  }
-
-  cerr << "there are nGates " << nGates;
-  const float *data = field->getDataFl32();
-  
-  //==========
-
-  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
-  SoloFunctionsApi soloFunctionsApi;
-
-  // perform the function ...
-  soloFunctionsApi.BBUnfoldLocalWind(data, newData, nGates,
-				     seds_nyquist_velocity, dds_radd_eff_unamb_vel,
-				     azimuth_angle_degrees, elevation_angle_degrees, 
-				     ew_horiz_wind, ns_horiz_wind, vert_wind,
-				     max_pos_folds, max_neg_folds,
-				     ngates_averaged, 
-				     bad_data_value, clip_gate,	_boundaryMask);
-
-  // insert new field into RadxVol                                                                             
-  cerr << "result = ";
-  for (int i=0; i<50; i++)
-    cerr << newData[i] << ", ";
-  cerr << endl;
-
-  Radx::fl32 missingValue = Radx::missingFl32; 
-  bool isLocal = false;
-
-  //RadxField *newField = new RadxField(newFieldName, "m/s");
-  //newField->copyMetaData(*field);
-  //newField->addDataFl32(nGates, newData);
-  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
-
-  string tempFieldName = field1->getName();
-  tempFieldName.append("#");
-
-  LOG(DEBUG) << "exit ";
-
-  return tempFieldName;
-}
-
-// this form of unfolding uses wind information embedded in the data file (RadxVol)
-string SoloFunctionsModel::BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
-						int rayIdx, int sweepIdx,
-						float nyquist_velocity,
-						int max_pos_folds,
-						int max_neg_folds,
-						size_t ngates_averaged,
-						size_t clip_gate,
-						float bad_data_value,
-						string newFieldName) {
-
-  throw "BBUnfoldAircraftWind not implemented yet";
-
-  // What is being returned? the name of the new field in the model that
-  // contains the results.
-
-  LOG(DEBUG) << "entry with fieldName ... ";
-  LOG(DEBUG) << fieldName;
-
-  vol->loadRaysFromFields(); // loadFieldsFromRays();
-
-  const RadxField *field;
-  
-  //  get the ray for this field 
-  const vector<RadxRay *>  &rays = vol->getRays();
-  if (rays.size() > 1) {
-    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
-  }
-  RadxRay *ray = rays.at(rayIdx);
-  if (ray == NULL) {
-    LOG(DEBUG) << "ERROR - ray is NULL";
-    throw "Ray is null";
-  } 
-
-  // these come from the platform (asib) information                                                          
-  //float ew_horiz_wind,                                                            
-  //  float ns_horiz_wind,                                                            
-  //  float vert_wind, 
-
-  //=======
-
-  const RadxGeoref *georef = ray->getGeoreference();
-  if (georef == NULL) {
-    LOG(DEBUG) << "ERROR - georef is NULL";
-    LOG(DEBUG) << "      trying to recover ...";
-    vol->setLocationFromStartRay();
-    georef = ray->getGeoreference();
-    if (georef == NULL) {
-      throw "Georef is null";
-    }
-  } 
- 
-  float vert_wind = georef->getVertWind();
-  float ew_wind = georef->getEwWind();
-  float ns_wind = georef->getNsWind();
-
-  float ew_gndspd_corr = 0.0; 
-  const RadxCfactors *cfactors = ray->getCfactors();
-  if (cfactors != NULL) {
-    ew_gndspd_corr = cfactors->getEwVelCorr(); // ?? _gndspd_corr; // fl32;
-  }
- 
-  float tilt = georef->getTilt(); // fl32; 
-  // TODO: elevation changes with different rays/fields how to get the current one???
-  float elevation = ray->getElevationDeg(); // doradeData.elevation; // fl32;
-
-  // =========
-
- 
-  const RadxCfactors *cfactors = ray->getCfactors();
-  if (cfactors != NULL) {
-  }
- 
-  //  float tilt = georef->getTilt(); 
-  // TODO: elevation changes with different rays/fields how to get the current one???
-  float elevation = ray->getElevationDeg(); 
-  
-  
-  /// TODO:
-  //=======  get the appropriate azimuth angle
-  double azimuth_angle_degrees = dd_azimuth_angle(vol);
-
- //=========
-
-  short dds_radd_eff_unamb_vel = ray->getNyquistMps(); // doradeData.eff_unamb_vel;
-  int seds_nyquist_velocity = 0; // TODO: what is this value?
-
-  //  cerr << "sizeof(short) = " << sizeof(short);
-  //if (sizeof(short) != 16) 
-  //  throw "FATAL ERROR: short is NOT 16 bits! Exiting.";
-  LOG(DEBUG) << "args: ";
-  LOG(DEBUG) << "vert_velocity " << vert_velocity;
-  LOG(DEBUG) <<   "ew_velocity " << ew_velocity;
-  LOG(DEBUG) <<   "ns_velocity " << ns_velocity;
-  LOG(DEBUG) <<   "ew_gndspd_corr " << ew_gndspd_corr;
-  LOG(DEBUG) <<   "tilt " << tilt;
-  LOG(DEBUG) <<   "elevation " << elevation;
-  //LOG(DEBUG) <<   "bad " << bad;
-  //  LOG(DEBUG) <<   "parameter_scale " << parameter_scale;
-  // LOG(DEBUG) <<   "dgi_clip_gate " << dgi_clip_gate;
-  LOG(DEBUG) <<   "dds_radd_eff_unamb_vel " << dds_radd_eff_unamb_vel;
-  LOG(DEBUG) <<   "seds_nyquist_velocity " << "??";
-
-
-  // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
-  size_t nGates = ray->getNGates(); 
-
-  float *newData = new float[nGates];
-
-  if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
-    // verify dimensions on data in/out and boundary mask
-    if (nGates > _boundaryMaskLength)
-      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-
-  }
-
-  cerr << "there are nGates " << nGates;
-  const float *data = field->getDataFl32();
-  
-  //==========
-
-  // TODO: data, _boundaryMask, and newData should have all the same dimensions = nGates
-  SoloFunctionsApi soloFunctionsApi;
-
-  // perform the function ...
-  //  soloFunctionsApi.Despeckle(data,  newData, nGates, bad_data_value, speckle_length,
-  //                             clip_gate, _boundaryMask);
-
-  soloFunctionsApi.BBUnfoldAircraftWind(data, newData, nGates,
-					nyquist_velocity, seds_nyquist_velocity,
-					azimuth_angle_degrees, elevation_angle_degrees,
-					ew_horiz_wind,
-					ns_horiz_wind,
-					vert_wind,
-					max_pos_folds, max_neg_folds,
-					ngates_averaged,
-					bad_data_value, clip_gate,
-					_boundaryMask);
-  
-
-
-  // insert new field into RadxVol                                                                             
-  cerr << "result = ";
-  for (int i=0; i<50; i++)
-    cerr << newData[i] << ", ";
-  cerr << endl;
-
-  Radx::fl32 missingValue = Radx::missingFl32; 
-  bool isLocal = false;
-
-  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
-
-  string tempFieldName = field1->getName();
-  tempFieldName.append("#");
-
-  LOG(DEBUG) << "exit ";
-
-  return tempFieldName;
-}
-*/
-
-/*
-double
-dd_heading(dgi)
-  struct dd_general_info *dgi;
-{
-  double d=dgi->dds->asib->heading;
-  if(dd_isnanf(d))
-    return((double)0);
-  else
-    return(d +dgi->dds->cfac->heading_corr);
-}
-
-double
-dd_pitch(dgi)
-  struct dd_general_info *dgi;
-{
-  double d=dgi->dds->asib->pitch;
-  if(dd_isnanf(d))
-    return((double)0);
-  else
-    return(d +dgi->dds->cfac->pitch_corr);
-}
-
-
-double
-dd_roll(dgi)
-  struct dd_general_info *dgi;
-{
-  double d=dgi->dds->asib->roll;
-  if(dd_isnanf(d))
-    return((double)0);
-  else
-    return(d +dgi->dds->cfac->roll_corr);
-}
-
-double SoloFunctionsApi::dd_azimuth_angle() {
-
-  //                                                                                                                           
-  //=======  get the appropriate azimuth angle                                                                                 
-
-double
-  dd_azimuth_angle(dgi)
-  struct dd_general_info *dgi;
- {
-   double d_rot;
-
-   //if(dgi->dds->radd->scan_mode == AIR) {                                                                                    
-   if (scan_mode == AIR) {  // what is RadxVol equivalent?                                                                     
-     // most aircraft data                                                                                                     
-     d_rot = FMOD360(DEGREES(dgi->dds->ra->azimuth)+360.);
-   }
-   else if(dgi->dds->radd->radar_type == AIR_LF ||
-           dgi->dds->radd->radar_type == AIR_NOSE) {
-     // this is meant to apply only to the P3 lower fuselage data                                                              
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr
-                       + dd_heading(dgi));
-   }
-   else {
-     d_rot = dgi->dds->ryib->azimuth;
-     if(dd_isnanf(d_rot))
-       d_rot = 0;
-     else
-       d_rot = FMOD360(d_rot + dgi->dds->cfac->azimuth_corr);
-   }
-   return(d_rot);
- }
-  
-   }
-
-double SoloFunctionsApi::dd_elevation_angle() {
-                                                                                                                             
-double                                                                                                                         
-  dd_elevation_angle(dgi)                                                                                                      
-  struct dd_general_info *dgi;                                                                                                 
- {                                                                                                                             
-   int mark;                                                                                                                   
-   double d, d_rot;                                                                                                            
-   double AzmR, ElR, PitchR, RollR, z;                                                                                         
-                                                                                                                               
-   if(dgi->dds->radd->scan_mode == AIR) {                                                                                      
-     // most aircraft data    
-  d_rot = DEGREES(dgi->dds->ra->elevation);
-}
- else if(dgi->dds->radd->radar_type == AIR_LF) {
-   // this is meant to apply only to the P3 lower fuselage data.                                                             
-   // the elevation angle is recorded relative to the aircraft                                                               
-   // but the antenna is trying to maintain a constant elevation                                                             
-   // relative to the earth                                                                                                  
-                                                                                                                           
-   // This code courtesy of Bob Hueftle MRD/NOAA                                                                             
-    
-   d = dgi->dds->ryib->elevation;
-
-   if(dd_isnanf(d)) {
-     d_rot = 0;
-   }
-   else {
-     ElR = RADIANS(dgi->dds->ryib->elevation
-		   + dgi->dds->cfac->elevation_corr);
-
-     AzmR = RADIANS(dgi->dds->ryib->azimuth
-		    + dgi->dds->cfac->azimuth_corr);
-     PitchR = RADIANS(dd_pitch(dgi));
-     RollR = RADIANS(dd_roll(dgi));
-
-     z = cos(AzmR)*cos(ElR)*sin(PitchR)
-       + sin(ElR)*cos(PitchR)*cos(RollR)
-       - sin(AzmR)*cos(ElR)*cos(PitchR)*sin(RollR);
-
-     if(z > 1.) z = 1.;
-     else if(z < -1.) z = -1.;
-     d_rot = DEGREES(asin(z));
-   }
- }
- else {
-   switch(dgi->dds->radd->scan_mode) {
-
-   case TAR:
-   case VER:
-   default:
-     d = dgi->dds->ryib->elevation;
-
-     if(dd_isnanf(d)) {
-       d_rot = 0;
-     }
-     else {
-       d_rot = d + dgi->dds->cfac->elevation_corr;
-     }
-     break;
-   }
- }
-return(d_rot);
-}
-*/
-
-
 
 // These are not used.  The code is saved as a way to return a vector of data
 

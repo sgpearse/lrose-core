@@ -324,7 +324,6 @@ void SoloFunctionsApi::SetBadFlagsBetween(float scaled_thr1, float scaled_thr2,
   }
 }
 
-/*
 //
 // parameters:
 // in   data
@@ -332,7 +331,7 @@ void SoloFunctionsApi::SetBadFlagsBetween(float scaled_thr1, float scaled_thr2,
 // in/out newData 
 void SoloFunctionsApi::AssertBadFlags(const float *data, float *newData, size_t nGates,
 				      float bad, size_t dgi_clip_gate,
-				      bool *boundary_mask, bool *bad_flag_mask) {
+				      bool *boundary_mask, const bool *bad_flag_mask) {
   try {
     se_assert_bad_flags(data, newData, nGates,
 			bad, dgi_clip_gate,
@@ -342,6 +341,33 @@ void SoloFunctionsApi::AssertBadFlags(const float *data, float *newData, size_t 
   }
 }
 
+// ---  Bad Flag Mask UPDATE operations 
+//
+// parameters:
+// in/out   bad_flag_mask
+void SoloFunctionsApi::ClearBadFlags(bool *bad_flag_mask, size_t nGates) {
+  try {
+    bool complement = false;
+    se_clear_bad_flags(complement, NULL, bad_flag_mask, nGates);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+//
+// parameters:
+// in/out   bad_flag_mask
+void SoloFunctionsApi::ComplementBadFlags(const bool *bad_flag_mask, 
+					  bool *complement_mask, size_t nGates) {
+  try {
+    bool complement = true;
+    se_clear_bad_flags(complement, bad_flag_mask, complement_mask, nGates);
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+/*
 //
 // Add or multiply a constant to every data value marked bad;
 // return result in newData array.

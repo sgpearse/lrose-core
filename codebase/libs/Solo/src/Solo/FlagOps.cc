@@ -119,12 +119,12 @@ void se_set_bad_flags(Where where, float scaled_thr1, float scaled_thr2, const f
 
 void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
 			 float bad, size_t dgi_clip_gate,
-			 bool *boundary_mask, bool *bad_flag_mask)
+			 bool *boundary_mask, const bool *flag) // *bad_flag_mask)
 {
     size_t  nc;
     float *ss, *zz;
     const float *orig;
-    bool *bnd, *flag;
+    bool *bnd; // , *flag;
 
     if (dgi_clip_gate >= nGates)
       nc = nGates;
@@ -132,7 +132,7 @@ void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
       nc = dgi_clip_gate+1;
 
     bnd = boundary_mask;
-    flag = bad_flag_mask;
+    //flag = bad_flag_mask;
     orig = data;
     ss = newData;
     zz = ss + nc;
@@ -152,8 +152,8 @@ void se_assert_bad_flags(const float *data, float *newData, size_t nGates,
 
 // add or multiply each flagged data value by a constant
 void se_flagged_add(float f_const, bool multiply, const float *data, float *newData, size_t nGates,
-			 float bad, size_t dgi_clip_gate,
-			 bool *boundary_mask, bool *bad_flag_mask)
+		    float bad, size_t dgi_clip_gate,
+		    bool *boundary_mask, const bool *flag) // bad_flag_mask)
 // #flagged-add# 
 {
   // #flagged-add#
@@ -166,7 +166,8 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
     int gg, ii, jj, kk, nn, scaled_const, mark;
     float *ss, *zz;
     const float *orig;
-    bool *bnd, *flag;
+    bool *bnd; // , *flag, 
+    bool *uflag;
 
     //f_const = (cmdq++)->uc_v.us_v_float;
     //name = (cmdq++)->uc_text;
@@ -177,7 +178,7 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
       nc = dgi_clip_gate+1;
 
     bnd = boundary_mask;
-    flag = bad_flag_mask;
+    //flag = bad_flag_mask;
     ss = newData;
     zz = ss +nc;
     orig = data;
@@ -210,8 +211,9 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
 // sets bad_flag_mask In/out parameter
 void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where, 
 			char *logical_operator, const float *data, size_t nGates,
-			 float bad, size_t dgi_clip_gate,
-			 bool *boundary_mask, bool *bad_flag_mask)
+			float bad, size_t dgi_clip_gate,
+			bool *boundary_mask, const bool *flag, // *bad_flag_mask,
+			bool *updated_bad_flag_mask)
 {
   //
   // #and-bad-flags#
@@ -223,7 +225,9 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
     int gg, ii, jj, kk, nn;
     const float *zz;
     const float *thr;
-    bool *bnd, *flag;
+    bool *bnd;
+    //  *flag,
+    bool *uflag;
 
     if (dgi_clip_gate >= nGates)
       nc = nGates;
@@ -231,7 +235,8 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
       nc = dgi_clip_gate+1;
 
     bnd = boundary_mask;
-    flag = bad_flag_mask;
+    //    flag = bad_flag_mask;
+    uflag = updated_bad_flag_mask;
     thr = data;
 
     zz = thr +nc;
@@ -242,92 +247,92 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 
     if(strncmp(where, "below", 3) == 0) {
 	if(strncmp(logical_operator, "and", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr == bad) {
-		    *flag = false;
+		    *uflag = false;
 		}
 		else {
-		    *flag &= *thr < scaled_thr1;
+		  *uflag = *flag & (*thr < scaled_thr1);
 		}
 	    }
 	}
 	else if(strncmp(logical_operator, "xor", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
-		      *flag ^= *thr < scaled_thr1;
+		  *uflag = *flag ^ (*thr < scaled_thr1);
 	    }
 	}
 	else {			/* or */
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
-		      *flag |= *thr < scaled_thr1;
+		  *uflag = *flag | (*thr < scaled_thr1);
 	    }
 	}
     }
     else if(strncmp(where, "above", 3) == 0) {
 	if(strncmp(logical_operator, "and", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr == bad) {
-		    *flag = false;
+		    *uflag = false;
 		}
 		else {
-		    *flag &= *thr > scaled_thr1;
+		  *uflag = *flag & (*thr > scaled_thr1);
 		}
 	    }
 	}
 	else if(strncmp(logical_operator, "xor", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
-		      *flag ^= *thr > scaled_thr1;
+		  *uflag = *flag ^ (*thr > scaled_thr1);
 	    }
 	}
 	else {			/* or */
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
-		      *flag |= *thr > scaled_thr1;
+		  *uflag = *flag | (*thr > scaled_thr1);
 	    }
 	}
     }
     else {			/* between */
 	if(strncmp(logical_operator, "and", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr == bad) {
-		    *flag = false;
+		    *uflag = false;
 		}
 		else {
-		    *flag &= *thr >= scaled_thr1 && *thr <= scaled_thr2;
+		  *uflag = *flag & (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
 	}
 	else if(strncmp(logical_operator, "xor", 3) == 0) {
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad) {
-		    *flag ^= *thr >= scaled_thr1 && *thr <= scaled_thr2;
+		  *uflag = *flag ^ (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
 	}
 	else {			/* or */
-	    for(; thr < zz; thr++,bnd++,flag++) {
+	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad) {
-		    *flag |= *thr >= scaled_thr1 && *thr <= scaled_thr2;
+		  *uflag = *flag | (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
 	}
@@ -335,25 +340,28 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 }
 /* c------------------------------------------------------------------------ */
 
-void se_clear_bad_flags(bool complement, size_t nGates,
-			bool *bad_flag_mask)
+void se_clear_bad_flags(bool complement, 
+			const bool *flag, // *bad_flag_mask, 
+			bool *complement_mask, size_t nGates)
 {
   /* #clear-bad-flags#       complement == false
    * #complement-bad-flags#  complement == true
    */
   size_t nn;
-  bool *flag;
+  //bool *flag
+  bool *cflag;
 
-  flag = bad_flag_mask;
+  //flag = bad_flag_mask;
+  cflag = complement_mask;
 
     if(complement) {
       nn = nGates;
-      for(; nn--; flag++) {
-	*flag = *flag ? 0 : 1;
+      for(; nn--; flag++, cflag++) {
+	*cflag = *flag ? 0 : 1;
       }
     }
     else {
-      se_do_clear_bad_flags_array(flag, nGates);
+      se_do_clear_bad_flags_array(cflag, nGates);
     }
 }  
 /* c------------------------------------------------------------------------ */
