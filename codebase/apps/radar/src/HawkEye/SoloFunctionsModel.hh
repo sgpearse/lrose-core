@@ -164,6 +164,7 @@ const float *data, float *newData, size_t nGates,
 
   void DetermineBoundaryMask(RadxVol *vol, int rayIdx, int sweepIdx); 
   void printBoundaryMask();
+  RadxField *fetchDataField(RadxRay *ray, string &fieldName);
 
 private:
 

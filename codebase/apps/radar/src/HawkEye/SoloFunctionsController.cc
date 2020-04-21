@@ -259,7 +259,7 @@ QString SoloFunctionsController::ASSERT_BAD_FLAGS(QString field, float bad_data,
   string tempFieldName = soloFunctionsModel.AssertBadFlags(field.toStdString(), _data,
 							   _currentRayIdx, _currentSweepIdx,
 							   clip_gate, bad_data,
-							   badFlagMaskFieldName);
+							   badFlagMaskFieldName.toStdString());
 							  
   return QString::fromStdString(tempFieldName);
 } 
@@ -350,7 +350,7 @@ QString SoloFunctionsController::SET_BAD_FLAGS_BETWEEN(QString field, float lowe
   // last arg is field name, which will be used to create  bad_flag_field returned in tempFieldName
   string tempFieldName = soloFunctionsModel.SetBadFlagsBetween(field.toStdString(), _data,
 							       _currentRayIdx, _currentSweepIdx,
-							       lower_threshold, upper_threshold,,
+							       lower_threshold, upper_threshold,
 							       clip_gate,
 							       bad_data,
 							       field.toStdString());

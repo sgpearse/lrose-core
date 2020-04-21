@@ -983,7 +983,7 @@ string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
-  badFlagMaskFieldName.append("_BAD");
+  //badFlagMaskFieldName.append("_BAD");
   // I suppose the boolean mask should probably be kept as a Si08
   RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
 				    (Radx::si08 *) bad_flag_mask, 
@@ -1061,7 +1061,7 @@ string SoloFunctionsModel::SetBadFlagsBelow(string fieldName,  RadxVol *vol,
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
-  badFlagMaskFieldName.append("_BAD");
+  // badFlagMaskFieldName.append("_BAD");
   // I suppose the boolean mask should probably be kept as a Si08
   RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
 				    (Radx::si08 *) bad_flag_mask, 
@@ -1140,7 +1140,7 @@ string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
-  badFlagMaskFieldName.append("_BAD");
+  //badFlagMaskFieldName.append("_BAD");
   // I suppose the boolean mask should probably be kept as a Si08
   RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
 				    (Radx::si08 *) bad_flag_mask, 
@@ -1180,15 +1180,19 @@ string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
     throw "Ray is null";
   } 
 
-  // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  // get the data (in) and create space for new data (out)
+  //fixUpFieldName(fieldName);  
+  //field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create newData for return 
   float *newData = new float[nGates];
 
   // get the bad flag mask data
-  RadxField *badDataField = ray->getField(badFlagMaskFieldName);
+  RadxField *badDataField = fetchDataField(ray, badFlagMaskFieldName);
+
+  //RadxField *badDataField = ray->getField(badFlagMaskFieldName);
   size_t nGatesMask = ray->getNGates(); 
   if (nGatesMask != nGates)
       throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
@@ -1233,7 +1237,7 @@ string SoloFunctionsModel::AssertBadFlags(string fieldName,  RadxVol *vol,
 string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *vol,
 					 int rayIdx, int sweepIdx) {
 
-  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+  LOG(DEBUG) << "entry with fieldName ... " << badFlagMaskFieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
 
   vol->loadRaysFromFields();
@@ -1252,7 +1256,7 @@ string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  field = ray->getField(badFlagMaskFieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
@@ -1261,17 +1265,17 @@ string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *
   // data, _boundaryMask, and bad flag mask should all have the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-  if (_boundaryMaskSet) {
-    // verify dimensions on data in/out and boundary mask
-    if (nGates > _boundaryMaskLength)
-      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-  }
+  // if (_boundaryMaskSet) {
+  //  // verify dimensions on data in/out and boundary mask
+  //  if (nGates > _boundaryMaskLength)
+  //    throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  //}
 
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
   
   // TODO: is this function really useful? aren't we just creating a new field with
-  // all false values?
+  // all false values?  Not sure how to deal with this function.
   // perform the function ...
   soloFunctionsApi.ClearBadFlags(bad_flag_mask, nGates);
 
@@ -1314,42 +1318,43 @@ string SoloFunctionsModel::ComplementBadFlags(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //string tempFieldName =
+  field = fetchDataField(ray, fieldName);
+  //field = ray->getField(fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
-  bool *complement_bad_flag_mask = new bool[nGates];
+  bool *complement_mask = new bool[nGates];
 
   // get the bad flag mask data
-  RadxField *badDataField = ray->getField(badFlagMaskFieldName);
-  size_t nGatesMask = ray->getNGates(); 
-  if (nGatesMask != nGates)
-      throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
-  const bool *bad_flag_mask = (bool *) badDataField->getDataSi08();   // TODO: HERE <<== need this???
+  //RadxField *badDataField = ray->getField(badFlagMaskFieldName);
+  //size_t nGatesMask = ray->getNGates(); 
+  //if (nGatesMask != nGates)
+  //   throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
+  const bool *bad_flag_mask = (bool *) field->getDataSi08();   // TODO: HERE <<== need this???
 
 
   // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
 
-  if (_boundaryMaskSet) {
-    // verify dimensions on data in/out and boundary mask
-    if (nGates > _boundaryMaskLength)
-      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
-  }
+  //if (_boundaryMaskSet) {
+  //  // verify dimensions on data in/out and boundary mask
+  //  if (nGates > _boundaryMaskLength)
+  //    throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  //}
 
   cerr << "there are nGates " << nGates;
   //const float *data = field->getDataFl32();
   
   // perform the function ...
-  soloFunctionsApi.ComplementBadFlags(bad_flag_mask, complement_bad_flag_mask, nGatesMask);
+  soloFunctionsApi.ComplementBadFlags(bad_flag_mask, complement_mask, nGates);
 
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
-  badFlagMaskFieldName.append("_COMP");
   // I suppose the boolean mask should probably be kept as a Si08
-  RadxField *field1 = ray->addField(badFlagMaskFieldName, "units", nGates, missingValue,
-				    (Radx::si08 *) bad_flag_mask, 
+  RadxField *field1 = ray->addField(fieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) complement_mask, 
 				    1.0, 0.0, isLocal);
 
   // get the name that was actually inserted ...
@@ -1427,7 +1432,7 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
-  badFlagMaskFieldName.append("_BAD");
+  // badFlagMaskFieldName.append("_BAD");
   //RadxField *newField = new RadxField(newFieldName, "m/s");
   //newField->copyMetaData(*field);
   //newField->addDataFl32(nGates, newData);
@@ -1544,4 +1549,21 @@ void SoloFunctionsModel::printBoundaryMask() {
   cout << "Boundary Mask ... Length = " << _boundaryMaskLength << endl;
   for (int i=0; i<_boundaryMaskLength; i++)
     cout << _boundaryMask[i] << ", ";
+}
+
+RadxField *SoloFunctionsModel::fetchDataField(RadxRay *ray, string &fieldName) {
+
+  // the new field names are not yet available,
+  // so use the original name, until they are available
+  size_t endpt = fieldName.size() - 1;
+  if (fieldName[endpt] == '#') { // retrieve the field name without the special symbol #
+    fieldName.erase(endpt, 1);
+  }
+  RadxField *dataField = ray->getField(fieldName);
+  if (dataField == NULL) {
+    char msg[180];
+    sprintf(msg, "ERROR - ray field not found %s\n", fieldName.c_str());
+    throw msg;
+  }
+  return dataField; 
 }

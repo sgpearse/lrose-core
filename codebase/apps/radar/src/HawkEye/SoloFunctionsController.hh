@@ -43,12 +43,24 @@ public:
 						   float bad_data, size_t clip_gate); // return the name of the new field that contains the result
 
 
+  Q_INVOKABLE QString ASSERT_BAD_FLAGS(QString field, float bad_data,
+				       size_t clip_gate, QString badFlagMaskFieldName);
+
+  Q_INVOKABLE QString CLEAR_BAD_FLAGS(QString field);
+
+  Q_INVOKABLE QString COMPLEMENT_BAD_FLAGS(QString field);
+
   // return the name of the new field that contains the bad flag mask
   Q_INVOKABLE QString SET_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
-				  size_t clip_gate);
+					  size_t clip_gate);
 
+  Q_INVOKABLE QString SET_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
+					  size_t clip_gate);
 
-  //  Q_INVOKABLE QString  REMOVE_AIRCRAFT_MOTION(QString field); //  { return field+"_trump"; }
+  Q_INVOKABLE QString SET_BAD_FLAGS_BETWEEN(QString field, float lower_threshold,
+					    float upper_threshold, float bad_data,
+					    size_t clip_gate);
+
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }
   Q_INVOKABLE QVector<double> add(QVector<double> v, QVector<double> v2) {
     int size = v.size();
