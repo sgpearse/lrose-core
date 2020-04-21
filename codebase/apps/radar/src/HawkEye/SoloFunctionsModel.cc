@@ -291,7 +291,8 @@ string SoloFunctionsModel::ZeroMiddleThird(string fieldName,  RadxVol *vol,
     throw "Ray is null";
   } 
   
-  field = ray->getField(fieldName);
+  // field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
@@ -378,7 +379,8 @@ string SoloFunctionsModel::ZeroInsideBoundary(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
@@ -503,7 +505,8 @@ string SoloFunctionsModel::Despeckle(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //   field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
@@ -663,7 +666,8 @@ string SoloFunctionsModel::RemoveAircraftMotion(string fieldName, RadxVol *vol,
 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
@@ -771,7 +775,8 @@ string SoloFunctionsModel::BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
   int seds_nyquist_velocity = nyquist_velocity; //  what is this value? It is the nyquist velocity set by "one time only" commands
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
@@ -945,7 +950,8 @@ string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
@@ -1023,7 +1029,8 @@ string SoloFunctionsModel::SetBadFlagsBelow(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
@@ -1102,7 +1109,8 @@ string SoloFunctionsModel::SetBadFlagsBetween(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
@@ -1256,7 +1264,8 @@ string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(badFlagMaskFieldName);
+  // field = ray->getField(badFlagMaskFieldName);
+  field = fetchDataField(ray, badFlagMaskFieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
@@ -1272,7 +1281,7 @@ string SoloFunctionsModel::ClearBadFlags(string badFlagMaskFieldName,  RadxVol *
   //}
 
   cerr << "there are nGates " << nGates;
-  const float *data = field->getDataFl32();
+  //  const bool *bad_flag_mask = (bool *) field->getDataSi08();
   
   // TODO: is this function really useful? aren't we just creating a new field with
   // all false values?  Not sure how to deal with this function.
@@ -1331,7 +1340,7 @@ string SoloFunctionsModel::ComplementBadFlags(string fieldName,  RadxVol *vol,
   //size_t nGatesMask = ray->getNGates(); 
   //if (nGatesMask != nGates)
   //   throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
-  const bool *bad_flag_mask = (bool *) field->getDataSi08();   // TODO: HERE <<== need this???
+  const bool *bad_flag_mask = (bool *) field->getDataSi08();
 
 
   // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
@@ -1394,7 +1403,8 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  //field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   // create bad_flag_mask for return 
