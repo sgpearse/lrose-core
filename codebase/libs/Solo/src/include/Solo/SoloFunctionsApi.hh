@@ -141,7 +141,10 @@ public:
   // complement_mask: out parameter
   void ComplementBadFlags(const bool *bad_flag_mask, bool *complement_mask, size_t nGates);
 
-
+  void FlaggedAdd(float f_const, bool multiply,
+	     const float *data, float *newData, size_t nGates,
+	     float bad, size_t dgi_clip_gate,
+	     bool *boundary_mask, const bool *bad_flag_mask);
 
 private:
 

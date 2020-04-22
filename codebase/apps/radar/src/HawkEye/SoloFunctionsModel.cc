@@ -846,14 +846,21 @@ string SoloFunctionsModel::BBUnfoldFirstGoodGate(string fieldName, RadxVol *vol,
   return tempFieldName;
 
 }
-/*
+
+  // TODO: where are we getting the bad_flag_mask?
+  // TODO: is bad_flag_mask a variable/vector from the environment? or 
+  // is it held internally, like the boundary mask?
+  // I guess it depends on how we use use?  If we never need to return the mask plus 
+  // something else, then the mask can be a variable just like any other data vector?
+
 // return the temporary name for the new field in the volume
-string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
+string SoloFunctionsModel::_flaggedAddMultiply(string fieldName,  RadxVol *vol,
 				     int rayIdx, int sweepIdx,
+				      bool multiply,
 				     float constant,
 				     size_t clip_gate,
 				     float bad_data_value,
-				     string newFieldName) {
+				     string flagFieldName) {
 
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
@@ -864,9 +871,9 @@ string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
 
   //  get the ray for this field 
   const vector<RadxRay *>  &rays = vol->getRays();
-  if (rays.size() > 1) {
-    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
-  }
+  //if (rays.size() > 1) {
+  //  LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  //}
   RadxRay *ray = rays.at(rayIdx);
   if (ray == NULL) {
     LOG(DEBUG) << "ERROR - ray is NULL";
@@ -874,14 +881,13 @@ string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
   } 
 
   // get the data (in) and create space for new data (out)  
-  field = ray->getField(fieldName);
+  field = fetchDataField(ray, fieldName);
   size_t nGates = ray->getNGates(); 
 
   float *newData = new float[nGates];
 
   // data, _boundaryMask, and newData should have all the same dimensions = nGates
   SoloFunctionsApi soloFunctionsApi;
-
 
   if (_boundaryMaskSet) { //  && _boundaryMaskLength >= 3) {
     // verify dimensions on data in/out and boundary mask
@@ -892,37 +898,53 @@ string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
 
   cerr << "there are nGates " << nGates;
   const float *data = field->getDataFl32();
+
+    RadxField *flagField = fetchDataField(ray, flagFieldName);
+  const bool *bad_flag_mask = (const bool *) flagField->getDataSi08(); 
   
   // perform the function ...
-  bool multiply = false;
+  //bool multiply = false;
   soloFunctionsApi.FlaggedAdd(constant, multiply, data,  newData, nGates, 
 			      bad_data_value, clip_gate, _boundaryMask,
-			      bad_flag_mask);  // TODO: where are we getting the bad_flag_mask?
-  // TODO: is bad_flag_mask a variable/vector from the environment? or 
-  // is it held internally, like the boundary mask?
-  // I guess it depends on how we use use?  If we never need to return the mask plus 
-  // something else, then the mask can be a variable just like any other data vector?
+			      bad_flag_mask);  
 
-  // insert new field into RadxVol                                                                             
-  cerr << "result = ";
-  for (int i=0; i<50; i++)
-    cerr << newData[i] << ", ";
-  cerr << endl;
-
-  Radx::fl32 missingValue = Radx::missingFl32; 
+  // insert new field into RadxVol        
+  string field_units = field->getUnits();
+  Radx::fl32 missingValue = field->getMissingFl32();
   bool isLocal = false;
 
-  //RadxField *newField = new RadxField(newFieldName, "m/s");
-  //newField->copyMetaData(*field);
-  //newField->addDataFl32(nGates, newData);
-  RadxField *field1 = ray->addField(newFieldName, "m/s", nGates, missingValue, newData, isLocal);
+  RadxField *field1 = ray->addField(fieldName, field_units, nGates, missingValue, newData, isLocal);
 
   string tempFieldName = field1->getName();
   tempFieldName.append("#");
 
   return tempFieldName;
 }
-*/
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::FlaggedAdd(string fieldName,  RadxVol *vol,
+				      int rayIdx, int sweepIdx,
+				      float constant,
+				      size_t clip_gate,
+				      float bad_data_value,
+				      string flagFieldName) {
+  bool multiply = false;
+  return _flaggedAddMultiply(fieldName, vol, rayIdx, sweepIdx, multiply, constant,
+			    clip_gate, bad_data_value, flagFieldName);
+}
+
+// return the temporary name for the new field in the volume
+string SoloFunctionsModel::FlaggedMultiply(string fieldName,  RadxVol *vol,
+				      int rayIdx, int sweepIdx,
+				      float constant,
+				      size_t clip_gate,
+				      float bad_data_value,
+				      string flagFieldName) {
+  bool multiply = true;
+  return _flaggedAddMultiply(fieldName, vol, rayIdx, sweepIdx, multiply, constant,
+			    clip_gate, bad_data_value, flagFieldName);
+}
+
 // return the temporary name for the new field in the volume
 string SoloFunctionsModel::SetBadFlagsAbove(string fieldName,  RadxVol *vol,
 					    int rayIdx, int sweepIdx,
@@ -1455,6 +1477,43 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
 
   return tempFieldName;
 }
+
+// ----
+  string SoloFunctionsModel::AndBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::AndBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::AndBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+
+  string SoloFunctionsModel::OrBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::OrBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::OrBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+
+  string SoloFunctionsModel::XorBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::XorBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constant, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+  string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+                         float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+                         string newFieldName) { return "not implemented"; }
+
+
+
+// ----
+
+
 
 // These are not used.  The code is saved as a way to return a vector of data
 

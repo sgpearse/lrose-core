@@ -194,6 +194,24 @@ void ScriptEditorController::setupSoloFunctions(SoloFunctionsController *soloFun
   engine.globalObject().setProperty("CLEAR_BAD_FLAGS", myExt.property("CLEAR_BAD_FLAGS"));
   engine.globalObject().setProperty("ASSERT_BAD_FLAGS", myExt.property("ASSERT_BAD_FLAGS"));
 
+  engine.globalObject().setProperty("AND_BAD_FLAGS_ABOVE", myExt.property("AND_BAD_FLAGS_ABOVE"));
+  engine.globalObject().setProperty("AND_BAD_FLAGS_BELOW", myExt.property("AND_BAD_FLAGS_BELOW"));
+  engine.globalObject().setProperty("AND_BAD_FLAGS_BETWEEN", myExt.property("AND_BAD_FLAGS_BETWEEN"));
+  
+  engine.globalObject().setProperty("OR_BAD_FLAGS_ABOVE", myExt.property("OR_BAD_FLAGS_ABOVE"));
+  engine.globalObject().setProperty("OR_BAD_FLAGS_BELOW", myExt.property("OR_BAD_FLAGS_BELOW"));
+  engine.globalObject().setProperty("OR_BAD_FLAGS_BETWEEN", myExt.property("OR_BAD_FLAGS_BETWEEN"));
+
+  engine.globalObject().setProperty("XOR_BAD_FLAGS_ABOVE", myExt.property("XOR_BAD_FLAGS_ABOVE"));
+  engine.globalObject().setProperty("XOR_BAD_FLAGS_BELOW", myExt.property("XOR_BAD_FLAGS_BELOW"));
+  engine.globalObject().setProperty("XOR_BAD_FLAGS_BETWEEN", myExt.property("XOR_BAD_FLAGS_BETWEEN"));
+  engine.globalObject().setProperty("COPY_BAD_FLAGS", myExt.property("COPY_BAD_FLAGS"));
+  engine.globalObject().setProperty("FLAGGED_ADD", myExt.property("FLAGGED_ADD"));
+  engine.globalObject().setProperty("FLAGGED_MULTIPLY", myExt.property("FLAGGED_MULTIPLY"));
+
+  engine.globalObject().setProperty("FLAG_FRECKLES", myExt.property("FLAG_FRECKLES"));
+  engine.globalObject().setProperty("FLAG_GLITCHES", myExt.property("FLAG_GLITCHES"));
+
   // print the context ...
   // printQJSEngineContext();
   

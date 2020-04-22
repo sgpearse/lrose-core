@@ -367,7 +367,7 @@ void SoloFunctionsApi::ComplementBadFlags(const bool *bad_flag_mask,
   }
 }
 
-/*
+
 //
 // Add or multiply a constant to every data value marked bad;
 // return result in newData array.
@@ -381,7 +381,7 @@ void SoloFunctionsApi::ComplementBadFlags(const bool *bad_flag_mask,
 void SoloFunctionsApi::FlaggedAdd(float f_const, bool multiply, 
 				  const float *data, float *newData, size_t nGates,
 				  float bad, size_t dgi_clip_gate,
-				  bool *boundary_mask, bool *bad_flag_mask) {
+				  bool *boundary_mask, const bool *bad_flag_mask) {
   try {
     se_flagged_add(f_const, multiply,
 		   data, newData, nGates,
@@ -391,7 +391,7 @@ void SoloFunctionsApi::FlaggedAdd(float f_const, bool multiply,
     throw "Something bad happened during script evaluation";
   }
 }
-
+/*
 //
 // Apply logical expression to every data value marked bad;
 // return result in newData array.

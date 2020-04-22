@@ -2,6 +2,7 @@
 #define SOLOFUNCTIONSCONTROLLER_H
 
 #include <stdio.h>
+#include <float.h>
 #include <QtWidgets>
 #include <QModelIndex>
 #include <QJSEngine>
@@ -36,12 +37,12 @@ public:
   Q_INVOKABLE QString DESPECKLE(QString field, size_t speckle_length, float bad_data, size_t clip_gate); // return the name of the new field that contains the result
   Q_INVOKABLE QString REMOVE_AIRCRAFT_MOTION(QString field, float nyquist, float bad_data, size_t clip_gate); // return the name of the new field that contains the result
 
+ // return the name of the new field that contains the result
   Q_INVOKABLE QString BB_UNFOLDING_FIRST_GOOD_GATE(QString field, float nyquist,
 						   int max_pos_folds,
 						   int max_neg_folds,
 						   size_t ngates_averaged,
-						   float bad_data, size_t clip_gate); // return the name of the new field that contains the result
-
+						   float bad_data, size_t clip_gate);
 
   Q_INVOKABLE QString ASSERT_BAD_FLAGS(QString field, float bad_data,
 				       size_t clip_gate, QString badFlagMaskFieldName);
@@ -60,6 +61,33 @@ public:
   Q_INVOKABLE QString SET_BAD_FLAGS_BETWEEN(QString field, float lower_threshold,
 					    float upper_threshold, float bad_data,
 					    size_t clip_gate);
+
+  Q_INVOKABLE QString FLAGGED_ADD(QString field, float constant, float bad_data,
+                                             size_t clip_gate, QString bad_flag_field);
+  Q_INVOKABLE QString FLAGGED_MULTIPLY(QString field, float constant, float bad_data,
+                                             size_t clip_gate, QString bad_flag_field);
+  Q_INVOKABLE QString AND_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString AND_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString AND_BAD_FLAGS_BETWEEN(QString field, float constantLower,
+                                            float constantUpper, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString OR_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString OR_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString OR_BAD_FLAGS_BETWEEN(QString field, float constantLower,
+                                            float constantUpper, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString XOR_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString XOR_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
+                                           size_t clip_gate);
+  Q_INVOKABLE QString XOR_BAD_FLAGS_BETWEEN(QString field, 
+					    float constantLower, float constantUpper, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
 
   Q_INVOKABLE double sqrt(double value) { return qSqrt(value); }
   Q_INVOKABLE QVector<double> add(QVector<double> v, QVector<double> v2) {

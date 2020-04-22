@@ -103,11 +103,52 @@ public:
 
   string ComplementBadFlags(string fieldName,  RadxVol *vol,
 			    int rayIdx, int sweepIdx);
-  //			    size_t clip_gate,
-  //		    float bad_data_value,
-  //		    string badFlagMaskFieldName);
 
-  /*
+  string FlaggedAdd(string fieldName,  RadxVol *vol,
+	     int rayIdx, int sweepIdx,
+	     float constant,
+	     size_t clip_gate,
+	     float bad_data_value,
+	     string flagFieldName);
+
+  string FlaggedMultiply(string fieldName,  RadxVol *vol,
+	     int rayIdx, int sweepIdx,
+	     float constant,
+	     size_t clip_gate,
+	     float bad_data_value,
+	     string flagFieldName);
+
+  string AndBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string AndBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string AndBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+
+  string OrBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string OrBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string OrBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+
+  string XorBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string XorBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constant, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  string XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			 float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
+			 string newFieldName);
+  
+/*
   string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,
 			      int rayIdx, int sweepIdx,
 			      float nyquist_velocity,
@@ -172,6 +213,15 @@ private:
   bool *_boundaryMask;
   size_t _boundaryMaskLength;
   bool _boundaryMaskSet;
+
+  string _flaggedAddMultiply(string fieldName,  RadxVol *vol,
+	     int rayIdx, int sweepIdx,
+             bool multiply,
+	     float constant,
+	     size_t clip_gate,
+	     float bad_data_value,
+	     string flagFieldName);
+
 };
 
 
