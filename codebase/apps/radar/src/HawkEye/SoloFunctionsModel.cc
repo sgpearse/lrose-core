@@ -1483,37 +1483,80 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
                          float constant, size_t clip_gate, float bad_data_value,
                          string maskFieldName) {
     SoloFunctionsApi api;
-return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
-			 constant, 
-				  clip_gate, bad_data_value,
-				  maskFieldName,
-			 &SoloFunctionsApi::AndBadFlagsAbove, api);
-//  (float, float, float *, size_t, float, size_t, bool *, const bool *, bool *), SoloFunctionsApi& api) {
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::AndBadFlagsAbove, api);
 
  }
   string SoloFunctionsModel::AndBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) { 
+    SoloFunctionsApi api;
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::AndBadFlagsBelow, api);
+
+  }
   string SoloFunctionsModel::AndBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+
+ return "not implemented"; }
 
   string SoloFunctionsModel::OrBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+    SoloFunctionsApi api;
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::OrBadFlagsAbove, api);
+
+  }
   string SoloFunctionsModel::OrBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+    SoloFunctionsApi api;
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::OrBadFlagsBelow, api);
+
+  }
   string SoloFunctionsModel::OrBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+
+    return "not implemented"; }
 
   string SoloFunctionsModel::XorBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+
+    SoloFunctionsApi api;
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::XorBadFlagsAbove, api);
+  }
   string SoloFunctionsModel::XorBadFlagsBelow(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
-                         string newFieldName) { return "not implemented"; }
+                         string maskFieldName) {
+
+    SoloFunctionsApi api;
+    return _generalLogicalFx(fieldName, vol, rayIdx, sweepIdx,
+			     constant,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::XorBadFlagsBelow, api);
+ }
 
 string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
 					      float constantLower, float constantUpper, 
