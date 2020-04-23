@@ -1504,8 +1504,14 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
   string SoloFunctionsModel::AndBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
                          string maskFieldName) {
+    SoloFunctionsApi api;
+    return _generalLogicalFx2(fieldName, vol, rayIdx, sweepIdx,
+			     constantLower, constantUpper,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::AndBadFlagsBetween, api);
 
- return "not implemented"; }
+  }
 
   string SoloFunctionsModel::OrBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
@@ -1532,6 +1538,12 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
   string SoloFunctionsModel::OrBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
                          string maskFieldName) {
+    SoloFunctionsApi api;
+    return _generalLogicalFx2(fieldName, vol, rayIdx, sweepIdx,
+			      constantLower, constantUpper,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::OrBadFlagsBetween, api);
 
     return "not implemented"; }
 
@@ -1686,6 +1698,80 @@ string SoloFunctionsModel::_generalLogicalFx(string fieldName,  RadxVol *vol, in
   //				      data, nGates, bad_data_value, clip_gate,
   //				      _boundaryMask, bad_flag_mask, new_mask);
   (api.*function)(constant, data, nGates, bad_data_value, clip_gate, _boundaryMask, bad_flag_mask, new_mask);
+
+  Radx::fl32 missingValue = Radx::missingSi08; 
+  bool isLocal = false;
+
+  // I suppose the boolean mask should probably be kept as a Si08
+  RadxField *field1 = ray->addField(maskFieldName, "units", nGates, missingValue,
+				    (Radx::si08 *) new_mask, 
+				    1.0, 0.0, isLocal);
+
+  // get the name that was actually inserted ...
+  string tempFieldName = field1->getName();
+  tempFieldName.append("#");
+
+  return tempFieldName;
+}
+
+// for upper and lower threholds
+string SoloFunctionsModel::_generalLogicalFx2(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+					      float constantLower, float constantUpper, 
+					      size_t clip_gate, float bad_data_value,
+					      string maskFieldName,
+					      void (SoloFunctionsApi::*function) (float, float, const float *, size_t, float, size_t, bool *, const bool *, bool *), SoloFunctionsApi& api) {
+
+  LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
+	     << " sweepIdx=" << sweepIdx;
+
+  vol->loadRaysFromFields();
+  
+  const RadxField *field;
+
+  //  get the ray for this field 
+  const vector<RadxRay *>  &rays = vol->getRays();
+  if (rays.size() > 1) {
+    LOG(DEBUG) <<  "ERROR - more than one ray; expected only one";
+  }
+  RadxRay *ray = rays.at(rayIdx);
+  if (ray == NULL) {
+    LOG(DEBUG) << "ERROR - ray is NULL";
+    throw "Ray is null";
+  } 
+
+  // get the data (in) and create space for new data (out)  
+  field = fetchDataField(ray, fieldName);
+  size_t nGates = ray->getNGates(); 
+
+  // create bad_flag_mask for return 
+  bool *new_mask = new bool[nGates];
+
+  // get the bad flag mask
+  RadxField *maskField = fetchDataField(ray, maskFieldName);
+  // TODO: fix up this check ...
+  // size_t nGatesMask = ray->getNGates(); 
+  //if (nGatesMask != nGates)
+  //   throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
+  const bool *bad_flag_mask = (bool *) maskField->getDataSi08();
+
+
+  // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
+  //SoloFunctionsApi soloFunctionsApi;
+
+  if (_boundaryMaskSet) {
+    // verify dimensions on data in/out and boundary mask
+    if (nGates > _boundaryMaskLength)
+      throw "Error: boundary mask and field gate dimension are not equal (SoloFunctionsModel)";
+  }
+
+  cerr << "there are nGates " << nGates;
+  const float *data = field->getDataFl32();
+  
+  // perform the function ...
+  //soloFunctionsApi.XorBadFlagsBetween(constantLower, constantUpper,
+  //				      data, nGates, bad_data_value, clip_gate,
+  //				      _boundaryMask, bad_flag_mask, new_mask);
+  (api.*function)(constantLower, constantUpper, data, nGates, bad_data_value, clip_gate, _boundaryMask, bad_flag_mask, new_mask);
 
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;

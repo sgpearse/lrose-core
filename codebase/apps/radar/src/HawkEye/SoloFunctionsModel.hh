@@ -228,6 +228,13 @@ private:
 			   string maskFieldName,
 			   void (SoloFunctionsApi::*function) (float, const float *, size_t,
 			       float, size_t, bool *, const bool *, bool *), SoloFunctionsApi& api);
+
+  string _generalLogicalFx2(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			    float constantLower, float constantUpper,
+			   size_t clip_gate, float bad_data_value,
+			   string maskFieldName,
+			    void (SoloFunctionsApi::*function) (float, float, const float *, size_t,
+			       float, size_t, bool *, const bool *, bool *), SoloFunctionsApi& api);
 };
 
 
