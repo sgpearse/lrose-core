@@ -261,6 +261,9 @@ void SoloFunctionsApi::ZeroInsideBoundary(const float *data, bool *boundaryMask,
 // Bad flag operations
 //
 
+// The API offers specific versions of logical operators.
+// The API converts the specific logical function to an internal
+// enumeration for (AND, OR, XOR) and (ABOVE, BELOW, BETWEEN)
 //
 // parameters:
 // in    data
@@ -391,28 +394,40 @@ void SoloFunctionsApi::FlaggedAdd(float f_const, bool multiply,
     throw "Something bad happened during script evaluation";
   }
 }
-/*
+
 //
-// Apply logical expression to every data value marked bad;
-// return result in newData array.
-// if multiply is true, multiply the constant
-// if multiply is false, add the constant
+// Apply logical expression to every data value marked bad that also
+// fits the selection criteria (ABOVE, BELOW, BETWEEN)
+// return result in bool mask array.
 
 // parameters:
 // in      data
 // in/out  newData
 // in      bad_flag_mask
-void SoloFunctionsApi::BadFlagsLogic(float scaled_thr1, float scaled_thr2, char *where,
-                        char *logical_operator, const float *data, size_t nGates,
-                        float bad, size_t dgi_clip_gate,
-                        bool *boundary_mask, bool *bad_flag_mask)   try {
-    se_bad_flags_logic(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+
+void SoloFunctionsApi::XorBadFlagsBetween(float scaled_thr1, float scaled_thr2, 
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+
+
+    enum Where where = BETWEEN;
+    enum Logical logical_operator = XOR;
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
   } catch(...) {
     throw "Something bad happened during script evaluation";
   }
 }
 
-
+/*
 void SoloFunctionsApi::se_clear_bad_flags(bool complement, size_t nGates,
 					  bool *bad_flag_mask) {
   try {

@@ -209,8 +209,8 @@ void se_flagged_add(float f_const, bool multiply, const float *data, float *newD
 /* c------------------------------------------------------------------------ */
 
 // sets bad_flag_mask In/out parameter
-void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where, 
-			char *logical_operator, const float *data, size_t nGates,
+void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where, 
+			enum Logical logical_operator, const float *data, size_t nGates,
 			float bad, size_t dgi_clip_gate,
 			bool *boundary_mask, const bool *flag, // *bad_flag_mask,
 			bool *updated_bad_flag_mask)
@@ -245,8 +245,12 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
      * loop through the data
      */
 
-    if(strncmp(where, "below", 3) == 0) {
-	if(strncmp(logical_operator, "and", 3) == 0) {
+    switch(where) {
+    case BELOW:
+      //if(strncmp(where, "below", 3) == 0) {
+      switch (logical_operator) {
+	//if(strncmp(logical_operator, "and", 3) == 0) {
+      case AND:
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -257,26 +261,35 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		  *uflag = *flag & (*thr < scaled_thr1);
 		}
 	    }
-	}
-	else if(strncmp(logical_operator, "xor", 3) == 0) {
+	  //}
+	  break;
+      case XOR:
+	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag ^ (*thr < scaled_thr1);
 	    }
-	}
-	else {			/* or */
+	  //}
+	  break;
+      case OR:
+	//	else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag | (*thr < scaled_thr1);
 	    }
-	}
-    }
-    else if(strncmp(where, "above", 3) == 0) {
-	if(strncmp(logical_operator, "and", 3) == 0) {
+	  //}
+	  break;
+      }
+      break;
+    case ABOVE:
+      //else if(strncmp(where, "above", 3) == 0) {
+      switch (logical_operator) {
+	//if(strncmp(logical_operator, "and", 3) == 0) {
+      case AND:
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -287,26 +300,35 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		  *uflag = *flag & (*thr > scaled_thr1);
 		}
 	    }
-	}
-	else if(strncmp(logical_operator, "xor", 3) == 0) {
+	  //}
+	  break;
+      case XOR:
+	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag ^ (*thr > scaled_thr1);
 	    }
-	}
-	else {			/* or */
+	  //}
+	  break;
+      case OR:
+	//else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag | (*thr > scaled_thr1);
 	    }
-	}
-    }
-    else {			/* between */
-	if(strncmp(logical_operator, "and", 3) == 0) {
+	  //}
+	  break;
+      }
+      break;
+    case BETWEEN:
+      //else {			/* between */
+      switch (logical_operator) {
+      case AND:
+	//if(strncmp(logical_operator, "and", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -317,8 +339,10 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		  *uflag = *flag & (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	}
-	else if(strncmp(logical_operator, "xor", 3) == 0) {
+	  //}
+	  break;
+      case XOR:
+	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -326,8 +350,10 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		  *uflag = *flag ^ (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	}
-	else {			/* or */
+	  //}
+	  break;
+      case OR:
+	//else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -335,7 +361,10 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, char *where,
 		  *uflag = *flag | (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	}
+	  //}
+	  break;
+      }
+      //break;
     }
 }
 /* c------------------------------------------------------------------------ */

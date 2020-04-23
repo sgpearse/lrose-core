@@ -146,6 +146,11 @@ public:
 	     float bad, size_t dgi_clip_gate,
 	     bool *boundary_mask, const bool *bad_flag_mask);
 
+  void XorBadFlagsBetween(float scaled_thr1, float scaled_thr2,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
 private:
 
 };

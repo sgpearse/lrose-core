@@ -22,6 +22,7 @@
 # define RADIANS(x)  ((x)*0.017453292)
 
 enum Where {ABOVE, BELOW, BETWEEN};
+enum Logical {AND, OR, XOR};
 
 // use DoradeData.hh radar_type_t or lidar_type_t
 /* Dorade radar types */
