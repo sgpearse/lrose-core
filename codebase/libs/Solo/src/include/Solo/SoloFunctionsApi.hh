@@ -151,6 +151,56 @@ public:
 		     float bad, size_t dgi_clip_gate,
 		     bool *boundary_mask, const bool *bad_flag_mask,
 		     bool *updated_bad_flag_mask);
+
+  void OrBadFlagsBetween(float scaled_thr1, float scaled_thr2,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void AndBadFlagsBetween(float scaled_thr1, float scaled_thr2,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void XorBadFlagsAbove(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void XorBadFlagsBelow(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void AndBadFlagsAbove(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void AndBadFlagsBelow(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void OrBadFlagsAbove(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+  void OrBadFlagsBelow(float scaled_thr1,
+		     const float *data, size_t nGates,
+		     float bad, size_t dgi_clip_gate,
+		     bool *boundary_mask, const bool *bad_flag_mask,
+		     bool *updated_bad_flag_mask);
+
+
 private:
 
 };

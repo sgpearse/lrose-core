@@ -402,7 +402,7 @@ void SoloFunctionsApi::FlaggedAdd(float f_const, bool multiply,
 
 // parameters:
 // in      data
-// in/out  newData
+// in/out  updated_bad_flag_mask
 // in      bad_flag_mask
 
 void SoloFunctionsApi::XorBadFlagsBetween(float scaled_thr1, float scaled_thr2, 
@@ -412,8 +412,6 @@ void SoloFunctionsApi::XorBadFlagsBetween(float scaled_thr1, float scaled_thr2,
 					  bool *updated_bad_flag_mask) {
 
   try {
-
-
     enum Where where = BETWEEN;
     enum Logical logical_operator = XOR;
     se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
@@ -426,6 +424,218 @@ void SoloFunctionsApi::XorBadFlagsBetween(float scaled_thr1, float scaled_thr2,
     throw "Something bad happened during script evaluation";
   }
 }
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::OrBadFlagsBetween(float scaled_thr1, float scaled_thr2, 
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = BETWEEN;
+    enum Logical logical_operator = OR;
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::AndBadFlagsBetween(float scaled_thr1, float scaled_thr2, 
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = BETWEEN;
+    enum Logical logical_operator = AND;
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// ----
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::XorBadFlagsAbove(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = ABOVE;
+    enum Logical logical_operator = XOR;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::XorBadFlagsBelow(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = BELOW;
+    enum Logical logical_operator = XOR;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::AndBadFlagsAbove(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = ABOVE;
+    enum Logical logical_operator = AND;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::AndBadFlagsBelow(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = BELOW;
+    enum Logical logical_operator = AND;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::OrBadFlagsAbove(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = ABOVE;
+    enum Logical logical_operator = OR;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+// parameters:
+// in      data
+// in/out  updated_bad_flag_mask
+// in      bad_flag_mask
+
+void SoloFunctionsApi::OrBadFlagsBelow(float scaled_thr1,  
+					  const float *data, size_t nGates,
+					  float bad, size_t dgi_clip_gate,
+					  bool *boundary_mask, const bool *bad_flag_mask,
+					  bool *updated_bad_flag_mask) {
+
+  try {
+    enum Where where = BELOW;
+    enum Logical logical_operator = OR;
+    float scaled_thr2 = 0.0; 
+    se_bad_flags_logic(scaled_thr1, scaled_thr2, where,
+		       logical_operator, data, nGates,
+		       bad, dgi_clip_gate,
+		       boundary_mask, bad_flag_mask,
+		       updated_bad_flag_mask);
+
+  } catch(...) {
+    throw "Something bad happened during script evaluation";
+  }
+}
+
+
+
 
 /*
 void SoloFunctionsApi::se_clear_bad_flags(bool complement, size_t nGates,

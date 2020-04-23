@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Radx/RadxVol.hh"
-
+#include "Solo/SoloFunctionsApi.hh"
 using namespace std;
 
 
@@ -222,6 +222,12 @@ private:
 	     float bad_data_value,
 	     string flagFieldName);
 
+  string _generalLogicalFx(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+			   float constant,
+			   size_t clip_gate, float bad_data_value,
+			   string maskFieldName,
+			   void (SoloFunctionsApi::*function) (float, const float *, size_t,
+			       float, size_t, bool *, const bool *, bool *), SoloFunctionsApi& api);
 };
 
 

@@ -66,24 +66,32 @@ public:
                                              size_t clip_gate, QString bad_flag_field);
   Q_INVOKABLE QString FLAGGED_MULTIPLY(QString field, float constant, float bad_data,
                                              size_t clip_gate, QString bad_flag_field);
-  Q_INVOKABLE QString AND_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
-  Q_INVOKABLE QString AND_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
+  Q_INVOKABLE QString AND_BAD_FLAGS_ABOVE(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
+  Q_INVOKABLE QString AND_BAD_FLAGS_BELOW(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
   Q_INVOKABLE QString AND_BAD_FLAGS_BETWEEN(QString field, float constantLower,
-                                            float constantUpper, float bad_data,
-                                           size_t clip_gate);
-  Q_INVOKABLE QString OR_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
-  Q_INVOKABLE QString OR_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
+                                            float constantUpper,
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
+  Q_INVOKABLE QString OR_BAD_FLAGS_ABOVE(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
+  Q_INVOKABLE QString OR_BAD_FLAGS_BELOW(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
   Q_INVOKABLE QString OR_BAD_FLAGS_BETWEEN(QString field, float constantLower,
-                                            float constantUpper, float bad_data,
-                                           size_t clip_gate);
-  Q_INVOKABLE QString XOR_BAD_FLAGS_ABOVE(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
-  Q_INVOKABLE QString XOR_BAD_FLAGS_BELOW(QString field, float constant, float bad_data,
-                                           size_t clip_gate);
+                                            float constantUpper, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
+  Q_INVOKABLE QString XOR_BAD_FLAGS_ABOVE(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
+  Q_INVOKABLE QString XOR_BAD_FLAGS_BELOW(QString field, float constant, 
+					    QString mask_field, float bad_data = FLT_MIN,
+					    size_t clip_gate = SIZE_MAX);
   Q_INVOKABLE QString XOR_BAD_FLAGS_BETWEEN(QString field, 
 					    float constantLower, float constantUpper, 
 					    QString mask_field, float bad_data = FLT_MIN,

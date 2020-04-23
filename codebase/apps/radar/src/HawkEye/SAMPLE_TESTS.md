@@ -75,6 +75,13 @@ BFM2 = XOR_BAD_FLAGS_BETWEEN(VEL, 10.0, 15.0, BFM)
 
 ----
 
+BAD_DATA = -9e+33
+CLIP_GATE = 904 
+BFM = SET_BAD_FLAGS_BELOW(VEL, 0.0, BAD_DATA, CLIP_GATE)
+BFM2 = AND_BAD_FLAGS_ABOVE(REF, 8.0, BFM, BAD_DATA, CLIP_GATE))
+
+----
+
   colorMap = constructColorMap(0.0, 100.0, "number.colors");
   colorMap.setName("numbers");
   colorMap.setUnits("units");

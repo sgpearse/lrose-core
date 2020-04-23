@@ -247,9 +247,7 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 
     switch(where) {
     case BELOW:
-      //if(strncmp(where, "below", 3) == 0) {
       switch (logical_operator) {
-	//if(strncmp(logical_operator, "and", 3) == 0) {
       case AND:
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
@@ -261,34 +259,27 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 		  *uflag = *flag & (*thr < scaled_thr1);
 		}
 	    }
-	  //}
 	  break;
       case XOR:
-	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag ^ (*thr < scaled_thr1);
 	    }
-	  //}
 	  break;
       case OR:
-	//	else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag | (*thr < scaled_thr1);
 	    }
-	  //}
 	  break;
       }
       break;
     case ABOVE:
-      //else if(strncmp(where, "above", 3) == 0) {
       switch (logical_operator) {
-	//if(strncmp(logical_operator, "and", 3) == 0) {
       case AND:
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
@@ -300,35 +291,28 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 		  *uflag = *flag & (*thr > scaled_thr1);
 		}
 	    }
-	  //}
 	  break;
       case XOR:
-	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag ^ (*thr > scaled_thr1);
 	    }
-	  //}
 	  break;
       case OR:
-	//else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
 		if(*thr != bad)
 		  *uflag = *flag | (*thr > scaled_thr1);
 	    }
-	  //}
 	  break;
       }
       break;
     case BETWEEN:
-      //else {			/* between */
       switch (logical_operator) {
       case AND:
-	//if(strncmp(logical_operator, "and", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -339,10 +323,8 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 		  *uflag = *flag & (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	  //}
 	  break;
       case XOR:
-	//else if(strncmp(logical_operator, "xor", 3) == 0) {
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -350,10 +332,8 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 		  *uflag = *flag ^ (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	  //}
 	  break;
       case OR:
-	//else {			/* or */
 	  for(; thr < zz; thr++,bnd++,flag++,uflag++) {
 		if(!(*bnd))
 		      continue;
@@ -361,10 +341,8 @@ void se_bad_flags_logic(float scaled_thr1, float scaled_thr2, enum Where where,
 		  *uflag = *flag | (*thr >= scaled_thr1 && *thr <= scaled_thr2);
 		}
 	    }
-	  //}
 	  break;
       }
-      //break;
     }
 }
 /* c------------------------------------------------------------------------ */
