@@ -392,13 +392,15 @@ QString SoloFunctionsController::COMPLEMENT_BAD_FLAGS(QString field) {
   return QString::fromStdString(tempFieldName);
 } 
 
-/*
+
 // return the name of the field in which the result is stored in the RadxVol
-QString SoloFunctionsController::COPY_BAD_FLAGS(QString field, float constant, float bad_data,
-					   size_t clip_gate) { 
-  return QString::fromStdString("empty");
+QString SoloFunctionsController::COPY_BAD_FLAGS(QString field, float bad_data, size_t clip_gate) {
+  string tempFieldName = soloFunctionsModel.CopyBadFlags(field.toStdString(), _data,
+							 _currentRayIdx, _currentSweepIdx,
+							 clip_gate, bad_data); 
+  return QString::fromStdString(tempFieldName);
 } 
-*/
+
 
 /*
 

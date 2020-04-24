@@ -200,6 +200,9 @@ public:
 		     bool *boundary_mask, const bool *bad_flag_mask,
 		     bool *updated_bad_flag_mask);
 
+  void CopyBadFlags(const float *data, size_t nGates,
+		    float bad, size_t dgi_clip_gate,
+		    bool *boundary_mask, bool *bad_flag_mask);
 
 private:
 

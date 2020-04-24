@@ -58,6 +58,8 @@ public:
 			       string newFieldName);
 
 
+  // Bad flags operations ...
+
   string SetBadFlagsAbove(string fieldName,  RadxVol *vol,
 			  int rayIdx, int sweepIdx,
 			  float lower_threshold,
@@ -147,6 +149,9 @@ public:
   string XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
 			 float constantLower, float constantUpper, size_t clip_gate, float bad_data_value,
 			 string newFieldName);
+
+  string CopyBadFlags(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+		      size_t clip_gate, float bad_data_value);
   
 /*
   string BBUnfoldAircraftWind(string fieldName, RadxVol *vol,

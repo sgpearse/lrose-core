@@ -1545,7 +1545,7 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
 			     maskFieldName,
 			     &SoloFunctionsApi::OrBadFlagsBetween, api);
 
-    return "not implemented"; }
+  }
 
   string SoloFunctionsModel::XorBadFlagsAbove(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
                          float constant, size_t clip_gate, float bad_data_value,
@@ -1570,10 +1570,26 @@ string SoloFunctionsModel::SetBadFlags(string fieldName,  RadxVol *vol,
 			     &SoloFunctionsApi::XorBadFlagsBelow, api);
  }
 
-string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+ string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
 					      float constantLower, float constantUpper, 
 					      size_t clip_gate, float bad_data_value,
 					      string maskFieldName) {
+    SoloFunctionsApi api;
+    return _generalLogicalFx2(fieldName, vol, rayIdx, sweepIdx,
+			      constantLower, constantUpper,
+			     clip_gate, bad_data_value,
+			     maskFieldName,
+			     &SoloFunctionsApi::XorBadFlagsBetween, api);
+  }
+
+
+/* 
+void CopyBadFlags(const float *data, size_t nGates,
+		  float bad, size_t dgi_clip_gate,
+		  bool *boundary_mask, bool *bad_flag_mask);
+*/
+ string SoloFunctionsModel::CopyBadFlags(string fieldName,  RadxVol *vol, int rayIdx, int sweepIdx,
+					 size_t clip_gate, float bad_data_value) {
 
   LOG(DEBUG) << "entry with fieldName ... " << fieldName << " radIdx=" << rayIdx
 	     << " sweepIdx=" << sweepIdx;
@@ -1601,12 +1617,12 @@ string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, i
   bool *new_mask = new bool[nGates];
 
   // get the bad flag mask
-  RadxField *maskField = fetchDataField(ray, maskFieldName);
+  //RadxField *maskField = fetchDataField(ray, maskFieldName);
   // TODO: fix up this check ...
   // size_t nGatesMask = ray->getNGates(); 
   //if (nGatesMask != nGates)
   //   throw "Error: bad flag mask and field gate dimension are not equal (SoloFunctionsModel)";
-  const bool *bad_flag_mask = (bool *) maskField->getDataSi08();
+  // const bool *bad_flag_mask = (bool *) maskField->getDataSi08();
 
 
   // data, _boundaryMask, and bad flag mask should have all the same dimensions = nGates
@@ -1622,15 +1638,21 @@ string SoloFunctionsModel::XorBadFlagsBetween(string fieldName,  RadxVol *vol, i
   const float *data = field->getDataFl32();
   
   // perform the function ...
-  soloFunctionsApi.XorBadFlagsBetween(constantLower, constantUpper,
-				      data, nGates, bad_data_value, clip_gate,
-				      _boundaryMask, bad_flag_mask, new_mask);
+  soloFunctionsApi.CopyBadFlags(data, nGates, bad_data_value, clip_gate,
+				_boundaryMask, new_mask);
+
+  /* --
+  CopyBadFlags(const float *data, size_t nGates,                                                              
+	       float bad, size_t dgi_clip_gate,                                                               
+	       bool *boundary_mask, bool *bad_flag_mask);  
+  // --
+  */
 
   Radx::fl32 missingValue = Radx::missingSi08; 
   bool isLocal = false;
 
   // I suppose the boolean mask should probably be kept as a Si08
-  RadxField *field1 = ray->addField(maskFieldName, "units", nGates, missingValue,
+  RadxField *field1 = ray->addField(fieldName, "units", nGates, missingValue,
 				    (Radx::si08 *) new_mask, 
 				    1.0, 0.0, isLocal);
 

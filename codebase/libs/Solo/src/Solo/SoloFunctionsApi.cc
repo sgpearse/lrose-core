@@ -646,19 +646,19 @@ void SoloFunctionsApi::se_clear_bad_flags(bool complement, size_t nGates,
     throw "Something bad happened during script evaluation";
   }
 }
+*/
 
-
-void SoloFunctionsApi::se_copy_bad_flags(const float *data, size_t nGates,
-                       float bad, size_t dgi_clip_gate,
-					 bool *boundary_mask, bool *bad_flag_mask) {
+void SoloFunctionsApi::CopyBadFlags(const float *data, size_t nGates,
+				    float bad, size_t dgi_clip_gate,
+				    bool *boundary_mask, bool *bad_flag_mask) {
   try {
-    se_despeckle(data, newData, nGates, bad, a_speckle, dgi_clip_gate, boundary_mask);
+    se_copy_bad_flags(data, nGates, bad, dgi_clip_gate, boundary_mask, bad_flag_mask);
   } catch(...) {
     throw "Something bad happened during script evaluation";
   }
 }
 
-
+/*
 void SoloFunctionsApi::se_flag_glitches(float deglitch_threshold, int deglitch_radius,
                       int deglitch_min_bins,  // aka deglitch_min_gates                                  
                       const float *data, size_t nGates,
