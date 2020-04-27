@@ -204,6 +204,22 @@ public:
 		    float bad, size_t dgi_clip_gate,
 		    bool *boundary_mask, bool *bad_flag_mask);
 
+  void FlaggedAssign(float constant, const float *data, size_t nGates,
+		     size_t dgi_clip_gate,
+		     bool *boundary_mask, bool *bad_flag_mask);
+
+  void FlaggedCopy(const float *data, float *newData, size_t nGates,
+		   size_t dgi_clip_gate,
+		   bool *boundary_mask, bool *bad_flag_mask);
+  
+  void FlagFreckles();
+ 
+  void FlagGlitches(float deglitch_threshold, int deglitch_radius,
+		    int deglitch_min_bins,  // aka deglitch_min_gates
+		    const float *data, size_t nGates,
+		    float bad, size_t dgi_clip_gate,
+		    bool *boundary_mask, bool *bad_flag_mask);
+
 private:
 
 };
