@@ -439,6 +439,8 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
    * but switches to a trailing average once enough good points                                     
    * have been encountered                                                                          
    */
+
+  // uses one queue, and indexes into the queue like an array.
   //struct ui_command *cmdq=cmds+1; /* point to the first argument */
   int jj, kk, mm, nn, navg; // mark, ;
   size_t nc, ndx_ss;
@@ -479,10 +481,11 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
   //                                                                                            
   // set up                                                                                     
   //
+  // TODO: move to new & delete instead of malloc and free
   if( navg > que_size ) {
     if( que_size )
-      { free( que ); }
-    que = (float *)malloc( navg * sizeof( float ));
+      { delete[] que; }
+    que = new float[navg]; // (float *)malloc( navg * sizeof( float ));
     que_size = navg;
   }
   //}
@@ -572,7 +575,7 @@ struct running_avg_que {
   double rcp_num_vals;
   int in_use;
   int num_vals;
-  struct que_val *at;
+  struct que_val *at; // this is the head of the list of que_val(s)
   struct running_avg_que *last;
   struct running_avg_que *next;
 
@@ -597,6 +600,10 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
    * but switches to a trailing average once enough good points
    * have been encountered
    */
+
+  // uses two queues and moves through them like a linked list 
+  // via last and next pointers
+  //
   //  struct ui_command *cmdq=cmds+1; /* point to the first argument */
   int fn, ii, jj, kk, mm, nn, mark, navg;
   int nc, ndx_ss, ndx_q0, q1_ndx, out_of_bounds;
@@ -608,7 +615,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
   //  struct dd_general_info *dgi, *dd_window_dgi();
   //  struct dds_structs *dds;
   static struct running_avg_que *raq0, *raq1;
-  struct running_avg_que *se_return_ravgs();
+  struct running_avg_que *se_return_ravgs();  // TODO: HERE <<== keep and manage this struct then fewer code changes; to logic below.
   struct que_val *qv0, *qv1;
 
   float *ss, xx, ref0, ref1;
@@ -641,8 +648,9 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
     /*
      * set up for two running average queues
      */
-    raq0 = se_return_ravgs(navg);
-    raq1 = se_return_ravgs(navg);
+    // TODO: are the queues circular?  as in the last element -> next = head? YES.  
+    raq0 = new float[navg]; // se_return_ravgs(navg);
+    raq1 = new float[navg]; // se_return_ravgs(navg);
   }
   nc = dgi_clip_gate;
   nn = navg +1;
@@ -750,5 +758,9 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
       }
     }
   }
-  return(1);
+
+  delete raq0[];
+  delete raq1[];
+
+  // return(1);
 }
