@@ -458,6 +458,8 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
    * conditions of the boundaries                                                                   
    */
 
+
+
   bnd = boundary_mask;
   flag = bad_flag_mask;
   ss = data;
@@ -468,6 +470,10 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
   navg = deglitch_radius *2 +1;
   half = navg/2;
 
+  if (navg > nGates)  // TODO: what is a good bound on this number? 100?
+    throw "ERROR, deglitch radius must be less than half the number of gates in ray";
+
+  // TODO: check this logic, it seems wacked
   if( deglitch_min_bins > 0 ) {
     if( deglitch_min_bins > navg )
       { deglitch_min_bins = navg; }
@@ -482,12 +488,12 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
   // set up                                                                                     
   //
   // TODO: move to new & delete instead of malloc and free
-  if( navg > que_size ) {
-    if( que_size )
-      { delete[] que; }
+  //if( navg > que_size ) {
+  //  if( que_size )
+  //    { delete[] que; }
     que = new float[navg]; // (float *)malloc( navg * sizeof( float ));
     que_size = navg;
-  }
+    //}
   //}
   
 
@@ -554,6 +560,7 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
       ndx_qend = ++ndx_qend % que_size;
     }
   }
+delete[] que;
 }
 
 
@@ -563,7 +570,7 @@ struct que_val {
   int val;
   float f_val;
   double d_val;
-  struct que_val *last;
+  struct que_val *last; // not used
   struct que_val *next;
 };
 
@@ -584,7 +591,7 @@ struct running_avg_que {
 
 // bad_flag_mask is set
 // if a gate is considered a freckle, bad_flag_mask = true;
-// TODO: Question: Is the mask updated? or created?
+// TODO: Question: Is the mask updated? or created?  (it is updated)
 void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
 		      const float *data, size_t nGates,
 		      float bad, size_t dgi_clip_gate,
@@ -602,11 +609,13 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
    */
 
   // uses two queues and moves through them like a linked list 
-  // via last and next pointers
+  // via last and next pointers; the last pointer is never used.
   //
   //  struct ui_command *cmdq=cmds+1; /* point to the first argument */
   int fn, ii, jj, kk, mm, nn, mark, navg;
-  int nc, ndx_ss, ndx_q0, q1_ndx, out_of_bounds;
+  size_t  nc, ndx_ss, ndx_q0;
+  bool out_of_bounds;
+  // int q1_ndx; // not used
   int scaled_thr;  // TODO: should this be a float?
   double rcp_ngts;
   //  char *name;
@@ -614,10 +623,11 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
   //  struct solo_edit_stuff *seds, *return_sed_stuff();
   //  struct dd_general_info *dgi, *dd_window_dgi();
   //  struct dds_structs *dds;
-  static struct running_avg_que *raq0, *raq1;
-  struct running_avg_que *se_return_ravgs();  // TODO: HERE <<== keep and manage this struct then fewer code changes; to logic below.
-  struct que_val *qv0, *qv1;
-
+  //static struct running_avg_que *raq0, *raq1;
+  float *raq0, *raq1;
+  //struct running_avg_que *se_return_ravgs();  // TODO: HERE <<== keep and manage this struct then fewer code changes; to logic below.
+  //struct que_val *qv0, *qv1;
+  size_t qv0, qv1; // index into running average que
   float *ss, xx, ref0, ref1;
   bool *bnd, *flag;
   /* boundary mask is set to 1 if the corresponding cell satisfies
@@ -643,118 +653,137 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
   rcp_ngts = 1./navg;
 
   // TODO: is process_ray_count the number of rays processed?
-  // i.e. the rayIdx?
-  if(seds->process_ray_count == 1) {
+  // i.e. the rayIdx?  Correct.  If I use an array with mod to make the indexes
+  // circular, then I don't need the process_ray_count
+  //if(seds->process_ray_count == 1) {
     /*
      * set up for two running average queues
      */
     // TODO: are the queues circular?  as in the last element -> next = head? YES.  
-    raq0 = new float[navg]; // se_return_ravgs(navg);
+    // TODO: I'll need to setup the pointers, at initialization. 
+    // Vector:
+    //   need to modify code in algorithm.  
+    // struct running_avg_que:
+    //   no change to code in algorithm.
+    //   bring along raq code; need static variables to retain raqs
+    raq0 = new float[navg]; // float[navg]; // se_return_ravgs(navg);
     raq1 = new float[navg]; // se_return_ravgs(navg);
-  }
+    //}
   nc = dgi_clip_gate;
-  nn = navg +1;
+  nn = navg +1;  // number of average values
 
-  for(ndx_ss=0; ndx_ss < nc;) { /* move the cell index to the first
-				 * good gate inside the next boundary */
+  // ndx_ss  is the index through the ray
+  // ndx_q0  is the index in the ray for the leading average que
+  for(ndx_ss=0; ndx_ss < nc;) { 
+
+    // move the cell index (ndx_ss) to the first
+    // good gate inside the next boundary
     for(; ndx_ss < nc && (!(*(bnd+ndx_ss)) || *(ss+ndx_ss) == bad);
 	ndx_ss++);
-    /*
-     * see if we can set up a leading queue
-     */
+    //
+    // see if we can set up a leading queue
+    // (mm is the number of data values that are: 
+    //    1. inside the boundary AND 
+    //    2. are not bad
+    //   
     for(mm=0,jj=ndx_ss; mm < nn && jj < nc && *(bnd+jj); jj++) {
       if(*(ss+jj) != bad) mm++;
     }
     if(mm < nn) {
       ndx_ss = jj;
-      continue;/* can't set up queue */
+      continue;// not enough data to set up queue; move to next boundary
     }
-    out_of_bounds = NO;
+    out_of_bounds = false;
     /*
      * initialize the leading average queue
      */
-    qv0 = raq0->at;
-    raq0->sum = raq1->sum = 0;
+    qv0 = 0; // raq0->at;
+    raq0_sum = raq1_sum = 0; // raq0->sum = raq1->sum = 0;
     for(ndx_q0=ndx_ss,mm=0;; ndx_q0++) {
       if((xx = *(ss+ndx_q0)) != bad) {
 	if(!mm++)
-	  continue;/* don't use the first good gate in the avg
-		    */
-	/* put this val in the first queue
-	 */
-	raq0->sum += xx;
-	qv0->val = xx;
-	qv0 = qv0->next;
+	  continue; // don't use the first good gate in the avg
+		   
+	// put this val in the leading queue
+	raq0_sum += xx;   // raq0->sum += xx;
+	raq0[qv0] = xx;   // qv0->val = xx;
+	qv0 = (qv0 + 1) % navg;	//  qv0 = qv0->next;  
 	if(mm >= navg+1) {
-	  break;
+	  break; // exit the loop; the que is full
 	}
       }
     }
-    ref0 = raq0->sum * rcp_ngts;
-    qv1 = raq1->at;
-    /*
-     * now loop through the data until we have encountered
-     * navg good gates for the trailing average
-     */
-    for(mm=0; ndx_q0 < nc; ndx_ss++) {
+    // at this point ...
+    // ndx_q0 = index in ray to last data point in leading que
+    //
+    // set the running average of the leading queue
+    ref0 = raq0_sum * rcp_ngts; // ref0 = raq0->sum * rcp_ngts;
+    qv1 = 0; // raq1->at;  // ??
+    //
+    // now loop through the data until we have encountered
+    // navg good gates for the trailing average
+    //
+    for(mm=0; ndx_q0 < nc; ndx_ss++) {  // trailing-average-queue
       if((xx = *(ss+ndx_ss)) == bad)
 	continue;
       if(abs((int)(xx -ref0)) > scaled_thr) {
-	*(flag+ndx_ss) = 1; /* flag this gate */
+	*(flag+ndx_ss) = true; // flag this gate
       }
-      else {/* add this point to the trailing average */
-	raq1->sum += xx;
-	qv1->val = xx;
-	qv1 = qv1->next;
+      else {  // add this point to the trailing average
+	raq1_sum += xx;
+	raq1[qv1] = xx; // qv1->val = xx;
+	qv1 = (qv1 + 1) % navg; // qv1 = qv1->next;
 	if(++mm >= navg) {
-	  break;
+	  break;  // breaks out of trailing-average-queue
 	}
       }
-      /* find the next good point for the leading average
-       */
+      //
+      // find the next good point for the leading average
+      //
       for(ndx_q0++; ndx_q0 < nc; ndx_q0++) {
-	if(!(*(bnd+ndx_q0))) { /* we've gone beyond the boundary */
-	  out_of_bounds = YES;
-	  break;
+	if(!(*(bnd+ndx_q0))) { // we've gone beyond the boundary 
+	  out_of_bounds = true;
+	  break; 
 	}
 	if((xx = *(ss+ndx_q0)) != bad) {
-	  raq0->sum -= qv0->val;
-	  raq0->sum += xx;
-	  qv0->val = xx;
-	  qv0 = qv0->next;
-	  ref0 = raq0->sum * rcp_ngts;
+	  raq0_sum -= raq0[qv0]; // qv0->val;
+	  raq0_sum += xx;
+	  raq0[qv0] = xx; // qv0->val = xx;
+	  qv0 = (qv0 + 1) % navg; // qv0 = qv0->next;
+	  ref0 = raq0_sum * rcp_ngts;
 	  break;
 	}
       }
       if(out_of_bounds || ndx_q0 >= nc)
 	break;
-    }
+    } // end set trailing average
+
     if(out_of_bounds || ndx_q0 >= nc) {
       ndx_ss = ndx_q0;
       continue;
     }
-    ref1 = raq1->sum * rcp_ngts;
+    ref1 = raq1_sum * rcp_ngts;
 
-    /*
-     * else shift to a trailing average
-     */
+    //
+    // else shift to a trailing average
+    //
 
     for(ndx_ss++; ndx_ss < nc; ndx_ss++) {
       if(!(*(bnd+ndx_ss)))
-	break;/* we've gone beyond the boundary
-	       */
+	break;  // we've gone beyond the boundary
+	      
       if((xx = *(ss+ndx_ss)) == bad)
 	continue;
 
       if(abs((int)(xx -ref1)) > scaled_thr) {
-	*(flag+ndx_ss) = 1; /* flag this gate */
+	*(flag+ndx_ss) = true; // flag this gate
       }
-      else {/* add this point to the trailing average */
-	raq1->sum -= qv1->val;
-	raq1->sum += xx;
-	qv1->val = xx;
-	qv1 = qv1->next;
-	ref1 = raq1->sum * rcp_ngts;
+      else { // add this point to the trailing average 
+	raq1_sum -= raq1[qv1]; // qv1->val;
+	raq1_sum += xx;
+	raq1[qv1] = xx; // qv1->val = xx;
+	qv1 = (qv1 + 1) % navg; // qv1 = qv1->next;
+	ref1 = raq1_sum * rcp_ngts;
       }
     }
   }
