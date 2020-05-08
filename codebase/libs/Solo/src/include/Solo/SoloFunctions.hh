@@ -121,4 +121,9 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
                       float bad, size_t dgi_clip_gate,
                       bool *boundary_mask, bool *bad_flag_mask);
 
+void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
+                      const float *data, size_t nGates,
+                      float bad, size_t dgi_clip_gate,
+                      bool *boundary_mask, bool *bad_flag_mask);
+
 #endif

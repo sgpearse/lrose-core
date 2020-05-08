@@ -560,11 +560,11 @@ void se_flag_glitches(float deglitch_threshold, int deglitch_radius,
       ndx_qend = ++ndx_qend % que_size;
     }
   }
-delete[] que;
+  delete[] que;
 }
 
 
-// ----
+/* ----
 
 struct que_val {
   int val;
@@ -573,9 +573,9 @@ struct que_val {
   struct que_val *last; // not used
   struct que_val *next;
 };
-
+*/
 // TODO: use a vector of float? operate as a FIFO que?
-/* c------------------------------------------------------------------------ */
+/* c------------------------------------------------------------------------ 
 
 struct running_avg_que {
   double sum;
@@ -585,7 +585,7 @@ struct running_avg_que {
   struct que_val *at; // this is the head of the list of que_val(s)
   struct running_avg_que *last;
   struct running_avg_que *next;
-
+*/
 
 /* c------------------------------------------------------------------------ */
 
@@ -628,7 +628,8 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
   //struct running_avg_que *se_return_ravgs();  // TODO: HERE <<== keep and manage this struct then fewer code changes; to logic below.
   //struct que_val *qv0, *qv1;
   size_t qv0, qv1; // index into running average que
-  float *ss, xx, ref0, ref1;
+  const float *ss;
+  float  xx, ref0, ref1, raq0_sum, raq1_sum;
   bool *bnd, *flag;
   /* boundary mask is set to 1 if the corresponding cell satisfies
    * conditions of the boundaries
@@ -788,8 +789,8 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
     }
   }
 
-  delete raq0[];
-  delete raq1[];
+  delete[] raq0;
+  delete[] raq1;
 
   // return(1);
 }
