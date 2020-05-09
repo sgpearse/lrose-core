@@ -106,29 +106,41 @@ int alt_gecho(double min_grad,
 
 /* c------------------------------------------------------------------------ */
 
+// TODO: all these values that are buried in data structures are
+// grabbed automatically, internally.  Making them arguments,
+// we are forcing the user to find the values and send them to
+// the function.  Can we do this somehow inside HawkEye? and
+// NOT make them part of the script?
 void se_ac_surface_tweak(
 			 float optimal_beamwidth,
 			 float vert_beam_width,
 			 float asib_altitude_agl,
 			 float dds_ra_elevation,
-			 size_t clip_gate,
 			 bool getenv_ALTERNATE_GECHO,
 			 float d, // used for min_grad, if getenv_ALTERNATE_GECHO is true
-			 bool *boundary_mask,
-)
+			 const float *data,
+			 float *new_data,
+			 size_t nGates,
+			 float bad,
+			 size_t dgi_clip_gate,
+			 bool *boundary_mask)
 {
     /* 
      * #remove-surface#
      * #remove-only-surface#
      * #remove-only-second-trip-surface#
      */
-    struct ui_command *cmdq=cmds+1; /* point to the first argument */
-    int ii, nc, nn, mark, navg, first_cell=YES, pn, sn;
+    //struct ui_command *cmdq=cmds+1; /* point to the first argument */
+    int ii, nc, nn;
+    int navg, first_cell=YES, pn, sn;
     int g1, g2, gx, gate_shift, surface_only = NO, only_2_trip = NO;
     int no_footprint = NO, zmax_cell,  alt_g1;
     bool alt_gecho_flag = false;
     char *name, *aa;
-    short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
+    const float *ss, *zz;
+    float *tt;
+    bool *bnd;
+    float  v0, v4, vx, bad;
     double rot_ang, earthr, deg_elev, bmwidth, elev_limit = -.0001;
     double range_val, min_range, max_range, alt, range1;
     double ground_intersect, footprint, surf_shift, fudge=1.;
@@ -139,18 +151,11 @@ void se_ac_surface_tweak(
     //struct radar_angles *ra;
     //struct solo_edit_stuff *seds, *return_sed_stuff();
 
-
-    seds = return_sed_stuff();	/* solo editing struct */
-
-    if(seds->finish_up) {
-	return(1);
-    }
+    /* TODO: how to do this? when we are using the first ray? may not be used
     if(seds->process_ray_count == 1) {
-	/*
-	 * 
-	 */
 	mark = 0;
     }
+    */
     //    name = (cmdq++)->uc_text;
     //    sn = strlen(name);
 
@@ -160,7 +165,7 @@ void se_ac_surface_tweak(
 			 , "ly-sec") != NULL; /* only-second-trip-surface */
 
     //    dgi = dd_window_dgi(seds->se_frame);
-    bnd = (short *) seds->boundary_mask;
+    bnd = boundary_mask;
     //dds = dgi->dds;
     //asib = dds->asib;
     /*
@@ -170,13 +175,13 @@ void se_ac_surface_tweak(
      * through half the beam width greater than or equal to the
      * altitude of the aircraft?
      */
-    bmwidth = RADIANS(seds->optimal_beamwidth ? seds->optimal_beamwidth :
-	  dgi->dds->radd->vert_beam_width);
+    bmwidth = RADIANS(seds_optimal_beamwidth ? seds_optimal_beamwidth :
+	  dgi_dds_radd_vert_beam_width);
     half_vbw = .5 * bmwidth;
 
-    alt = (asib->altitude_agl)*1000.;
-    max_range = dds->celvc->dist_cells[dgi->clip_gate];
-    elev = dds->ra->elevation;
+    alt = (asib_altitude_agl)*1000.;
+    max_range = dds_celvc_dist_cells[dgi_clip_gate];
+    elev = dds_ra_elevation;
 
     if (surface_only && getenv_ALTERNATE_GECHO) { // (aa = getenv ("ALTERNATE_GECHO"))) {
        if( elev > -.002)	/* -.10 degrees */
@@ -246,10 +251,14 @@ void se_ac_surface_tweak(
     g1 += gate_shift;
     if(g1 < 0) g1 = 0;
 
-    ss = (short *)dds->qdat_ptrs[pn];
-    zz = ss + dgi->clip_gate +1;
+    ss = data; // (short *)dds->qdat_ptrs[pn];
+    // memcopy data into new_data                                                                     
+    memcpy(new_data, data, nGates*sizeof(float));
+    tt = new_data;
+
+    zz = ss + dgi_clip_gate; //  +1;
     ss += g1;
-    bad = dds->parm[pn]->bad_data;
+    // bad = dds->parm[pn]->bad_data;
 
     for(; ss < zz;)
 	  *ss++ = bad;
@@ -261,23 +270,30 @@ void se_ac_surface_tweak(
 
 /* #remove-storm-motion# */
 
-int se_remove_storm_motion(
+void se_remove_storm_motion(
 			   float wind,
 			   float speed,
-			   float *data,
+			   float dgi_dd_rotation_angle,
+			   float dgi_dd_elevation_angle,
+			   const float *data,
+			   float *new_data,
+			   size_t nGates,
 			   float bad,
-			   bool *boundary_mask,
+			   size_t dgi_clip_gate,
+			   bool *boundary_mask
 			   ) 
 {
     /* remove the aircraft motion from velocities
      */
   //    struct ui_command *cmdq=cmds+1; /* point to the first argument */
-    int ii, nc, nn, mark, pn, sn;
+    int ii, nn, mark, pn, sn;
+    size_t nc;
     int scaled_vel;
-    //char *name;
-    float *ss;
-    short *tt, *zz, *bnd, vx;
-    float scale, bias;
+    const float *ss, *zz;
+    float *tt;
+    bool  *bnd;
+    //short vx;
+    //float scale, bias;
     double d, az, cosEl, rcp_cosEl, theta, cosTheta, adjust, scaled_adjust;
     //struct dd_general_info *dgi, *dd_window_dgi();
     //struct dds_structs *dds;
@@ -285,39 +301,41 @@ int se_remove_storm_motion(
     double d_angdiff();
 
     bnd = boundary_mask;
-
-    if((pn = dd_find_field(dgi, name)) < 0) {	
-	uii_printf("Source parameter %s not found for copy\n", name);
-	seds->punt = YES;
-	return(-1);
-    }
-
     ss = data;
+
+    // memcopy data into newData                                                                     
+    memcpy(new_data, data, nGates*sizeof(float));
+    tt = new_data;
 
     // wind = (cmdq++)->uc_v.us_v_float; // angle
     // speed = (cmdq++)->uc_v.us_v_float;
     wind = FMOD360 (wind +180.); /* change to wind vector */
-    az = dd_rotation_angle (dgi);
-    cosEl = cos (RADIANS (dd_elevation_angle (dgi)));
+    az = dgi_dd_rotation_angle;
+    cosEl = cos (RADIANS (dgi_dd_elevation_angle));
     if (fabs (cosEl) < .0001)
-      { return (1); }
+      { return; }
     rcp_cosEl = 1./cosEl;
     theta = d_angdiff (az, wind); /* clockwise from az to wind */
     adjust = cos (RADIANS (theta)) * speed;
 
-    scale = dds->parm[pn]->parameter_scale;
-    bias = dds->parm[pn]->parameter_bias;
-    scaled_adjust = DD_SCALE(adjust, scale, bias);
+    // scale = dds->parm[pn]->parameter_scale;
+    // bias = dds->parm[pn]->parameter_bias;
+    scaled_adjust = adjust;  // DD_SCALE(adjust, scale, bias);
     //bad = dds->parm[pn]->bad_data;
-    nc = dgi->clip_gate +1;
+    if (dgi_clip_gate < 0) 
+      dgi_clip_gate = 0;
+    if (dgi_clip_gate > nGates)
+      dgi_clip_gate = nGates;
+    nc = dgi_clip_gate; //  +1;
     zz = ss +nc;
 
     for(; ss < zz; ss++,bnd++) {
-	if(!(*bnd) || *ss == bad)
-	      continue;
+      if(!(*bnd) || *ss == bad) // TODO: use bad comparison function
+	continue;
 	d = (*ss * cosEl -scaled_adjust) * rcp_cosEl;
-	*ss = (short)d;
+	//*ss = d;
+	*tt = d;
     }
-    return(1);
+   
 }
 /* c------------------------------------------------------------------------ */
