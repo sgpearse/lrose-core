@@ -589,6 +589,9 @@ struct running_avg_que {
 
 /* c------------------------------------------------------------------------ */
 
+// TODO: I have attempted to debug and test this function,
+// but it is just pretty wonky.  
+//
 // bad_flag_mask is set
 // if a gate is considered a freckle, bad_flag_mask = true;
 // TODO: Question: Is the mask updated? or created?  (it is updated)
@@ -652,6 +655,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
     throw "ERROR, freckle average count greater than number of gates in ray";
 
   rcp_ngts = 1./navg;
+  printf("rcp_ngts = %f\n", rcp_ngts);
 
   // TODO: is process_ray_count the number of rays processed?
   // i.e. the rayIdx?  Correct.  If I use an array with mod to make the indexes
@@ -692,6 +696,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
     }
     if(mm < nn) {
       ndx_ss = jj;
+      printf("not enough data for leading queue: mm = %d\n", mm);
       continue;// not enough data to set up queue; move to next boundary
     }
     out_of_bounds = false;
@@ -710,6 +715,10 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
 	raq0[qv0] = xx;   // qv0->val = xx;
 	qv0 = (qv0 + 1) % navg;	//  qv0 = qv0->next;  
 	if(mm >= navg+1) {
+          // print que
+	  for (int i=0; i<navg; i++) {
+	    printf("leading que[%d] = %f\n", i, raq0[i]);
+	  }
 	  break; // exit the loop; the que is full
 	}
       }
@@ -719,6 +728,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
     //
     // set the running average of the leading queue
     ref0 = raq0_sum * rcp_ngts; // ref0 = raq0->sum * rcp_ngts;
+    printf("leading avg (ref0) = %f\n", ref0);
     qv1 = 0; // raq1->at;  // ??
     //
     // now loop through the data until we have encountered
@@ -728,6 +738,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
       if((xx = *(ss+ndx_ss)) == bad)
 	continue;
       if(abs((int)(xx -ref0)) > scaled_thr) {
+	printf("leading avg: setting flag at %lu true; xx = %f; ref0 = %f\n", ndx_ss, xx, ref0);
 	*(flag+ndx_ss) = true; // flag this gate
       }
       else {  // add this point to the trailing average
@@ -777,6 +788,7 @@ void se_flag_freckles(float freckle_threshold, size_t freckle_avg_count,
 	continue;
 
       if(abs((int)(xx -ref1)) > scaled_thr) {
+	printf("trailing avg: setting flag at %lu true; ref1 = %f\n", ndx_ss, ref1);
 	*(flag+ndx_ss) = true; // flag this gate
       }
       else { // add this point to the trailing average 
