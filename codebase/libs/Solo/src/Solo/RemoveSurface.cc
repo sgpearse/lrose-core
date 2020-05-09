@@ -113,6 +113,7 @@ void se_ac_surface_tweak(
 			 float dds_ra_elevation,
 			 size_t clip_gate,
 			 bool getenv_ALTERNATE_GECHO,
+			 float d, // used for min_grad, if getenv_ALTERNATE_GECHO is true
 			 bool *boundary_mask,
 )
 {
@@ -132,11 +133,11 @@ void se_ac_surface_tweak(
     double range_val, min_range, max_range, alt, range1;
     double ground_intersect, footprint, surf_shift, fudge=1.;
     double d, elev, tan_elev, half_vbw, min_grad = .08;	/* dBz/meter */
-    struct dd_general_info *dgi, *dd_window_dgi();
-    struct dds_structs *dds;
-    struct platform_i *asib;
-    struct radar_angles *ra;
-    struct solo_edit_stuff *seds, *return_sed_stuff();
+    //struct dd_general_info *dgi, *dd_window_dgi();
+    //struct dds_structs *dds;
+    //struct platform_i *asib;
+    //struct radar_angles *ra;
+    //struct solo_edit_stuff *seds, *return_sed_stuff();
 
 
     seds = return_sed_stuff();	/* solo editing struct */
@@ -177,11 +178,11 @@ void se_ac_surface_tweak(
     max_range = dds->celvc->dist_cells[dgi->clip_gate];
     elev = dds->ra->elevation;
 
-    if (surface_only && (aa = getenv ("ALTERNATE_GECHO"))) {
+    if (surface_only && getenv_ALTERNATE_GECHO) { // (aa = getenv ("ALTERNATE_GECHO"))) {
        if( elev > -.002)	/* -.10 degrees */
 	 { return(1); }
        alt_gecho_flag = true;
-       d = atof (aa);
+       // d = atof (aa);
        if (d > 0)
 	 { min_grad = d; }	/* dbz per meter */
     }
@@ -258,9 +259,15 @@ void se_ac_surface_tweak(
 
 /* c------------------------------------------------------------------------ */
 
-int se_remove_storm_motion(arg, cmds)	/* #remove-storm-motion# */
-  int arg;
-  struct ui_command *cmds;	
+/* #remove-storm-motion# */
+
+int se_remove_storm_motion(
+			   float wind,
+			   float speed,
+			   float *data,
+			   float bad,
+			   bool *boundary_mask,
+			   ) 
 {
     /* remove the aircraft motion from velocities
      */
@@ -268,39 +275,27 @@ int se_remove_storm_motion(arg, cmds)	/* #remove-storm-motion# */
     int ii, nc, nn, mark, pn, sn;
     int scaled_vel;
     //char *name;
-    short *ss, *tt, *zz, *bnd, vx, bad;
-    float speed, wind, scale, bias;
+    float *ss;
+    short *tt, *zz, *bnd, vx;
+    float scale, bias;
     double d, az, cosEl, rcp_cosEl, theta, cosTheta, adjust, scaled_adjust;
     //struct dd_general_info *dgi, *dd_window_dgi();
     //struct dds_structs *dds;
     //struct solo_edit_stuff *seds, *return_sed_stuff();
     double d_angdiff();
 
-
-    seds = return_sed_stuff();	/* solo editing struct */
-
-    if(seds->finish_up) {
-	return(1);
-    }
-    seds->modified = YES;
-    name = (cmdq++)->uc_text;
-    sn = strlen(name);
-    bnd = (short *) seds->boundary_mask;
-    dgi = dd_window_dgi(seds->se_frame);
-    dds = dgi->dds;
+    bnd = boundary_mask;
 
     if((pn = dd_find_field(dgi, name)) < 0) {	
 	uii_printf("Source parameter %s not found for copy\n", name);
 	seds->punt = YES;
 	return(-1);
     }
-# ifdef NEW_ALLOC_SCHEME
-    ss = (short *)dds->qdat_ptrs[pn];
-# else
-    ss = (short *)((char *)dds->rdat[pn] +sizeof(struct paramdata_d));
-# endif
-    wind = (cmdq++)->uc_v.us_v_float; /* angle */
-    speed = (cmdq++)->uc_v.us_v_float;
+
+    ss = data;
+
+    // wind = (cmdq++)->uc_v.us_v_float; // angle
+    // speed = (cmdq++)->uc_v.us_v_float;
     wind = FMOD360 (wind +180.); /* change to wind vector */
     az = dd_rotation_angle (dgi);
     cosEl = cos (RADIANS (dd_elevation_angle (dgi)));
@@ -313,7 +308,7 @@ int se_remove_storm_motion(arg, cmds)	/* #remove-storm-motion# */
     scale = dds->parm[pn]->parameter_scale;
     bias = dds->parm[pn]->parameter_bias;
     scaled_adjust = DD_SCALE(adjust, scale, bias);
-    bad = dds->parm[pn]->bad_data;
+    //bad = dds->parm[pn]->bad_data;
     nc = dgi->clip_gate +1;
     zz = ss +nc;
 
