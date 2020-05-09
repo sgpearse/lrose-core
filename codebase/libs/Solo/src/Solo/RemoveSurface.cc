@@ -23,7 +23,13 @@ extern GString *gs_complaints;
 
 int alt_gecho(double min_grad,
 	      int *zmax_cell,
-	      double elev)
+	      double elev,
+	      float *data,
+	      size_t nGates,
+	      double dds_asib_rotation_angle,
+	      double dds_asib_roll,
+	      double dds_cfac_rot_angle_corr)
+
 /*
 (dgi, min_grad, zmax_cell)
   DGI_PTR dgi;
@@ -32,7 +38,8 @@ int alt_gecho(double min_grad,
 */
 {
   //    DDS_PTR dds=dgi->dds;
-    int pn, ii, jj, kk, mm, nn, mark, zmax = 0, ival;
+    int pn, ii, jj, kk, mm, mark, zmax = 0, ival;
+    size_t nn;
     int mark_max = -1, mark_grad = -1, ng_grad;
     float *ss;
     short scaled30;
@@ -47,13 +54,16 @@ int alt_gecho(double min_grad,
     /* assume this routine is not called unless the antenna is
      * in a position to see the ground
      */
+    // TODO: is gs the distance between gates?
     gs = dds->celvc->dist_cells[1] - dds->celvc->dist_cells[0];
-    ss = (short *)dds->qdat_ptrs[pn];
-    nn = dgi->dds->celvc->number_cells;
+    ss = data; // (short *)dds->qdat_ptrs[pn];
+    nn = nGates; // dgi->dds->celvc->number_cells;
+    // TODO: what to do about this scaled30?  just set it to 30.0 ?
     scaled30 = (int)(dgi->dds->parm[pn]->parameter_scale * 30.);
-    smin_grad = min_grad *dgi->dds->parm[pn]->parameter_scale * gs * 2.;
-    rot_angle = dds->asib->rotation_angle + dds->asib->roll +
-      dds->cfac->rot_angle_corr;
+    // TODO: what to do about this ??
+    smin_grad = min_grad * dgi->dds->parm[pn]->parameter_scale * gs * 2.;
+    rot_angle = dds_asib_rotation_angle + dds_asib_roll +
+      dds_cfac_rot_angle_corr;
 
     /* scaled change in dBz over two gates */
     /* min_grad = .08 => ~20 dBz over two gates. */
@@ -114,7 +124,8 @@ void se_ac_surface_tweak(
     struct ui_command *cmdq=cmds+1; /* point to the first argument */
     int ii, nc, nn, mark, navg, first_cell=YES, pn, sn;
     int g1, g2, gx, gate_shift, surface_only = NO, only_2_trip = NO;
-    int no_footprint = NO, zmax_cell, alt_gecho_flag = NO, alt_g1;
+    int no_footprint = NO, zmax_cell,  alt_g1;
+    bool alt_gecho_flag = false;
     char *name, *aa;
     short *ss, *tt, *zz, *bnd, v0, v4, vx, bad;
     double rot_ang, earthr, deg_elev, bmwidth, elev_limit = -.0001;
@@ -169,7 +180,7 @@ void se_ac_surface_tweak(
     if (surface_only && (aa = getenv ("ALTERNATE_GECHO"))) {
        if( elev > -.002)	/* -.10 degrees */
 	 { return(1); }
-       alt_gecho_flag = YES;
+       alt_gecho_flag = true;
        d = atof (aa);
        if (d > 0)
 	 { min_grad = d; }	/* dbz per meter */
@@ -207,7 +218,18 @@ void se_ac_surface_tweak(
     gate_shift = seds->surface_gate_shift;
 
     if (alt_gecho_flag) {
-       ii = alt_gecho (dgi, min_grad, &zmax_cell);
+      ii = alt_gecho (min_grad, &zmax_cell, elev, data, nGates,
+		      dds_asib_rotation_angle, dds_asib_roll, dds_cfac_rot_angle_corr);
+       /*
+(double min_grad,
+              int *zmax_cell,
+              double elev,
+              float *data,
+              size_t nGates,
+              double dds_asib_rotation_angle,
+              double dds_asib_roll,
+              double dds_cfac_rot_angle_corr)
+       */
        if (ii > 0)
 	 { g1 = ii; gate_shift = 0; }
        else
