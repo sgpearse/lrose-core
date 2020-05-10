@@ -23,6 +23,7 @@
 
 enum Where {ABOVE, BELOW, BETWEEN};
 enum Logical {AND, OR, XOR};
+enum Surface_Type = {SURFACE, ONLY_SURFACE, SECOND_TRIP};
 
 // use DoradeData.hh radar_type_t or lidar_type_t
 /* Dorade radar types */

@@ -19,6 +19,10 @@ extern GString *gs_complaints;
 # define  BB_USE_LOCAL_WIND 2
 */
 
+
+#include "Solo/GeneralDefinitions.hh"
+
+
 /* c------------------------------------------------------------------------ */
 
 int alt_gecho(double min_grad,
@@ -111,17 +115,25 @@ int alt_gecho(double min_grad,
 // we are forcing the user to find the values and send them to
 // the function.  Can we do this somehow inside HawkEye? and
 // NOT make them part of the script?
-void se_ac_surface_tweak(
+/*
+    surface_only = strstr( cmds->uc_text
+			  , "ly-sur") != NULL; // only-surface 
+    only_2_trip = strstr( cmds->uc_text
+			 , "ly-sec") != NULL; // only-second-trip-surface 
+*/
+// enum Surface_Type = {SURFACE, ONLY_SURFACE, SECOND_TRIP}; 
+void se_ac_surface_tweak(Surface_Type which_removal,
 			 float optimal_beamwidth,
 			 float vert_beam_width,
 			 float asib_altitude_agl,
 			 float dds_ra_elevation,
 			 bool getenv_ALTERNATE_GECHO,
 			 float d, // used for min_grad, if getenv_ALTERNATE_GECHO is true
+			 // d = ALTERNATE_GECHO environment variable
 			 const float *data,
 			 float *new_data,
 			 size_t nGates,
-			 float bad,
+			 float bad_data_value,
 			 size_t dgi_clip_gate,
 			 bool *boundary_mask)
 {
@@ -130,11 +142,12 @@ void se_ac_surface_tweak(
      * #remove-only-surface#
      * #remove-only-second-trip-surface#
      */
-    //struct ui_command *cmdq=cmds+1; /* point to the first argument */
     int ii, nc, nn;
-    int navg, first_cell=YES, pn, sn;
-    int g1, g2, gx, gate_shift, surface_only = NO, only_2_trip = NO;
-    int no_footprint = NO, zmax_cell,  alt_g1;
+    int navg, sn;
+    int g1, g2, gx, gate_shift;
+    bool surface_only = false;
+    bool only_2_trip = false;
+    int zmax_cell,  alt_g1;
     bool alt_gecho_flag = false;
     char *name, *aa;
     const float *ss, *zz;
@@ -156,13 +169,23 @@ void se_ac_surface_tweak(
 	mark = 0;
     }
     */
-    //    name = (cmdq++)->uc_text;
-    //    sn = strlen(name);
+    switch (which_removal) {
+    case SURFACE:
+      break;
+    case SURFACE_ONLY:
+      // surface_only = strstr( cmds->uc_text
+      //			  , "ly-sur") != NULL; /* only-surface */
+      surface_only = true;
+      break;
+    case SECOND_TRIP:
+      //    only_2_trip = strstr( cmds->uc_text
+      //		 , "ly-sec") != NULL; /* only-second-trip-surface */
+      only_2_trip = true;
+      break;
+    }
 
-    surface_only = strstr( cmds->uc_text
-			  , "ly-sur") != NULL; /* only-surface */
-    only_2_trip = strstr( cmds->uc_text
-			 , "ly-sec") != NULL; /* only-second-trip-surface */
+    // memcopy data into new_data                                                                     
+    memcpy(new_data, data, nGates*sizeof(float));
 
     //    dgi = dd_window_dgi(seds->se_frame);
     bnd = boundary_mask;
@@ -180,14 +203,14 @@ void se_ac_surface_tweak(
     half_vbw = .5 * bmwidth;
 
     alt = (asib_altitude_agl)*1000.;
+    // TODO: What is this???
     max_range = dds_celvc_dist_cells[dgi_clip_gate];
     elev = dds_ra_elevation;
 
     if (surface_only && getenv_ALTERNATE_GECHO) { // (aa = getenv ("ALTERNATE_GECHO"))) {
        if( elev > -.002)	/* -.10 degrees */
-	 { return(1); }
+	 { return; }
        alt_gecho_flag = true;
-       // d = atof (aa);
        if (d > 0)
 	 { min_grad = d; }	/* dbz per meter */
     }
@@ -197,16 +220,16 @@ void se_ac_surface_tweak(
 	elev_limit = atan2(d, (double)max_range);
 
 	if( elev > elev_limit)
-	    return(1);
+	    return;
 
 	if(d >= 0 && elev > -fudge * bmwidth) {
-	    only_2_trip = YES;
+	    only_2_trip = true;
 	    g1 = 0;
 	}
     }
 
     if( elev > elev_limit)
-	  return(1);
+	  return;
 
     if( !only_2_trip ) {
         earthr = dd_earthr(dd_latitude(dgi));
@@ -216,7 +239,7 @@ void se_ac_surface_tweak(
 	      (1.+alt/(2.*earthr*1000.*
 		       tan_elev*tan_elev));
 	if(ground_intersect > max_range || ground_intersect < 0 )
-	      return(1);
+	      return;
 	/*
 	 */
 	g1 = dd_cell_num(dgi->dds, 0, range1);
@@ -226,44 +249,26 @@ void se_ac_surface_tweak(
     if (alt_gecho_flag) {
       ii = alt_gecho (min_grad, &zmax_cell, elev, data, nGates,
 		      dds_asib_rotation_angle, dds_asib_roll, dds_cfac_rot_angle_corr);
-       /*
-(double min_grad,
-              int *zmax_cell,
-              double elev,
-              float *data,
-              size_t nGates,
-              double dds_asib_rotation_angle,
-              double dds_asib_roll,
-              double dds_cfac_rot_angle_corr)
-       */
+
        if (ii > 0)
 	 { g1 = ii; gate_shift = 0; }
        else
-	 { return (1); }
+	 { return; }
     }
 
-    if((pn = dd_find_field(dgi, name)) < 0) {	
-	uii_printf("Source parameter %s not found for surface removal\n"
-		  , name);
-	seds->punt = YES;
-	return(-1);
-    }
     g1 += gate_shift;
     if(g1 < 0) g1 = 0;
 
-    ss = data; // (short *)dds->qdat_ptrs[pn];
-    // memcopy data into new_data                                                                     
-    memcpy(new_data, data, nGates*sizeof(float));
+    ss = data;
     tt = new_data;
 
     zz = ss + dgi_clip_gate; //  +1;
     ss += g1;
-    // bad = dds->parm[pn]->bad_data;
+    bad = bad_data_value;
 
     for(; ss < zz;)
 	  *ss++ = bad;
 
-    return(1);
 }
 
 /* c------------------------------------------------------------------------ */
